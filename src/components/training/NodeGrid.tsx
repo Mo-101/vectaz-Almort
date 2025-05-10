@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrainingNode } from '@/lib/training-status';
@@ -17,7 +16,9 @@ const NodeGrid: React.FC<NodeGridProps> = ({ nodes }) => {
           className={`overflow-hidden border transition-all ${
             node.status === 'online' 
               ? 'border-green-600/30 shadow-green-900/10' 
-              : 'border-red-600/30 shadow-red-900/10'
+              : node.status === 'degraded'
+                ? 'border-yellow-600/30 shadow-yellow-900/10'
+                : 'border-red-600/30 shadow-red-900/10'
           }`}
         >
           <CardContent className="p-4 flex flex-col gap-2">
@@ -29,7 +30,7 @@ const NodeGrid: React.FC<NodeGridProps> = ({ nodes }) => {
               <StatusIndicator status={node.status} />
             </div>
             
-            {node.status === 'online' ? (
+            {node.status !== 'offline' ? (
               <div className="mt-2">
                 <ResourceBar label="CPU" value={node.cpuUsage} />
                 <ResourceBar label="Memory" value={node.memoryUsage} />
@@ -52,21 +53,32 @@ const NodeGrid: React.FC<NodeGridProps> = ({ nodes }) => {
 };
 
 interface StatusIndicatorProps {
-  status: 'online' | 'offline';
+  status: 'online' | 'offline' | 'degraded';
 }
 
 const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status }) => {
-  return status === 'online' ? (
-    <div className="flex items-center gap-1.5">
-      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-      <span className="text-xs text-green-400">ONLINE</span>
-    </div>
-  ) : (
-    <div className="flex items-center gap-1.5">
-      <div className="w-2 h-2 bg-red-500 rounded-full" />
-      <span className="text-xs text-red-400">OFFLINE</span>
-    </div>
-  );
+  if (status === 'online') {
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <span className="text-xs text-green-400">ONLINE</span>
+      </div>
+    );
+  } else if (status === 'degraded') {
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 bg-yellow-500 rounded-full pulse-slow" />
+        <span className="text-xs text-yellow-400">DEGRADED</span>
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex items-center gap-1.5">
+        <div className="w-2 h-2 bg-red-500 rounded-full" />
+        <span className="text-xs text-red-400">OFFLINE</span>
+      </div>
+    );
+  }
 };
 
 interface ResourceBarProps {

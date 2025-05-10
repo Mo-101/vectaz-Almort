@@ -4,13 +4,17 @@ import { MessageListProps } from './types';
 import MessageItem from './MessageItem';
 import { Loader2 } from 'lucide-react';
 
+// Updated to ensure id is always present when passed to MessageItem
 const MessageList: React.FC<MessageListProps> = ({ messages, isProcessing = false }) => {
   return (
     <div className="space-y-4 max-h-[400px] overflow-y-auto">
       {messages.map((message, index) => (
         <MessageItem 
           key={message.id || index} 
-          message={message} 
+          message={{
+            ...message,
+            id: message.id || `msg-${index}` // Ensure id is always present
+          }} 
           isProcessing={false} 
         />
       ))}

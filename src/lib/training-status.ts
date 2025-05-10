@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface TrainingNode {
@@ -32,9 +31,9 @@ export interface TrainingStatus {
     memoryUsage: number;
     diskUsage: number;
     networkBandwidth: number;
-    time?: string[];
-    cpu?: number[];
-    memory?: number[];
+    time: string[];  // Changed from optional to required
+    cpu: number[];   // Changed from optional to required
+    memory: number[]; // Changed from optional to required
     gpu?: number[];
   };
   events: TimelineEvent[];
@@ -50,6 +49,7 @@ export interface TrainingStatus {
     loss?: number;
     epochsDone?: number;
     totalEpochs?: number;
+    epoch?: number;  // Added missing epoch property
   };
 }
 
@@ -86,94 +86,7 @@ export async function fetchTrainingStatus(): Promise<TrainingStatus> {
   }
 }
 
-// Generate mock training status data
-function getMockTrainingStatus(): TrainingStatus {
-  const now = new Date();
-  const nextTraining = new Date(now);
-  nextTraining.setHours(nextTraining.getHours() + 2);
-  
-  return {
-    id: 'training-1',
-    timestamp: now.toISOString(),
-    systemStatus: 'operational',
-    trainingStatus: 'idle',
-    nextScheduled: nextTraining.toISOString(),
-    nextTraining: '2 hours',
-    trainingInterval: '4 hours',
-    uptime: '99.98%',
-    responseTime: '42ms',
-    pendingUpdates: 2,
-    lastIncident: '3d ago',
-    lastUpdated: 'just now',
-    trainingMetrics: {
-      accuracy: 0.89,
-      loss: 0.23,
-      epochsDone: 42,
-      totalEpochs: 50,
-      trainingSamples: 1243
-    },
-    metrics: {
-      accuracy: 0.89,
-      loss: 0.23,
-      epochsDone: 42,
-      totalEpochs: 50
-    },
-    nodes: [
-      {
-        id: 'node-1',
-        name: 'Primary Training Node',
-        status: 'online',
-        lastHeartbeat: now.toISOString(),
-        role: 'training',
-        cpuUsage: 65,
-        memoryUsage: 78,
-        lastSeen: now.toISOString()
-      },
-      {
-        id: 'node-2',
-        name: 'Inference Node',
-        status: 'online',
-        lastHeartbeat: now.toISOString(),
-        role: 'inference',
-        cpuUsage: 42,
-        memoryUsage: 55,
-        lastSeen: now.toISOString()
-      },
-      {
-        id: 'node-3',
-        name: 'Data Processing Node',
-        status: 'online',
-        lastHeartbeat: now.toISOString(),
-        role: 'data',
-        cpuUsage: 38,
-        memoryUsage: 45,
-        lastSeen: now.toISOString()
-      },
-      {
-        id: 'node-4',
-        name: 'Backup Node',
-        status: 'offline',
-        lastHeartbeat: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        role: 'backup',
-        cpuUsage: 0,
-        memoryUsage: 0,
-        lastSeen: new Date(now.getTime() - 86400000).toISOString()
-      }
-    ],
-    resources: {
-      cpuUsage: 42.5,
-      memoryUsage: 68.3,
-      diskUsage: 47.2,
-      networkBandwidth: 21.5,
-      time: ['1h ago', '45m ago', '30m ago', '15m ago', 'now'],
-      cpu: [35, 42, 38, 45, 42.5],
-      memory: [62, 65, 70, 68, 68.3],
-      gpu: [50, 48, 52, 55, 53]
-    },
-    events: getTrainingTimelineEvents()
-  };
-}
-
+// Add this missing type definition
 export type EventType = 'error' | 'warning' | 'info' | 'success';
 
 export interface TimelineEvent {
@@ -232,4 +145,93 @@ export function getTrainingTimelineEvents(): TimelineEvent[] {
       time: new Date(now.getTime() - 345600000).toISOString()
     }
   ];
+}
+
+// Generate mock training status data
+export function getMockTrainingStatus(): TrainingStatus {
+  const now = new Date();
+  const nextTraining = new Date(now);
+  nextTraining.setHours(nextTraining.getHours() + 2);
+  
+  return {
+    id: 'training-1',
+    timestamp: now.toISOString(),
+    systemStatus: 'operational',
+    trainingStatus: 'idle',
+    nextScheduled: nextTraining.toISOString(),
+    nextTraining: '2 hours',
+    trainingInterval: '4 hours',
+    uptime: '99.98%',
+    responseTime: '42ms',
+    pendingUpdates: 2,
+    lastIncident: '3d ago',
+    lastUpdated: 'just now',
+    trainingMetrics: {
+      accuracy: 0.89,
+      loss: 0.23,
+      epochsDone: 42,
+      totalEpochs: 50,
+      trainingSamples: 1243
+    },
+    metrics: {
+      accuracy: 0.89,
+      loss: 0.23,
+      epochsDone: 42,
+      totalEpochs: 50,
+      epoch: 42  // Added to satisfy the type requirement
+    },
+    nodes: [
+      {
+        id: 'node-1',
+        name: 'Primary Training Node',
+        status: 'online',
+        lastHeartbeat: now.toISOString(),
+        role: 'training',
+        cpuUsage: 65,
+        memoryUsage: 78,
+        lastSeen: now.toISOString()
+      },
+      {
+        id: 'node-2',
+        name: 'Inference Node',
+        status: 'online',
+        lastHeartbeat: now.toISOString(),
+        role: 'inference',
+        cpuUsage: 42,
+        memoryUsage: 55,
+        lastSeen: now.toISOString()
+      },
+      {
+        id: 'node-3',
+        name: 'Data Processing Node',
+        status: 'online',
+        lastHeartbeat: now.toISOString(),
+        role: 'data',
+        cpuUsage: 38,
+        memoryUsage: 45,
+        lastSeen: now.toISOString()
+      },
+      {
+        id: 'node-4',
+        name: 'Backup Node',
+        status: 'offline',
+        lastHeartbeat: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
+        role: 'backup',
+        cpuUsage: 0,
+        memoryUsage: 0,
+        lastSeen: new Date(now.getTime() - 86400000).toISOString()
+      }
+    ],
+    resources: {
+      cpuUsage: 42.5,
+      memoryUsage: 68.3,
+      diskUsage: 47.2,
+      networkBandwidth: 21.5,
+      time: ['1h ago', '45m ago', '30m ago', '15m ago', 'now'],
+      cpu: [35, 42, 38, 45, 42.5],
+      memory: [62, 65, 70, 68, 68.3],
+      gpu: [50, 48, 52, 55, 53]
+    },
+    events: getTrainingTimelineEvents()
+  };
 }

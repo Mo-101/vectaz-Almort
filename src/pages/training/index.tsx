@@ -66,6 +66,24 @@ const TrainingDashboard: React.FC = () => {
     );
   }
 
+  // Ensure required fields exist in status.resources
+  const resourcesWithDefaults = {
+    ...status.resources,
+    time: status.resources.time || ['now'],
+    cpu: status.resources.cpu || [0],
+    memory: status.resources.memory || [0],
+    gpu: status.resources.gpu
+  };
+
+  // Ensure metrics has the required epoch field
+  const metricsWithDefaults = {
+    ...(status.metrics || status.trainingMetrics),
+    epoch: (status.metrics?.epochsDone || status.trainingMetrics?.epochsDone || 0),
+    accuracy: status.metrics?.accuracy || status.trainingMetrics?.accuracy || 0,
+    loss: status.metrics?.loss || status.trainingMetrics?.loss || 0,
+    totalEpochs: status.metrics?.totalEpochs || status.trainingMetrics?.totalEpochs || 0
+  };
+
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="space-y-6">
@@ -85,15 +103,15 @@ const TrainingDashboard: React.FC = () => {
         
         <div className="grid md:grid-cols-2 gap-6">
           <ResourceChart 
-            resources={status.resources} 
-            metrics={status.metrics || status.trainingMetrics}
+            resources={resourcesWithDefaults}
+            metrics={metricsWithDefaults}
           />
-          <TrainingMetrics metrics={status.metrics || status.trainingMetrics} />
+          <TrainingMetrics metrics={metricsWithDefaults} />
         </div>
         
         <NodeGrid nodes={status.nodes} />
         
-        <ActivityTimeline events={status.events} />
+        <ActivityTimeline events={status.events || []} />
       </div>
     </div>
   );

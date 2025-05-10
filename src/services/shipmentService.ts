@@ -9,7 +9,7 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
     const shipmentData = {
       // Required fields for the database
       id: undefined, // Let Supabase generate this
-      request_reference: shipment.request_reference,
+      request_reference: shipment.request_reference || `REQ-${Date.now()}`,
       destination_country: shipment.destination_country,
       destination_latitude: shipment.destination_latitude,
       destination_longitude: shipment.destination_longitude,
@@ -44,14 +44,14 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
     // Convert database response to match our Shipment type
     return {
       id: data[0].id,
-      request_reference: data[0].request_reference || data[0].id,
+      request_reference: shipment.request_reference || data[0].id,
       cargo_description: shipment.cargo_description || '',
       item_category: shipment.item_category || '',
       carrier: data[0].freight_carrier || '',
       freight_carrier: data[0].freight_carrier || '',
-      weight_kg: shipment.weight_kg,
-      volume_cbm: shipment.volume_cbm,
-      date_of_collection: shipment.date_of_collection,
+      weight_kg: shipment.weight_kg || 0,
+      volume_cbm: shipment.volume_cbm || 0,
+      date_of_collection: shipment.date_of_collection || new Date().toISOString(),
       origin_country: data[0].origin_country,
       origin_latitude: data[0].origin_latitude,
       origin_longitude: data[0].origin_longitude,
@@ -101,7 +101,7 @@ export const getShipments = async () => {
     freight_carrier: record.freight_carrier || '',
     weight_kg: 0,
     volume_cbm: 0,
-    date_of_collection: '',
+    date_of_collection: record.date_of_collection || '',
     origin_country: record.origin_country,
     origin_latitude: record.origin_latitude,
     origin_longitude: record.origin_longitude,
