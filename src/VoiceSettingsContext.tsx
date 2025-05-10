@@ -1,10 +1,11 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface VoiceContextType {
   speak: (text: string, lang?: string, rate?: number, pitch?: number) => void;
   isMuted: boolean;
   toggleMute: () => void;
-  stop: () => void;  // Added missing stop method
+  stop: () => void;
 }
 
 // Default implementation - will be replaced by actual implementation
@@ -12,7 +13,7 @@ const defaultVoiceContext: VoiceContextType = {
   speak: () => {},
   isMuted: false,
   toggleMute: () => {},
-  stop: () => {}  // Added missing stop method
+  stop: () => {}
 };
 
 const VoiceSettingsContext = createContext<VoiceContextType>(defaultVoiceContext);

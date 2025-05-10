@@ -14,27 +14,37 @@ export const useRouteProcessor = () => {
     }
     
     // Process shipment data into routes for the map
-    return shipmentData.map(shipment => ({
-      origin: {
-        lat: shipment.origin_latitude,
-        lng: shipment.origin_longitude,
-        name: shipment.origin_country,
-        isOrigin: true
-      },
-      destination: {
-        lat: shipment.destination_latitude,
-        lng: shipment.destination_longitude,
-        name: shipment.destination_country,
-        isOrigin: false
-      },
-      weight: typeof shipment.weight_kg === 'string' ? parseFloat(shipment.weight_kg) : shipment.weight_kg as number,
-      shipmentCount: 1,
-      deliveryStatus: shipment.delivery_status
-    }));
+    return shipmentData.map(shipment => {
+      // Ensure weight is a number
+      let weight: number;
+      if (typeof shipment.weight_kg === 'string') {
+        weight = parseFloat(shipment.weight_kg) || 0; // Default to 0 if parsing fails
+      } else {
+        weight = shipment.weight_kg as number;
+      }
+      
+      return {
+        origin: {
+          lat: shipment.origin_latitude,
+          lng: shipment.origin_longitude,
+          name: shipment.origin_country,
+          isOrigin: true
+        },
+        destination: {
+          lat: shipment.destination_latitude,
+          lng: shipment.destination_longitude,
+          name: shipment.destination_country,
+          isOrigin: false
+        },
+        weight: weight,
+        shipmentCount: 1,
+        deliveryStatus: shipment.delivery_status
+      };
+    });
   }, [isDataLoaded, shipmentData]);
 
   useEffect(() => {
-    setRoutes(processedRoutes as Route[]);
+    setRoutes(processedRoutes);
   }, [processedRoutes]);
 
   return { routes };

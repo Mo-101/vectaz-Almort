@@ -1,89 +1,72 @@
-
 import { Shipment } from "@/types/deeptrack";
-import { CriteriaWeights } from "@/core/engine";
 
-/**
- * Computes rankings for freight forwarders based on TOPSIS algorithm
- * with weights provided via AHP.
- * 
- * @param shipments The shipment data to analyze
- * @param weights The criteria weights to apply to the decision
- * @returns Array of ranked forwarders with scores
- */
-export const computeForwarderRankings = (
-  shipments: Shipment[],
-  weights: CriteriaWeights
-) => {
-  // Extract unique forwarders from the data
-  const forwarders = Array.from(
-    new Set(
-      shipments
-        .filter(s => s.final_quote_awarded_freight_forwader_Carrier)
-        .map(s => s.final_quote_awarded_freight_forwader_Carrier)
-    )
-  );
+// Function to compute forwarder rankings based on criteria weights
+export const computeForwarderRankings = (shipmentData: Shipment[], criteria: { cost: number; time: number; reliability: number }) => {
+  // Aggregate data for each forwarder
+  const forwarderData: { [key: string]: { totalCost: number; totalTime: number; shipmentCount: number; onTimeCount: number } } = {};
 
-  // Calculate performance metrics for each forwarder
-  const forwarderPerformance = forwarders.map(forwarder => {
-    const forwarderShipments = shipments.filter(
-      s => s.final_quote_awarded_freight_forwader_Carrier === forwarder
-    );
-    
-    // Cost performance (lower is better)
-    const avgCost = forwarderShipments.reduce(
-      (acc, s) => acc + (s.forwarder_quotes[forwarder] || 0) / s.weight_kg, 
-      0
-    ) / forwarderShipments.length;
-    
-    // Time performance (calculate average transit days)
-    const avgTransitDays = 10 + Math.random() * 10; // Mock data for demo
-    
-    // Reliability performance (percentage of on-time deliveries)
-    const onTimeDeliveries = forwarderShipments.filter(
-      s => s.delivery_status === "Delivered"
-    ).length;
-    const reliabilityScore = onTimeDeliveries / forwarderShipments.length;
+  shipmentData.forEach(shipment => {
+    if (!shipment.forwarder_quotes) return;
+
+    Object.keys(shipment.forwarder_quotes).forEach(forwarder => {
+      if (!forwarderData[forwarder]) {
+        forwarderData[forwarder] = { totalCost: 0, totalTime: 0, shipmentCount: 0, onTimeCount: 0 };
+      }
+
+      forwarderData[forwarder].totalCost += shipment.forwarder_quotes && shipment.forwarder_quotes[forwarder] ? Number(shipment.forwarder_quotes[forwarder]) : 0;
+      forwarderData[forwarder].totalTime += 1;
+      forwarderData[forwarder].shipmentCount++;
+
+      if (shipment.delivery_status === 'delivered') { // Assuming 'delivered' means on-time
+        forwarderData[forwarder].onTimeCount++;
+      }
+    });
+  });
+
+  // Calculate average cost, average time, and on-time rate for each forwarder
+  const forwarderStats = Object.entries(forwarderData).map(([forwarder, data]) => {
+    const avgCost = data.shipmentCount > 0 ? data.totalCost / data.shipmentCount : 0;
+    const avgTime = data.totalTime / data.shipmentCount;
+    const onTimeRate = data.shipmentCount > 0 ? data.onTimeCount / data.shipmentCount : 0;
 
     return {
-      name: forwarder,
-      totalShipments: forwarderShipments.length,
-      avgCostPerKg: avgCost || Math.random() * 20 + 5,
-      avgTransitDays: avgTransitDays,
-      onTimeRate: reliabilityScore || Math.random() * 0.3 + 0.7,
-      reliabilityScore: reliabilityScore || Math.random() * 0.3 + 0.7,
-      costScore: 0,
-      timeScore: 0,
-      deepScore: 0
+      forwarder,
+      avgCost,
+      avgTime,
+      onTimeRate,
+      shipmentCount: data.shipmentCount
     };
   });
 
-  // Simple normalization of criteria (Min-Max Normalization)
-  const costValues = forwarderPerformance.map(f => f.avgCostPerKg);
-  const timeValues = forwarderPerformance.map(f => f.avgTransitDays);
-  const reliabilityValues = forwarderPerformance.map(f => f.reliabilityScore);
-  
-  const minCost = Math.min(...costValues);
-  const maxCost = Math.max(...costValues);
-  const minTime = Math.min(...timeValues);
-  const maxTime = Math.max(...timeValues);
-  const minReliability = Math.min(...reliabilityValues);
-  const maxReliability = Math.max(...reliabilityValues);
+  // Normalize the criteria
+  const maxCost = Math.max(...forwarderStats.map(s => s.avgCost));
+  const minCost = Math.min(...forwarderStats.map(s => s.avgCost));
+  const maxTime = Math.max(...forwarderStats.map(s => s.avgTime));
+  const minTime = Math.min(...forwarderStats.map(s => s.avgTime));
 
-  // Calculate weighted normalized scores
-  forwarderPerformance.forEach(forwarder => {
-    // Cost score (lower is better)
-    forwarder.costScore = weights.cost * (1 - ((forwarder.avgCostPerKg - minCost) / (maxCost - minCost || 1)));
-    
-    // Time score (lower is better)
-    forwarder.timeScore = weights.time * (1 - ((forwarder.avgTransitDays - minTime) / (maxTime - minTime || 1)));
-    
-    // Reliability score (higher is better)
-    forwarder.reliabilityScore = weights.reliability * ((forwarder.reliabilityScore - minReliability) / (maxReliability - minReliability || 1));
-    
-    // Calculate final score
-    forwarder.deepScore = forwarder.costScore + forwarder.timeScore + forwarder.reliabilityScore;
+  // Score each forwarder based on the weighted criteria
+  const scoredForwarders = forwarderStats.map(forwarder => {
+    const costScore = maxCost > 0 ? 1 - (forwarder.avgCost - minCost) / (maxCost - minCost) : 0;
+    const timeScore = maxTime > 0 ? 1 - (forwarder.avgTime - minTime) / (maxTime - minTime) : 0;
+    const reliabilityScore = forwarder.onTimeRate;
+
+    const finalScore =
+      (criteria.cost * costScore) +
+      (criteria.time * timeScore) +
+      (criteria.reliability * reliabilityScore);
+
+    return {
+      name: forwarder.forwarder,
+      score: finalScore,
+      costScore,
+      timeScore,
+      reliabilityScore,
+      shipments: forwarder.shipmentCount
+    };
   });
 
-  // Sort by final score, descending
-  return forwarderPerformance.sort((a, b) => b.deepScore - a.deepScore);
+  // Sort forwarders by score in descending order
+  scoredForwarders.sort((a, b) => b.score - a.score);
+
+  return scoredForwarders;
 };

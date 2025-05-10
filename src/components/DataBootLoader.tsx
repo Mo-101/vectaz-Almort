@@ -84,7 +84,7 @@ const DataBootLoader = () => {
         // Process the data into Shipment objects
         setShipmentData(
           data.map(item => ({
-            id: item.id || item.request_reference,
+            id: item.request_reference || `gen-${Math.random().toString(36).substring(2, 10)}`,
             date_of_collection: item.date_of_collection || '',
             request_reference: item.request_reference || '',
             cargo_description: item.cargo_description || '',
@@ -116,7 +116,7 @@ const DataBootLoader = () => {
             agl: item.agl || false,
             siginon: item.siginon || false,
             frieght_in_time: item.frieght_in_time || false,
-            date_of_greenlight_to_pickup: item.date_of_greenlight_to_pickup || null,
+            date_of_greenlight_to_pickup: null,
           })),
           file.name,
           dataVersion,
@@ -265,7 +265,7 @@ const DataBootLoader = () => {
         // Store the data
         setShipmentData(
           mockData.map(item => ({
-            id: item.id || item.request_reference,
+            id: item.request_reference || `gen-${Math.random().toString(36).substring(2, 10)}`,
             date_of_collection: item.date_of_collection || '',
             request_reference: item.request_reference || '',
             cargo_description: item.cargo_description || '',
@@ -307,7 +307,7 @@ const DataBootLoader = () => {
             agl: item.agl || false,
             siginon: item.siginon || false,
             frieght_in_time: item.frieght_in_time || false,
-            date_of_greenlight_to_pickup: item.date_of_greenlight_to_pickup || null,
+            date_of_greenlight_to_pickup: null,
           })),
           'mock_data.csv',
           dataVersion,

@@ -1,308 +1,175 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { BrainCircuit, X, Volume2, VolumeX, DollarSign } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { cn } from '@/lib/utils';
-import MessageList from './chat/MessageList';
-import PromptSuggestions from './chat/PromptSuggestions';
-import ChatInput from './chat/ChatInput';
-import { Message } from './chat/MessageItem';
-import { useVoiceFunctions } from './chat/useVoiceFunctions';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { useDeepCalHumor } from './chat/useDeepCalHumor';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import MessageList from '@/components/chat/MessageList';
+import { useVoice } from '@/VoiceSettingsContext';
+import { Loader2 } from 'lucide-react';
 
 interface DeepTalkProps {
-  className?: string;
-  initialMessage?: string;
-  onQueryData?: (query: string) => Promise<string>;
-  onClose?: () => void;
-  useElevenLabs?: boolean;
+  onResult: (scriptId: string) => void;
 }
 
-const personalityEmojis: Record<string, string> = {
-  sassy: "😏",
-  formal: "🧐",
-  technical: "🤓",
-  excited: "🤩",
-  casual: "😊",
-  nigerian: "🇳🇬"
-};
-
-const modelEmojis: Record<string, string> = {
-  eleven_multilingual_v2: "🌐",
-  eleven_turbo_v2: "⚡",
-  eleven_turbo_v2_5: "⚡",
-  browser: "🔊"
-};
-
-const DeepTalk: React.FC<DeepTalkProps> = ({ 
-  className,
-  initialMessage = "How can I assist with your logistics decisions today? You can ask me about routes, forwarders, costs, or risk analytics.",
-  onQueryData,
-  onClose,
-  useElevenLabs = true
-}) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '0',
-      text: initialMessage,
-      sender: 'ai',
-      timestamp: new Date()
-    }
-  ]);
+const DeepTalk: React.FC<DeepTalkProps> = ({ onResult }) => {
+  const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
   const [input, setInput] = useState('');
+  const [isMuted, setIsMuted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [promptIdeas, setPromptIdeas] = useState<string[]>([
-    "What's our most disrupted route?",
-    "Compare DHL and Kenya Airways performance",
-    "Which warehouse has the best reliability?",
-    "How can we optimize our shipping costs?",
-    "What are the trends in our logistics performance?"
-  ]);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [localUseElevenLabs, setLocalUseElevenLabs] = useState(useElevenLabs);
-  
-  // Update localUseElevenLabs when prop changes
-  useEffect(() => {
-    setLocalUseElevenLabs(useElevenLabs);
-  }, [useElevenLabs]);
-  
-  const { speakResponse, isSpeaking, currentPersonality, currentModel } = useVoiceFunctions();
-  const { getRandomQuip } = useDeepCalHumor();
+  const voice = useVoice();
+  const recognition = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    if (voiceEnabled) {
-      // Load the voice settings from localStorage
-      const savedUseElevenLabs = localStorage.getItem('deepcal-use-elevenlabs');
-      const useEleven = savedUseElevenLabs !== null ? savedUseElevenLabs !== 'false' : localUseElevenLabs;
-      
-      speakResponse(initialMessage);
+    if (!('webkitSpeechRecognition' in window)) {
+      console.log('Speech recognition is not supported in this browser.');
+      return;
     }
-  }, []);
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
-    
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: input,
-      sender: 'user',
-      timestamp: new Date()
+    const SpeechRecognition = window.webkitSpeechRecognition;
+    recognition.current = new SpeechRecognition();
+    recognition.current.continuous = false;
+    recognition.current.interimResults = false;
+    recognition.current.lang = 'en-US';
+
+    recognition.current.onstart = () => {
+      setIsProcessing(true);
+      setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Listening...' }]);
     };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
-    setIsProcessing(true);
-    
-    try {
-      let responseText = "I'm analyzing the logistics data now...";
-      
-      if (onQueryData) {
-        responseText = await onQueryData(input);
-      } else {
-        responseText = "I don't have access to the logistics data right now. Please ensure the DeepTalk handler is properly connected.";
-      }
-      
-      generateNewPromptIdeas(input, responseText);
-      
-      setTimeout(() => {
-        const aiMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          text: responseText,
-          sender: 'ai',
-          timestamp: new Date(),
-          personality: currentPersonality,
-          model: currentModel
-        };
-        
-        setMessages(prev => [...prev, aiMessage]);
-        setIsProcessing(false);
-        
-        if (voiceEnabled) {
-          speakResponse(responseText);
-        }
-      }, 1000);
-    } catch (error) {
-      console.error('Error processing query:', error);
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I'm sorry, I couldn't process that request. Please try again or verify that the data is loaded.",
-        sender: 'ai',
-        timestamp: new Date(),
-        personality: 'formal',
-        model: currentModel
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
+
+    recognition.current.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = Array.from(event.results)
+        .map(result => result[0])
+        .map(result => result.transcript)
+        .join('');
+
+      setInput(transcript);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'You', text: transcript }]);
+      processInput(transcript);
+    };
+
+    recognition.current.onend = () => {
       setIsProcessing(false);
-      
-      if (voiceEnabled) {
-        speakResponse(errorMessage.text);
+      voice.speak('', 'en-US');
+    };
+
+    recognition.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error('Speech recognition error:', event.error);
+      setIsProcessing(false);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: `Error: ${event.error}` }]);
+    };
+
+    return () => {
+      if (recognition.current) {
+        recognition.current.onstart = null;
+        recognition.current.onresult = null;
+        recognition.current.onend = null;
+        recognition.current.onerror = null;
       }
-    }
-  };
+    };
+  }, [voice]);
 
-  const generateNewPromptIdeas = (userQuery: string, aiResponse: string) => {
-    const lowerQuery = userQuery.toLowerCase();
-    const lowerResponse = aiResponse.toLowerCase();
-    
-    if (lowerQuery.includes('risk') || lowerQuery.includes('disruption')) {
-      setPromptIdeas([
-        "How can we reduce disruption risk?",
-        "What factors contribute to our delivery delays?",
-        "Which routes have improved reliability recently?",
-        "What's our contingency plan for high-risk corridors?",
-        "Predict disruption probability for next month"
-      ]);
-    } else if (lowerQuery.includes('forwarder') || lowerQuery.includes('carrier')) {
-      setPromptIdeas([
-        "Who should we use for high-value shipments?",
-        "Which forwarder has the best cost-to-reliability ratio?",
-        "Should we consolidate our carrier base?",
-        "Compare transit times between our top carriers",
-        "What's our optimal forwarder allocation strategy?"
-      ]);
-    } else if (lowerQuery.includes('cost') || lowerQuery.includes('expense')) {
-      setPromptIdeas([
-        "Where can we find the biggest cost savings?",
-        "What's the ROI on premium shipping options?",
-        "How can we optimize our shipping modes?",
-        "Compare costs between our top corridors",
-        "What's driving our logistics cost increases?"
-      ]);
-    } else if (lowerResponse.includes('recommend') || lowerResponse.includes('suggest')) {
-      setPromptIdeas([
-        "Tell me more about that recommendation",
-        "What's the expected impact of these changes?",
-        "How long would implementation take?",
-        "What are the risks of this approach?",
-        "Are there alternative strategies we should consider?"
-      ]);
-    } else {
-      setPromptIdeas([
-        "Why is that happening?",
-        "How does that compare to industry benchmarks?",
-        "What's the trend over the last quarter?",
-        "How can we improve those metrics?",
-        "What's the root cause analysis?"
-      ]);
+  const startListening = useCallback(() => {
+    if (recognition.current) {
+      setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Listening...' }]);
+      recognition.current.start();
     }
-  };
-
-  const handlePromptClick = (prompt: string) => {
-    setInput(prompt);
-  };
-  
-  const toggleVoice = useCallback(() => {
-    setVoiceEnabled(prev => !prev);
   }, []);
-  
-  const toggleVoiceService = useCallback(() => {
-    const newValue = !localUseElevenLabs;
-    setLocalUseElevenLabs(newValue);
-    localStorage.setItem('deepcal-use-elevenlabs', String(newValue));
-  }, [localUseElevenLabs]);
+
+  const stopListening = useCallback(() => {
+    if (recognition.current && isProcessing) {
+      recognition.current.stop();
+      setIsProcessing(false);
+    }
+  }, [isProcessing]);
+
+  const toggleMute = useCallback(() => {
+    setIsMuted(prevMuted => !prevMuted);
+    voice.toggleMute();
+  }, [voice]);
+
+  const processInput = async (text: string) => {
+    setIsProcessing(true);
+    setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Processing...' }]);
+
+    // Simulate processing with a timeout
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Placeholder logic - replace with actual processing
+    if (text.toLowerCase().includes('forwarder')) {
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Recommending best forwarder...' }]);
+      voice.speak('Recommending best forwarder...', 'en-US');
+      onResult('forwarderRecommendation');
+    } else if (text.toLowerCase().includes('route')) {
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Analyzing optimal route...' }]);
+      voice.speak('Analyzing optimal route...', 'en-US');
+      onResult('routeOptimization');
+    } else {
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'No specific action triggered.' }]);
+      voice.speak('No specific action triggered.', 'en-US');
+    }
+
+    setIsProcessing(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (input.trim()) {
+      setMessages(prevMessages => [...prevMessages, { sender: 'You', text: input }]);
+      processInput(input);
+      setInput('');
+    }
+  };
 
   return (
-    <div className={cn("flex flex-col h-full overflow-hidden rounded-lg bg-black/60 backdrop-blur-md border border-blue-500/20", className)}>
-      <div className="px-4 py-3 border-b border-blue-500/20 bg-black/50 flex justify-between items-center">
-        <div className="flex items-center">
-          <BrainCircuit className="h-5 w-5 text-cyan-400 mr-2" />
-          <h3 className="text-sm font-medium text-white">DeepTalk Assistant</h3>
-          <span className="ml-2 px-1.5 py-0.5 text-xs bg-cyan-500/20 text-cyan-400 rounded-sm">v2.0</span>
-          
-          {currentPersonality && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-indigo-500/20 text-indigo-300 rounded-sm font-mono flex items-center">
-                    <span className="mr-1">{personalityEmojis[currentPersonality] || "🤖"}</span>
-                    {currentPersonality}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  Current voice personality
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          
-          {currentModel && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="ml-2 px-1.5 py-0.5 text-xs bg-purple-500/20 text-purple-300 rounded-sm font-mono flex items-center">
-                    <span className="mr-1">{!localUseElevenLabs ? "🔊" : (modelEmojis[currentModel] || "🔊")}</span>
-                    {!localUseElevenLabs ? "browser" : currentModel.replace('eleven_', '')}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  {!localUseElevenLabs ? "Browser speech synthesis" : "ElevenLabs voice model"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
+    <Card className="w-full md:w-[480px] rounded-lg border border-mostar-light-blue/15 bg-black/70 backdrop-blur-md shadow-sm transition-all duration-300 overflow-hidden">
+      <CardContent className="p-4">
+        <MessageList messages={messages} isProcessing={isProcessing} />
+        <form onSubmit={handleInputSubmit} className="mt-4 flex items-center space-x-2">
+          <Input
+            type="text"
+            value={input}
+            onChange={handleInputChange}
+            placeholder="Type your message..."
+            className="flex-grow rounded-md border-gray-700 bg-gray-800 text-white"
+          />
+          <Button type="submit" className="shrink-0 rounded-md bg-blue-500 hover:bg-blue-400 text-white">
+            Send
+          </Button>
+        </form>
+        <div className="mt-4 flex justify-between">
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleVoice}
-            className="h-8 w-8 rounded-full bg-transparent hover:bg-blue-500/10 text-blue-400"
-            title={voiceEnabled ? "Mute voice" : "Enable voice"}
+            onClick={startListening}
+            disabled={isProcessing}
+            className="rounded-md bg-green-500 hover:bg-green-400 text-white"
           >
-            {voiceEnabled ? (
-              <Volume2 className="h-4 w-4" />
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Listening...
+              </>
             ) : (
-              <VolumeX className="h-4 w-4" />
+              'Start Listening'
             )}
           </Button>
-          
-          {voiceEnabled && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleVoiceService}
-              className="h-8 w-8 rounded-full bg-transparent hover:bg-blue-500/10 text-blue-400"
-              title={localUseElevenLabs ? "Use browser voice (save tokens)" : "Use ElevenLabs voice"}
-            >
-              <DollarSign className={`h-4 w-4 ${localUseElevenLabs ? "text-yellow-400" : "text-gray-400"}`} />
-            </Button>
-          )}
-          
-          {onClose && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onClose}
-              className="h-8 w-8 rounded-full bg-transparent hover:bg-blue-500/10 text-blue-400"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            onClick={stopListening}
+            disabled={!isProcessing}
+            className="rounded-md bg-red-500 hover:bg-red-400 text-white"
+          >
+            Stop Listening
+          </Button>
+          <Button
+            onClick={toggleMute}
+            className="rounded-md bg-gray-700 hover:bg-gray-600 text-white"
+          >
+            {isMuted ? 'Unmute' : 'Mute'}
+          </Button>
         </div>
-      </div>
-      
-      <MessageList messages={messages} isProcessing={isProcessing} />
-      
-      <PromptSuggestions promptIdeas={promptIdeas} onPromptClick={handlePromptClick} />
-      
-      <ChatInput 
-        input={input}
-        setInput={setInput}
-        handleSendMessage={handleSendMessage}
-        isProcessing={isProcessing}
-      />
-      
-      {isSpeaking && (
-        <div className="absolute bottom-20 right-4 bg-cyan-500/20 border border-cyan-500/30 rounded-full px-3 py-1 text-xs flex items-center space-x-1 animate-pulse">
-          <span className="text-cyan-400">{personalityEmojis[currentPersonality] || "🤖"}</span>
-          <span className="text-cyan-400">Speaking...</span>
-          {!localUseElevenLabs && <span className="text-gray-400 text-[10px]">(browser)</span>}
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
