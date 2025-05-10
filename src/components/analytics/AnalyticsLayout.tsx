@@ -1,4 +1,5 @@
 
+// Update the DeepTalk component usage to match the correct props
 import React, { useState } from 'react';
 import { BarChart, Brain, X } from 'lucide-react';
 import KPIPanel from '@/components/KPIPanel';
@@ -38,6 +39,11 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
   const handleDeepTalkQuery = async (query: string): Promise<string> => {
     // This is a placeholder function that would be connected to the actual DeepCAL engine
     return `I've analyzed your query: "${query}". Here's what the data suggests...`;
+  };
+
+  const handleDeepTalkResult = (scriptId: string) => {
+    console.log("Script triggered:", scriptId);
+    // Handle the result here
   };
 
   return (
@@ -91,6 +97,7 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
         {showDeepTalk && (
           <div className={`${isMobile ? '' : 'lg:col-span-1'} glass-panel border border-blue-500/20 rounded-lg overflow-hidden`}>
             <DeepTalk 
+              onResult={handleDeepTalkResult}
               className="h-[calc(100vh-220px)] min-h-[400px] max-h-[800px]" 
               initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?" 
               onQueryData={handleDeepTalkQuery} 

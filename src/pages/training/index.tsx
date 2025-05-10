@@ -74,26 +74,26 @@ const TrainingDashboard: React.FC = () => {
         <SystemStatusCard
           systemStatus={status.systemStatus}
           trainingStatus={status.trainingStatus}
-          nextTraining={status.nextTraining}
-          trainingInterval={status.trainingInterval}
-          uptime={status.uptime}
-          responseTime={status.responseTime}
-          pendingUpdates={status.pendingUpdates}
-          lastIncident={status.lastIncident}
-          lastUpdated={status.lastUpdated}
+          nextTraining={status.nextTraining || "Unknown"}
+          trainingInterval={status.trainingInterval || "Unknown"}
+          uptime={status.uptime || "Unknown"}
+          responseTime={status.responseTime || "Unknown"}
+          pendingUpdates={status.pendingUpdates || 0}
+          lastIncident={status.lastIncident || "None"}
+          lastUpdated={status.lastUpdated || "Unknown"}
         />
         
         <div className="grid md:grid-cols-2 gap-6">
           <ResourceChart 
             resources={status.resources} 
-            metrics={status.metrics}
+            metrics={status.metrics || status.trainingMetrics}
           />
-          <TrainingMetrics metrics={status.metrics} />
+          <TrainingMetrics metrics={status.metrics || status.trainingMetrics} />
         </div>
         
         <NodeGrid nodes={status.nodes} />
         
-        <ActivityTimeline />
+        <ActivityTimeline events={status.events} />
       </div>
     </div>
   );

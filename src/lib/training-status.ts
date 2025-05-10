@@ -1,6 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+export interface TrainingNode {
+  id: string;
+  name: string;
+  status: 'online' | 'offline' | 'degraded';
+  lastHeartbeat: string;
+  role: string;
+  cpuUsage?: number;
+  memoryUsage?: number;
+  gpuUsage?: number;
+  lastSeen: string;
+}
+
 export interface TrainingStatus {
   id: string;
   timestamp: string;
@@ -14,26 +26,31 @@ export interface TrainingStatus {
     totalEpochs?: number;
     trainingSamples?: number;
   };
-  nodes: {
-    id: string;
-    name: string;
-    status: 'online' | 'offline' | 'degraded';
-    lastHeartbeat: string;
-    role: string;
-  }[];
+  nodes: TrainingNode[];
   resources: {
     cpuUsage: number;
     memoryUsage: number;
     diskUsage: number;
     networkBandwidth: number;
+    time?: string[];
+    cpu?: number[];
+    memory?: number[];
+    gpu?: number[];
   };
-  events: {
-    id: number;
-    type: 'error' | 'warning' | 'info' | 'success';
-    message: string;
-    timestamp: string;
-    severity: 'high' | 'medium' | 'low';
-  }[];
+  events: TimelineEvent[];
+  nextTraining?: string;
+  trainingInterval?: string;
+  uptime?: string;
+  responseTime?: string;
+  pendingUpdates?: number;
+  lastIncident?: string;
+  lastUpdated?: string;
+  metrics?: {
+    accuracy?: number;
+    loss?: number;
+    epochsDone?: number;
+    totalEpochs?: number;
+  };
 }
 
 // Fetch training status from various sources
@@ -81,6 +98,13 @@ function getMockTrainingStatus(): TrainingStatus {
     systemStatus: 'operational',
     trainingStatus: 'idle',
     nextScheduled: nextTraining.toISOString(),
+    nextTraining: '2 hours',
+    trainingInterval: '4 hours',
+    uptime: '99.98%',
+    responseTime: '42ms',
+    pendingUpdates: 2,
+    lastIncident: '3d ago',
+    lastUpdated: 'just now',
     trainingMetrics: {
       accuracy: 0.89,
       loss: 0.23,
@@ -88,72 +112,65 @@ function getMockTrainingStatus(): TrainingStatus {
       totalEpochs: 50,
       trainingSamples: 1243
     },
+    metrics: {
+      accuracy: 0.89,
+      loss: 0.23,
+      epochsDone: 42,
+      totalEpochs: 50
+    },
     nodes: [
       {
         id: 'node-1',
         name: 'Primary Training Node',
         status: 'online',
         lastHeartbeat: now.toISOString(),
-        role: 'training'
+        role: 'training',
+        cpuUsage: 65,
+        memoryUsage: 78,
+        lastSeen: now.toISOString()
       },
       {
         id: 'node-2',
         name: 'Inference Node',
         status: 'online',
         lastHeartbeat: now.toISOString(),
-        role: 'inference'
+        role: 'inference',
+        cpuUsage: 42,
+        memoryUsage: 55,
+        lastSeen: now.toISOString()
       },
       {
         id: 'node-3',
         name: 'Data Processing Node',
         status: 'online',
         lastHeartbeat: now.toISOString(),
-        role: 'data'
+        role: 'data',
+        cpuUsage: 38,
+        memoryUsage: 45,
+        lastSeen: now.toISOString()
       },
       {
         id: 'node-4',
         name: 'Backup Node',
         status: 'offline',
         lastHeartbeat: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        role: 'backup'
+        role: 'backup',
+        cpuUsage: 0,
+        memoryUsage: 0,
+        lastSeen: new Date(now.getTime() - 86400000).toISOString()
       }
     ],
     resources: {
       cpuUsage: 42.5,
       memoryUsage: 68.3,
       diskUsage: 47.2,
-      networkBandwidth: 21.5
+      networkBandwidth: 21.5,
+      time: ['1h ago', '45m ago', '30m ago', '15m ago', 'now'],
+      cpu: [35, 42, 38, 45, 42.5],
+      memory: [62, 65, 70, 68, 68.3],
+      gpu: [50, 48, 52, 55, 53]
     },
-    events: [
-      {
-        id: 1,
-        type: 'success',
-        message: 'Training completed successfully',
-        timestamp: new Date(now.getTime() - 3600000).toISOString(), // 1 hour ago
-        severity: 'low'
-      },
-      {
-        id: 2,
-        type: 'info',
-        message: 'Model evaluation started',
-        timestamp: new Date(now.getTime() - 7200000).toISOString(), // 2 hours ago
-        severity: 'low'
-      },
-      {
-        id: 3,
-        type: 'warning',
-        message: 'High resource usage detected',
-        timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        severity: 'medium'
-      },
-      {
-        id: 4,
-        type: 'error',
-        message: 'Backup node connection lost',
-        timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
-        severity: 'high'
-      }
-    ]
+    events: getTrainingTimelineEvents()
   };
 }
 

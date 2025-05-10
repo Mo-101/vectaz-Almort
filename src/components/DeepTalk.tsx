@@ -1,22 +1,38 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import MessageList from '@/components/chat/MessageList';
-import { useVoice } from '@/VoiceSettingsContext';
+import { useVoice } from '@/hooks/useVoice';
 import { Loader2 } from 'lucide-react';
+
+// Add interface for SpeechRecognition Web API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
 
 interface DeepTalkProps {
   onResult: (scriptId: string) => void;
+  className?: string;
+  initialMessage?: string;
+  onQueryData?: (query: string) => Promise<string>;
+  onClose?: () => void;
 }
 
-const DeepTalk: React.FC<DeepTalkProps> = ({ onResult }) => {
-  const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
+const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage, onQueryData, onClose }) => {
+  const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
+    initialMessage ? [{ sender: 'DeepCAL', text: initialMessage }] : []
+  );
   const [input, setInput] = useState('');
   const [isMuted, setIsMuted] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const voice = useVoice();
-  const recognition = useRef<SpeechRecognition | null>(null);
+  const recognition = useRef<any>(null);
 
   useEffect(() => {
     if (!('webkitSpeechRecognition' in window)) {
@@ -24,7 +40,8 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult }) => {
       return;
     }
 
-    const SpeechRecognition = window.webkitSpeechRecognition;
+    // Use window property with type assertion
+    const SpeechRecognition = (window as any).webkitSpeechRecognition;
     recognition.current = new SpeechRecognition();
     recognition.current.continuous = false;
     recognition.current.interimResults = false;
@@ -48,7 +65,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult }) => {
 
     recognition.current.onend = () => {
       setIsProcessing(false);
-      voice.speak('', 'en-US');
+      voice.speak('', 'en-US', 1.2, 1.3);
     };
 
     recognition.current.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -90,24 +107,36 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult }) => {
     setIsProcessing(true);
     setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Processing...' }]);
 
-    // Simulate processing with a timeout
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Use onQueryData if provided, otherwise use default behavior
+      if (onQueryData) {
+        const response = await onQueryData(text);
+        setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: response }]);
+        voice.speak(response, 'en-US', 1.2, 1.3);
+      } else {
+        // Simulate processing with a timeout
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Placeholder logic - replace with actual processing
-    if (text.toLowerCase().includes('forwarder')) {
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Recommending best forwarder...' }]);
-      voice.speak('Recommending best forwarder...', 'en-US');
-      onResult('forwarderRecommendation');
-    } else if (text.toLowerCase().includes('route')) {
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Analyzing optimal route...' }]);
-      voice.speak('Analyzing optimal route...', 'en-US');
-      onResult('routeOptimization');
-    } else {
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'No specific action triggered.' }]);
-      voice.speak('No specific action triggered.', 'en-US');
+        // Placeholder logic - replace with actual processing
+        if (text.toLowerCase().includes('forwarder')) {
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Recommending best forwarder...' }]);
+          voice.speak('Recommending best forwarder...', 'en-US', 1.2, 1.3);
+          onResult('forwarderRecommendation');
+        } else if (text.toLowerCase().includes('route')) {
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Analyzing optimal route...' }]);
+          voice.speak('Analyzing optimal route...', 'en-US', 1.2, 1.3);
+          onResult('routeOptimization');
+        } else {
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'No specific action triggered.' }]);
+          voice.speak('No specific action triggered.', 'en-US', 1.2, 1.3);
+        }
+      }
+    } catch (error) {
+      console.error('Error processing input:', error);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: `Error: ${error instanceof Error ? error.message : String(error)}` }]);
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +153,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult }) => {
   };
 
   return (
-    <Card className="w-full md:w-[480px] rounded-lg border border-mostar-light-blue/15 bg-black/70 backdrop-blur-md shadow-sm transition-all duration-300 overflow-hidden">
+    <Card className={`w-full rounded-lg border border-mostar-light-blue/15 bg-black/70 backdrop-blur-md shadow-sm transition-all duration-300 overflow-hidden ${className || ''}`}>
       <CardContent className="p-4">
         <MessageList messages={messages} isProcessing={isProcessing} />
         <form onSubmit={handleInputSubmit} className="mt-4 flex items-center space-x-2">

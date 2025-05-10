@@ -19,10 +19,10 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
       weight_kg: typeof shipment.weight_kg === 'string' ? parseFloat(shipment.weight_kg as string) : shipment.weight_kg,
       volume_cbm: typeof shipment.volume_cbm === 'string' ? parseFloat(shipment.volume_cbm as string) : shipment.volume_cbm,
       date_of_collection: shipment.date_of_collection,
+      freight_carrier: shipment.freight_carrier || shipment.carrier || '',
       
       // Optional fields with fallbacks
       delivery_status: shipment.status || shipment.delivery_status || 'pending',
-      freight_carrier: shipment.freight_carrier || shipment.carrier || '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -49,9 +49,9 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
       item_category: shipment.item_category || '',
       carrier: data[0].freight_carrier || '',
       freight_carrier: data[0].freight_carrier || '',
-      weight_kg: data[0].weight_kg,
-      volume_cbm: data[0].volume_cbm,
-      date_of_collection: data[0].date_of_collection,
+      weight_kg: shipment.weight_kg,
+      volume_cbm: shipment.volume_cbm,
+      date_of_collection: shipment.date_of_collection,
       origin_country: data[0].origin_country,
       origin_latitude: data[0].origin_latitude,
       origin_longitude: data[0].origin_longitude,
@@ -59,7 +59,7 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
       destination_latitude: data[0].destination_latitude,
       destination_longitude: data[0].destination_longitude,
       delivery_status: data[0].delivery_status,
-      date_of_greenlight_to_pickup: data[0].date_of_greenlight_to_pickup || null,
+      date_of_greenlight_to_pickup: shipment.date_of_greenlight_to_pickup || null,
       // Add other fields with reasonable defaults
       "carrier+cost": shipment["carrier+cost"] || '',
       "freight_carrier+cost": shipment["freight_carrier+cost"] || '',
@@ -95,13 +95,13 @@ export const getShipments = async () => {
   return data.map(record => ({
     id: record.id,
     request_reference: record.request_reference || record.id,
-    cargo_description: record.cargo_description || '',
-    item_category: record.item_category || '',
+    cargo_description: '',
+    item_category: '',
     carrier: record.freight_carrier || '',
     freight_carrier: record.freight_carrier || '',
-    weight_kg: record.weight_kg,
-    volume_cbm: record.volume_cbm,
-    date_of_collection: record.date_of_collection,
+    weight_kg: 0,
+    volume_cbm: 0,
+    date_of_collection: '',
     origin_country: record.origin_country,
     origin_latitude: record.origin_latitude,
     origin_longitude: record.origin_longitude,
@@ -109,7 +109,7 @@ export const getShipments = async () => {
     destination_latitude: record.destination_latitude,
     destination_longitude: record.destination_longitude,
     delivery_status: record.delivery_status,
-    date_of_greenlight_to_pickup: record.date_of_greenlight_to_pickup || null,
+    date_of_greenlight_to_pickup: null,
     // Add defaults for required fields
     "carrier+cost": '',
     "freight_carrier+cost": '',

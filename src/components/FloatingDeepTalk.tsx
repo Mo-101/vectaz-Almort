@@ -40,6 +40,11 @@ const FloatingDeepTalk: React.FC = () => {
       : 'w-80 md:w-96 h-[480px]';
   };
 
+  const handleResult = (scriptId: string) => {
+    console.log("Script triggered:", scriptId);
+    // Handle the result here
+  };
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       <AnimatePresence>
@@ -82,6 +87,7 @@ const FloatingDeepTalk: React.FC = () => {
             </div>
             <div className="h-full">
               <DeepTalk 
+                onResult={handleResult}
                 className="h-full border-none" 
                 initialMessage="I've analyzed your logistics data. What would you like to know about your shipments, forwarders, or routes?"
                 onQueryData={handleQuery}
