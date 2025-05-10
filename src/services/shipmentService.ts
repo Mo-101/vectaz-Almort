@@ -44,14 +44,14 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
     // Convert database response to match our Shipment type
     return {
       id: data[0].id,
-      request_reference: shipment.request_reference || data[0].id,
+      request_reference: shipmentData.request_reference || data[0].id,
       cargo_description: shipment.cargo_description || '',
       item_category: shipment.item_category || '',
       carrier: data[0].freight_carrier || '',
       freight_carrier: data[0].freight_carrier || '',
       weight_kg: shipment.weight_kg || 0,
       volume_cbm: shipment.volume_cbm || 0,
-      date_of_collection: shipment.date_of_collection || new Date().toISOString(),
+      date_of_collection: shipmentData.date_of_collection || new Date().toISOString(),
       origin_country: data[0].origin_country,
       origin_latitude: data[0].origin_latitude,
       origin_longitude: data[0].origin_longitude,
@@ -94,14 +94,14 @@ export const getShipments = async () => {
   // Convert database records to match our Shipment type
   return data.map(record => ({
     id: record.id,
-    request_reference: record.request_reference || record.id,
+    request_reference: record.id, // Use ID as request_reference since it might not exist in DB
     cargo_description: '',
     item_category: '',
     carrier: record.freight_carrier || '',
     freight_carrier: record.freight_carrier || '',
     weight_kg: 0,
     volume_cbm: 0,
-    date_of_collection: record.date_of_collection || '',
+    date_of_collection: record.created_at || '', // Fallback to created_at
     origin_country: record.origin_country,
     origin_latitude: record.origin_latitude,
     origin_longitude: record.origin_longitude,

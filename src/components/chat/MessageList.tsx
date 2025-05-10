@@ -5,6 +5,7 @@ import MessageItem from './MessageItem';
 import { Loader2 } from 'lucide-react';
 
 // Updated to ensure id is always present when passed to MessageItem
+// and sender is either "user" or "ai"
 const MessageList: React.FC<MessageListProps> = ({ messages, isProcessing = false }) => {
   return (
     <div className="space-y-4 max-h-[400px] overflow-y-auto">
@@ -13,7 +14,8 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isProcessing = fals
           key={message.id || index} 
           message={{
             ...message,
-            id: message.id || `msg-${index}` // Ensure id is always present
+            id: message.id || `msg-${index}`, // Ensure id is always present
+            sender: message.sender as "user" | "ai" // Ensure sender is typed correctly
           }} 
           isProcessing={false} 
         />
