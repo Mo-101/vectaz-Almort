@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ForwarderScore, WeightFactors } from './types';
 import TopRecommendation from './results/TopRecommendation';
 import DecisionExplanation from './results/DecisionExplanation';
@@ -33,7 +32,6 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
   shipmentCount,
   onNewAnalysis 
 }) => {
-  const [activeResultTab, setActiveResultTab] = useState<string>('recommendation');
   const [showMathExplanation, setShowMathExplanation] = useState<boolean>(false);
   
   // Show mathematical explanation after a delay to simulate calculation
@@ -64,42 +62,30 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
           </Button>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={activeResultTab} onValueChange={setActiveResultTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-8 bg-[#0A1A2F]/60 border border-[#00FFD1]/20">
-              <TabsTrigger value="recommendation" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Recommendation</TabsTrigger>
-              <TabsTrigger value="comparison" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Comparison</TabsTrigger>
-              <TabsTrigger value="detailed" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Detailed Analysis</TabsTrigger>
-            </TabsList>
+          <div className="space-y-8">
+            {/* Top Recommendation Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <TopRecommendation topResult={results[0]} />
+              <DecisionExplanation 
+                topResult={results[0]} 
+                source={source} 
+                destination={destination} 
+                weightFactors={weightFactors} 
+              />
+            </div>
             
-            <TabsContent value="recommendation">
+            {/* Charts Section */}
+            <div className="space-y-8">
+              <h3 className="text-xl font-medium text-[#00FFD1]">Performance Comparison</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <TopRecommendation topResult={results[0]} />
-                <DecisionExplanation 
-                  topResult={results[0]} 
-                  source={source} 
-                  destination={destination} 
-                  weightFactors={weightFactors} 
-                />
-              </div>
-              
-              {/* Show mathematical explanation below the recommendations */}
-              {showMathExplanation && (
-                <MathematicalExplanation 
-                  results={results}
-                  weightFactors={weightFactors}
-                  shipmentCount={shipmentCount}
-                />
-              )}
-            </TabsContent>
-            
-            <TabsContent value="comparison">
-              <div className="space-y-8">
                 <ScoreComparisonChart results={results} />
                 <MultidimensionalChart results={results} />
               </div>
-            </TabsContent>
+            </div>
             
-            <TabsContent value="detailed">
+            {/* Detailed Analysis Section */}
+            <div className="space-y-8">
+              <h3 className="text-xl font-medium text-[#00FFD1]">Detailed Analysis</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <CalculatedMetricsTable results={results} />
                 <MethodologyExplanation 
@@ -107,16 +93,25 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                   shipmentCount={shipmentCount} 
                 />
               </div>
-            </TabsContent>
-          </Tabs>
-          
-          {/* Loading state for mathematical explanation */}
-          {!showMathExplanation && (
-            <div className="flex flex-col items-center justify-center py-8 mt-4 border border-[#00FFD1]/10 rounded bg-[#0A1A2F]/40">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1] mb-4"></div>
-              <p className="text-[#00FFD1]">Calculating mathematical foundations...</p>
             </div>
-          )}
+            
+            {/* Mathematical Foundation Section */}
+            {showMathExplanation ? (
+              <div className="mt-8">
+                <h3 className="text-xl font-medium text-[#00FFD1]">Mathematical Foundation</h3>
+                <MathematicalExplanation 
+                  results={results}
+                  weightFactors={weightFactors}
+                  shipmentCount={shipmentCount}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 mt-4 border border-[#00FFD1]/10 rounded bg-[#0A1A2F]/40">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1] mb-4"></div>
+                <p className="text-[#00FFD1]">Calculating mathematical foundations...</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
