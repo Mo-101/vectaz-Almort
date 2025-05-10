@@ -65,11 +65,10 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue={activeResultTab} onValueChange={setActiveResultTab}>
-            <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#0A1A2F]/60 border border-[#00FFD1]/20">
+            <TabsList className="grid w-full grid-cols-3 mb-8 bg-[#0A1A2F]/60 border border-[#00FFD1]/20">
               <TabsTrigger value="recommendation" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Recommendation</TabsTrigger>
               <TabsTrigger value="comparison" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Comparison</TabsTrigger>
               <TabsTrigger value="detailed" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Detailed Analysis</TabsTrigger>
-              <TabsTrigger value="mathematics" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]" disabled={!showMathExplanation}>Mathematics</TabsTrigger>
             </TabsList>
             
             <TabsContent value="recommendation">
@@ -82,6 +81,15 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                   weightFactors={weightFactors} 
                 />
               </div>
+              
+              {/* Show mathematical explanation below the recommendations */}
+              {showMathExplanation && (
+                <MathematicalExplanation 
+                  results={results}
+                  weightFactors={weightFactors}
+                  shipmentCount={shipmentCount}
+                />
+              )}
             </TabsContent>
             
             <TabsContent value="comparison">
@@ -100,22 +108,15 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                 />
               </div>
             </TabsContent>
-
-            <TabsContent value="mathematics">
-              {showMathExplanation ? (
-                <MathematicalExplanation 
-                  results={results}
-                  weightFactors={weightFactors}
-                  shipmentCount={shipmentCount}
-                />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1] mb-4"></div>
-                  <p className="text-[#00FFD1]">Calculating mathematical foundations...</p>
-                </div>
-              )}
-            </TabsContent>
           </Tabs>
+          
+          {/* Loading state for mathematical explanation */}
+          {!showMathExplanation && (
+            <div className="flex flex-col items-center justify-center py-8 mt-4 border border-[#00FFD1]/10 rounded bg-[#0A1A2F]/40">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1] mb-4"></div>
+              <p className="text-[#00FFD1]">Calculating mathematical foundations...</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
