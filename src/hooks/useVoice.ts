@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 
 export const useVoice = () => {
@@ -26,6 +27,12 @@ export const useVoice = () => {
     synth.speak(utterance);
   };
 
+  const stop = () => {
+    if (typeof window !== "undefined") {
+      window.speechSynthesis.cancel();
+    }
+  };
+
   const toggleMute = () => setIsMuted(!isMuted);
 
   // Clean up speech on unmount
@@ -37,5 +44,5 @@ export const useVoice = () => {
     };
   }, []);
 
-  return { speak, isMuted, toggleMute };
+  return { speak, isMuted, toggleMute, stop };
 };

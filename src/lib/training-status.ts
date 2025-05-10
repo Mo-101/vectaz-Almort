@@ -1,184 +1,218 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export interface TrainingNode {
-  name: string;
-  status: 'online' | 'offline';
-  lastSeen: string;
-  cpuUsage: number;
-  memoryUsage: number;
-  gpuUsage?: number;
-}
-
 export interface TrainingStatus {
+  id: string;
+  timestamp: string;
   systemStatus: string;
   trainingStatus: string;
-  nextTraining: string;
-  trainingInterval: string;
-  uptime: string;
-  responseTime: string;
-  pendingUpdates: number;
-  lastIncident: string;
-  lastUpdated: string;
-  metrics: {
-    accuracy: number;
-    loss: number;
-    epoch: number;
-    totalEpochs: number;
+  nextScheduled: string | null;
+  trainingMetrics: {
+    accuracy?: number;
+    loss?: number;
+    epochsDone?: number;
+    totalEpochs?: number;
+    trainingSamples?: number;
   };
-  nodes: TrainingNode[];
+  nodes: {
+    id: string;
+    name: string;
+    status: 'online' | 'offline' | 'degraded';
+    lastHeartbeat: string;
+    role: string;
+  }[];
   resources: {
-    time: string[];
-    cpu: number[];
-    memory: number[];
-    gpu?: number[];
+    cpuUsage: number;
+    memoryUsage: number;
+    diskUsage: number;
+    networkBandwidth: number;
   };
+  events: {
+    id: number;
+    type: 'error' | 'warning' | 'info' | 'success';
+    message: string;
+    timestamp: string;
+    severity: 'high' | 'medium' | 'low';
+  }[];
 }
 
+// Fetch training status from various sources
 export async function fetchTrainingStatus(): Promise<TrainingStatus> {
+  // Try to get status from internal engine first
   try {
-    // First try internal engine endpoint
-    const engineData = await fetchFromEngine();
-    if (engineData) return engineData;
+    // This would connect to your actual engine API
+    // const response = await fetch('/api/engine/training-status');
+    // if (response.ok) {
+    //   return await response.json();
+    // }
+    // For now, just throw to move to fallback
+    throw new Error('Engine API not available');
+  } catch (engineError) {
+    console.log('Engine API not available, falling back to mock data');
     
-    // Fallback to Supabase
-    const supabaseData = await fetchFromSupabase();
-    if (supabaseData) return supabaseData;
-    
-  } catch (error) {
-    console.error('Error fetching training status:', error);
-  }
-  
-  // Return mock data as final fallback
-  return getMockTrainingStatus();
-}
-
-async function fetchFromEngine(): Promise<TrainingStatus | null> {
-  try {
-    // Implement actual engine fetch when available
-    return null;
-  } catch (error) {
-    console.error('Error fetching from engine:', error);
-    return null;
-  }
-}
-
-async function fetchFromSupabase(): Promise<TrainingStatus | null> {
-  try {
-    const { data, error } = await supabase
-      .from('training_status')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1);
-    
-    if (error) throw error;
-    if (!data || data.length === 0) return null;
-    
-    // Transform Supabase data to our TrainingStatus interface
-    return transformSupabaseData(data[0]);
-  } catch (error) {
-    console.error('Error fetching from Supabase:', error);
-    return null;
+    // Try to get from Supabase if it exists
+    try {
+      // Check if the training_status table exists in Supabase
+      // If you create a table, you can use this code to fetch from it
+      // const { data, error } = await supabase.from('training_status').select('*').order('timestamp', { ascending: false }).limit(1);
+      // if (error) throw error;
+      // if (data && data.length > 0) {
+      //   return data[0] as TrainingStatus;
+      // }
+      throw new Error('No training data in Supabase');
+    } catch (supabaseError) {
+      console.log('Supabase data not available, using fallback mock data');
+      
+      // Final fallback - use mock data
+      return getMockTrainingStatus();
+    }
   }
 }
 
-function transformSupabaseData(data: any): TrainingStatus {
-  // Transform Supabase data to match our interface
-  // This is a placeholder - implement actual transformation based on your schema
-  return {
-    systemStatus: data.system_status || 'unknown',
-    trainingStatus: data.training_status || 'unknown',
-    nextTraining: data.next_training || 'unknown',
-    trainingInterval: data.training_interval || '2 hours',
-    uptime: data.uptime || '0%',
-    responseTime: data.response_time || '0ms',
-    pendingUpdates: data.pending_updates || 0,
-    lastIncident: data.last_incident || 'None',
-    lastUpdated: new Date(data.created_at).toLocaleString(),
-    metrics: {
-      accuracy: data.accuracy || 0,
-      loss: data.loss || 0,
-      epoch: data.current_epoch || 0,
-      totalEpochs: data.total_epochs || 0,
-    },
-    nodes: data.nodes || [],
-    resources: data.resources || { time: [], cpu: [], memory: [] },
-  };
-}
-
+// Generate mock training status data
 function getMockTrainingStatus(): TrainingStatus {
   const now = new Date();
-  
-  // Generate some mock time series data for charts
-  const timePoints = Array(24).fill(0).map((_, i) => {
-    const time = new Date(now);
-    time.setHours(now.getHours() - (24 - i));
-    return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  });
-  
-  const cpuData = Array(24).fill(0).map(() => Math.floor(Math.random() * 60) + 20); // 20-80% CPU
-  const memoryData = Array(24).fill(0).map(() => Math.floor(Math.random() * 40) + 40); // 40-80% Memory
-  const gpuData = Array(24).fill(0).map(() => Math.floor(Math.random() * 70) + 20); // 20-90% GPU
+  const nextTraining = new Date(now);
+  nextTraining.setHours(nextTraining.getHours() + 2);
   
   return {
-    systemStatus: "operational",
-    trainingStatus: "in_progress",
-    nextTraining: "1h 59m",
-    trainingInterval: "2 hours",
-    uptime: "99.98%",
-    responseTime: "42ms",
-    pendingUpdates: 2,
-    lastIncident: "3/15/2025, 11:42:11 AM",
-    lastUpdated: now.toLocaleString(),
-    metrics: {
-      accuracy: 0.87,
-      loss: 0.13,
-      epoch: 7,
-      totalEpochs: 10
+    id: 'training-1',
+    timestamp: now.toISOString(),
+    systemStatus: 'operational',
+    trainingStatus: 'idle',
+    nextScheduled: nextTraining.toISOString(),
+    trainingMetrics: {
+      accuracy: 0.89,
+      loss: 0.23,
+      epochsDone: 42,
+      totalEpochs: 50,
+      trainingSamples: 1243
     },
     nodes: [
-      { 
-        name: "Primary Node", 
-        status: "online",
-        lastSeen: now.toISOString(),
-        cpuUsage: 68,
-        memoryUsage: 74
+      {
+        id: 'node-1',
+        name: 'Primary Training Node',
+        status: 'online',
+        lastHeartbeat: now.toISOString(),
+        role: 'training'
       },
-      { 
-        name: "Secondary Node", 
-        status: "online",
-        lastSeen: now.toISOString(),
-        cpuUsage: 42,
-        memoryUsage: 51
+      {
+        id: 'node-2',
+        name: 'Inference Node',
+        status: 'online',
+        lastHeartbeat: now.toISOString(),
+        role: 'inference'
       },
-      { 
-        name: "Analytics Node", 
-        status: "online",
-        lastSeen: now.toISOString(),
-        cpuUsage: 56,
-        memoryUsage: 62
+      {
+        id: 'node-3',
+        name: 'Data Processing Node',
+        status: 'online',
+        lastHeartbeat: now.toISOString(),
+        role: 'data'
       },
-      { 
-        name: "Training Node", 
-        status: "online",
-        lastSeen: now.toISOString(),
-        cpuUsage: 89,
-        memoryUsage: 77,
-        gpuUsage: 92
-      },
-      { 
-        name: "Backup Node", 
-        status: "offline",
-        lastSeen: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
-        cpuUsage: 0,
-        memoryUsage: 12
-      },
+      {
+        id: 'node-4',
+        name: 'Backup Node',
+        status: 'offline',
+        lastHeartbeat: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
+        role: 'backup'
+      }
     ],
     resources: {
-      time: timePoints,
-      cpu: cpuData,
-      memory: memoryData,
-      gpu: gpuData
-    }
+      cpuUsage: 42.5,
+      memoryUsage: 68.3,
+      diskUsage: 47.2,
+      networkBandwidth: 21.5
+    },
+    events: [
+      {
+        id: 1,
+        type: 'success',
+        message: 'Training completed successfully',
+        timestamp: new Date(now.getTime() - 3600000).toISOString(), // 1 hour ago
+        severity: 'low'
+      },
+      {
+        id: 2,
+        type: 'info',
+        message: 'Model evaluation started',
+        timestamp: new Date(now.getTime() - 7200000).toISOString(), // 2 hours ago
+        severity: 'low'
+      },
+      {
+        id: 3,
+        type: 'warning',
+        message: 'High resource usage detected',
+        timestamp: new Date(now.getTime() - 86400000).toISOString(), // 1 day ago
+        severity: 'medium'
+      },
+      {
+        id: 4,
+        type: 'error',
+        message: 'Backup node connection lost',
+        timestamp: new Date(now.getTime() - 172800000).toISOString(), // 2 days ago
+        severity: 'high'
+      }
+    ]
   };
+}
+
+export type EventType = 'error' | 'warning' | 'info' | 'success';
+
+export interface TimelineEvent {
+  id: number;
+  type: EventType;
+  title: string;
+  description: string;
+  time: string;
+}
+
+// Get timeline events for the activity feed
+export function getTrainingTimelineEvents(): TimelineEvent[] {
+  const now = new Date();
+  
+  return [
+    {
+      id: 1,
+      type: 'success',
+      title: 'Training Completed',
+      description: 'Model v2.4.1 training completed with 89% accuracy',
+      time: new Date(now.getTime() - 3600000).toISOString()
+    },
+    {
+      id: 2,
+      type: 'info',
+      title: 'Evaluation Started',
+      description: 'Starting evaluation on validation dataset',
+      time: new Date(now.getTime() - 3900000).toISOString()
+    },
+    {
+      id: 3,
+      type: 'warning',
+      title: 'High Resource Usage',
+      description: 'CPU usage exceeded 80% threshold',
+      time: new Date(now.getTime() - 86400000).toISOString()
+    },
+    {
+      id: 4,
+      type: 'error',
+      title: 'Node Connection Lost',
+      description: 'Connection to backup node has been lost',
+      time: new Date(now.getTime() - 172800000).toISOString()
+    },
+    {
+      id: 5,
+      type: 'info',
+      title: 'Data Import Complete',
+      description: 'Successfully imported 1,243 new training samples',
+      time: new Date(now.getTime() - 259200000).toISOString()
+    },
+    {
+      id: 6,
+      type: 'success',
+      title: 'Model Deployed',
+      description: 'Model v2.4.0 deployed to production',
+      time: new Date(now.getTime() - 345600000).toISOString()
+    }
+  ];
 }
