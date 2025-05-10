@@ -9,6 +9,22 @@ interface MultidimensionalChartProps {
 }
 
 const MultidimensionalChart: React.FC<MultidimensionalChartProps> = ({ results }) => {
+  // Transform data for radar chart to show dimensions as percentages
+  const radarData = [
+    { dimension: 'Cost', ...results.reduce((acc, curr) => ({...acc, [curr.forwarder]: Math.round(curr.costPerformance * 100)}), {}) },
+    { dimension: 'Time', ...results.reduce((acc, curr) => ({...acc, [curr.forwarder]: Math.round(curr.timePerformance * 100)}), {}) },
+    { dimension: 'Reliability', ...results.reduce((acc, curr) => ({...acc, [curr.forwarder]: Math.round(curr.reliabilityPerformance * 100)}), {}) },
+  ];
+
+  // Generate unique colors for each forwarder
+  const colors = [
+    '#00FFD1', // Primary color for top forwarder
+    '#3b82f6', // Blue
+    '#a855f7', // Purple
+    '#ec4899', // Pink
+    '#f97316', // Orange
+  ];
+
   return (
     <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
       <CardHeader>
@@ -16,35 +32,27 @@ const MultidimensionalChart: React.FC<MultidimensionalChartProps> = ({ results }
       </CardHeader>
       <CardContent className="h-96">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart outerRadius={150} data={results}>
+          <RadarChart outerRadius={150} data={radarData}>
             <PolarGrid stroke="#1E293B" />
-            <PolarAngleAxis dataKey="forwarder" stroke="#94A3B8" />
-            <PolarRadiusAxis angle={30} domain={[0, 1]} tickFormatter={(value) => `${(value * 100).toFixed(0)}%`} stroke="#94A3B8" />
-            <Radar 
-              name="Cost" 
-              dataKey="costPerformance" 
-              stroke="#00FFD1" 
-              fill="#00FFD1" 
-              fillOpacity={0.5} 
-            />
-            <Radar 
-              name="Time" 
-              dataKey="timePerformance" 
-              stroke="#3b82f6" 
-              fill="#3b82f6" 
-              fillOpacity={0.5} 
-            />
-            <Radar 
-              name="Reliability" 
-              dataKey="reliabilityPerformance" 
-              stroke="#a855f7" 
-              fill="#a855f7" 
-              fillOpacity={0.5} 
-            />
-            <Legend />
+            <PolarAngleAxis dataKey="dimension" stroke="#94A3B8" />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tickFormatter={(value) => `${value}%`} stroke="#94A3B8" />
+            
+            {results.map((result, index) => (
+              <Radar
+                key={result.forwarder}
+                name={result.forwarder}
+                dataKey={result.forwarder}
+                stroke={colors[index % colors.length]}
+                fill={colors[index % colors.length]}
+                fillOpacity={0.5}
+              />
+            ))}
+            
+            <Legend formatter={(value) => value} />
             <Tooltip 
-              formatter={(value: any) => [`${(value * 100).toFixed(1)}%`, '']} 
+              formatter={(value: any) => [`${value}%`, '']} 
               contentStyle={{ background: '#0A1A2F', border: '1px solid #00FFD1', borderRadius: '0.375rem' }}
+              labelFormatter={(label) => `Dimension: ${label}`}
             />
           </RadarChart>
         </ResponsiveContainer>

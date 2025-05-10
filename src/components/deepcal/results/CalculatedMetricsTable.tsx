@@ -17,6 +17,7 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
         <table className="w-full border-collapse text-gray-300 text-xs sm:text-sm">
           <thead>
             <tr className="border-b border-[#00FFD1]/20">
+              <th className="text-left py-2">Rank</th>
               <th className="text-left py-2">Forwarder</th>
               <th className="text-left py-2">DeepScore™</th>
               <th className="text-left py-2">Cost</th>
@@ -26,9 +27,10 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
           </thead>
           <tbody>
             {results.map((result, index) => (
-              <tr key={index} className="border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5">
+              <tr key={index} className={`border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5 ${index === 0 ? 'bg-[#00FFD1]/10' : ''}`}>
+                <td className="py-2 font-bold">{index + 1}</td>
                 <td className="py-2 font-medium text-white whitespace-nowrap">{result.forwarder}</td>
-                <td className="py-2">{(result.score * 100).toFixed(1)}%</td>
+                <td className="py-2 font-semibold">{(result.score * 100).toFixed(1)}%</td>
                 <td className="py-2">{(result.costPerformance * 100).toFixed(1)}%</td>
                 <td className="py-2">{(result.timePerformance * 100).toFixed(1)}%</td>
                 <td className="py-2">{(result.reliabilityPerformance * 100).toFixed(1)}%</td>
@@ -36,6 +38,29 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
             ))}
           </tbody>
         </table>
+        
+        <div className="mt-4 p-3 bg-[#0A1A2F] border border-[#00FFD1]/10 rounded-md text-sm">
+          <h4 className="font-medium text-[#00FFD1] mb-2">Analysis Summary:</h4>
+          <p className="text-gray-300 mb-2">
+            This analysis compares {results.length} forwarders across three key dimensions: cost efficiency, time performance, and reliability.
+          </p>
+          {results.length > 1 && (
+            <p className="text-gray-300 mb-2">
+              The top performer ({results[0].forwarder}) outscores the second-ranked option 
+              ({results[1].forwarder}) by {((results[0].score - results[1].score) * 100).toFixed(1)} percentage points,
+              with particular strength in {
+                results[0].costPerformance > results[0].timePerformance && results[0].costPerformance > results[0].reliabilityPerformance
+                  ? 'cost efficiency'
+                  : results[0].timePerformance > results[0].costPerformance && results[0].timePerformance > results[0].reliabilityPerformance
+                    ? 'time performance'
+                    : 'reliability'
+              }.
+            </p>
+          )}
+          <p className="text-gray-300">
+            All metrics are normalized on a 0-100% scale, with higher values indicating better performance across all dimensions.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
