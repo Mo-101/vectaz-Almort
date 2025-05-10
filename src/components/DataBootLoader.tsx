@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -82,10 +81,10 @@ const DataBootLoader = () => {
         const dataHash = simpleHash(text);
         const dataVersion = `v1.0.0-${new Date().toISOString()}`;
         
-        // Here we would process the data into Shipment objects
-        // For demo purposes, we'll just set it directly
+        // Process the data into Shipment objects
         setShipmentData(
           data.map(item => ({
+            id: item.id || item.request_reference,
             date_of_collection: item.date_of_collection || '',
             request_reference: item.request_reference || '',
             cargo_description: item.cargo_description || '',
@@ -97,15 +96,27 @@ const DataBootLoader = () => {
             destination_longitude: parseFloat(item.destination_longitude) || 0,
             destination_latitude: parseFloat(item.destination_latitude) || 0,
             freight_carrier: item.freight_carrier || '',
-            weight_kg: parseFloat(item.weight_kg) || 0,
-            volume_cbm: parseFloat(item.volume_cbm) || 0,
+            carrier: item.carrier || item.freight_carrier || '',
+            "carrier+cost": item["carrier+cost"] || '',
+            "freight_carrier+cost": item["freight_carrier+cost"] || '',
+            weight_kg: item.weight_kg || 0,
+            volume_cbm: item.volume_cbm || 0,
             initial_quote_awarded: item.initial_quote_awarded || '',
             final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier || '',
             comments: item.comments || '',
             date_of_arrival_destination: item.date_of_arrival_destination || '',
             delivery_status: item.delivery_status || '',
             mode_of_shipment: item.mode_of_shipment || '',
-            forwarder_quotes: {} // This would need proper parsing in a real app
+            forwarder_quotes: item.forwarder_quotes || {},
+            kuehne_nagel: item.kuehne_nagel || false,
+            scan_global_logistics: item.scan_global_logistics || false,
+            dhl_express: item.dhl_express || false,
+            dhl_global: item.dhl_global || false,
+            bwosi: item.bwosi || false,
+            agl: item.agl || false,
+            siginon: item.siginon || false,
+            frieght_in_time: item.frieght_in_time || false,
+            date_of_greenlight_to_pickup: item.date_of_greenlight_to_pickup || null,
           })),
           file.name,
           dataVersion,
@@ -254,6 +265,7 @@ const DataBootLoader = () => {
         // Store the data
         setShipmentData(
           mockData.map(item => ({
+            id: item.id || item.request_reference,
             date_of_collection: item.date_of_collection || '',
             request_reference: item.request_reference || '',
             cargo_description: item.cargo_description || '',
@@ -265,8 +277,11 @@ const DataBootLoader = () => {
             destination_longitude: parseFloat(String(item.destination_longitude)) || 0,
             destination_latitude: parseFloat(String(item.destination_latitude)) || 0,
             freight_carrier: item.freight_carrier || '',
-            weight_kg: parseFloat(String(item.weight_kg)) || 0,
-            volume_cbm: parseFloat(String(item.volume_cbm)) || 0,
+            carrier: item.carrier || item.freight_carrier || '',
+            "carrier+cost": item["carrier+cost"] || '',
+            "freight_carrier+cost": item["freight_carrier+cost"] || '',
+            weight_kg: item.weight_kg || 0,
+            volume_cbm: item.volume_cbm || 0,
             initial_quote_awarded: item.initial_quote_awarded || '',
             final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier || '',
             comments: item.comments || '',
@@ -283,7 +298,16 @@ const DataBootLoader = () => {
               'agl': item.agl || 0,
               'siginon': item.siginon || 0,
               'frieght_in_time': item.frieght_in_time || 0,
-            }
+            },
+            kuehne_nagel: item.kuehne_nagel || false,
+            scan_global_logistics: item.scan_global_logistics || false,
+            dhl_express: item.dhl_express || false,
+            dhl_global: item.dhl_global || false,
+            bwosi: item.bwosi || false,
+            agl: item.agl || false,
+            siginon: item.siginon || false,
+            frieght_in_time: item.frieght_in_time || false,
+            date_of_greenlight_to_pickup: item.date_of_greenlight_to_pickup || null,
           })),
           'mock_data.csv',
           dataVersion,

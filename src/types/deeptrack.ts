@@ -34,6 +34,9 @@ export interface Shipment {
   date_of_greenlight_to_pickup?: string | null;
   forwarder_quotes?: Record<string, number>;
   updated_at?: string;
+  expected_delivery_date?: string | null;
+  status?: string;
+  created_at?: string;
 }
 
 export interface ForwarderPerformance {
@@ -52,6 +55,7 @@ export interface ForwarderPerformance {
   handlingScore?: number;
   shipments?: number;
   reliability?: number;
+  id?: string;
 }
 
 export interface CarrierPerformance {
@@ -124,8 +128,8 @@ export interface ShipmentMetrics {
     active: number;
     completed: number;
     failed: number;
-    onTime: number;
-    inTransit: number;
+    onTime?: number;
+    inTransit?: number;
     delayed?: number;
     cancelled?: number;
     pending?: number;

@@ -1,4 +1,3 @@
-
 import { Shipment } from "@/types/deeptrack";
 
 // Metadata for the loaded dataset
@@ -66,10 +65,11 @@ export const processRawData = (data: any[]): Shipment[] => {
     });
     
     return {
+      id: item.id || item.request_reference,
       date_of_collection: item.date_of_collection,
       request_reference: item.request_reference || item.shipment_id,
-      cargo_description: item.cargo_description,
-      item_category: item.item_category,
+      cargo_description: item.cargo_description || '',
+      item_category: item.item_category || '',
       origin_country: item.origin_country || item.origin,
       origin_longitude: parseFloat(item.origin_longitude),
       origin_latitude: parseFloat(item.origin_latitude),
@@ -77,6 +77,9 @@ export const processRawData = (data: any[]): Shipment[] => {
       destination_longitude: parseFloat(item.destination_longitude),
       destination_latitude: parseFloat(item.destination_latitude),
       freight_carrier: item.freight_carrier || item.carrier,
+      carrier: item.carrier || item.freight_carrier || '',
+      "carrier+cost": item["carrier+cost"] || '',
+      "freight_carrier+cost": item["freight_carrier+cost"] || '',
       weight_kg: parseFloat(item.weight_kg),
       volume_cbm: parseFloat(item.volume_cbm),
       initial_quote_awarded: item.initial_quote_awarded,
@@ -85,7 +88,16 @@ export const processRawData = (data: any[]): Shipment[] => {
       date_of_arrival_destination: item.date_of_arrival_destination,
       delivery_status: item.delivery_status,
       mode_of_shipment: item.mode_of_shipment,
-      forwarder_quotes: forwarderQuotes
+      forwarder_quotes: forwarderQuotes,
+      kuehne_nagel: item.kuehne_nagel || false,
+      scan_global_logistics: item.scan_global_logistics || false,
+      dhl_express: item.dhl_express || false,
+      dhl_global: item.dhl_global || false,
+      bwosi: item.bwosi || false,
+      agl: item.agl || false,
+      siginon: item.siginon || false,
+      frieght_in_time: item.frieght_in_time || false,
+      date_of_greenlight_to_pickup: item.date_of_greenlight_to_pickup || null,
     };
   });
 };

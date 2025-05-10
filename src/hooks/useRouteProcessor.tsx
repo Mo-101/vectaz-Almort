@@ -1,24 +1,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
-
-interface Route {
-  origin: {
-    lat: number;
-    lng: number;
-    name: string;
-    isOrigin: boolean;
-  };
-  destination: {
-    lat: number;
-    lng: number;
-    name: string;
-    isOrigin: boolean;
-  };
-  weight: number;
-  shipmentCount: number;
-  deliveryStatus: string;
-}
+import { Route } from '@/types/deeptrack';
 
 export const useRouteProcessor = () => {
   const { isDataLoaded, shipmentData } = useBaseDataStore();
@@ -44,14 +27,14 @@ export const useRouteProcessor = () => {
         name: shipment.destination_country,
         isOrigin: false
       },
-      weight: shipment.weight_kg,
+      weight: typeof shipment.weight_kg === 'string' ? parseFloat(shipment.weight_kg) : shipment.weight_kg as number,
       shipmentCount: 1,
       deliveryStatus: shipment.delivery_status
     }));
   }, [isDataLoaded, shipmentData]);
 
   useEffect(() => {
-    setRoutes(processedRoutes);
+    setRoutes(processedRoutes as Route[]);
   }, [processedRoutes]);
 
   return { routes };

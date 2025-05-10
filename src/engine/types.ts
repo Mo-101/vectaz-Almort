@@ -1,3 +1,4 @@
+
 /**
  * Type definitions for DeepCAL decision engine
  */
@@ -13,6 +14,11 @@ export interface MoScriptResult {
     score: number;
   }>;
   metrics?: Record<string, any>;
+  allScores?: number[];
+  rawTopsisScores?: number[];
+  greyGrades?: number[];
+  executionTime?: number;
+  consistencyRatio?: number;
 }
 
 export interface MoScript {

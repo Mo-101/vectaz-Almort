@@ -1,41 +1,65 @@
-import { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type VoiceSettings = {
-  enabled: boolean;
-  speed: number;
-  pitch: number;
+interface VoiceContextType {
+  speak: (text: string, lang?: string, rate?: number, pitch?: number) => void;
+  isMuted: boolean;
+  toggleMute: () => void;
+  stop: () => void;  // Added missing stop method
+}
+
+// Default implementation - will be replaced by actual implementation
+const defaultVoiceContext: VoiceContextType = {
+  speak: () => {},
+  isMuted: false,
+  toggleMute: () => {},
+  stop: () => {}  // Added missing stop method
 };
 
-type VoiceSettingsContextType = {
-  settings: VoiceSettings;
-  updateSettings: (newSettings: Partial<VoiceSettings>) => void;
-};
+const VoiceSettingsContext = createContext<VoiceContextType>(defaultVoiceContext);
 
-const VoiceSettingsContext = createContext<VoiceSettingsContextType>({
-  settings: { enabled: true, speed: 1.0, pitch: 1.0 },
-  updateSettings: () => {}
-});
+export const useVoice = () => useContext(VoiceSettingsContext);
 
-export const VoiceSettingsProvider = ({ 
-  children 
-}: { 
-  children: React.ReactNode 
-}) => {
-  const [settings, setSettings] = useState<VoiceSettings>({ 
-    enabled: true, 
-    speed: 1.0, 
-    pitch: 1.0 
-  });
+// Create a provider component
+interface VoiceSettingsProviderProps {
+  children: React.ReactNode;
+}
 
-  const updateSettings = (newSettings: Partial<VoiceSettings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
+export const VoiceSettingsProvider: React.FC<VoiceSettingsProviderProps> = ({ children }) => {
+  const [isMuted, setIsMuted] = useState(false);
+
+  const speak = (text: string, lang: string = 'en-US', rate: number = 1, pitch: number = 1) => {
+    if (!isMuted && 'speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = rate;
+      utterance.pitch = pitch;
+      speechSynthesis.speak(utterance);
+    }
   };
 
+  const stop = () => {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  useEffect(() => {
+    // Initialization or setup can be done here
+    return () => {
+      // Cleanup when the component unmounts
+      stop();
+    };
+  }, []);
+
   return (
-    <VoiceSettingsContext.Provider value={{ settings, updateSettings }}>
+    <VoiceSettingsContext.Provider value={{ speak, isMuted, toggleMute, stop }}>
       {children}
     </VoiceSettingsContext.Provider>
   );
 };
 
-export const useVoiceSettings = () => useContext(VoiceSettingsContext);
+export default VoiceSettingsProvider;
