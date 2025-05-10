@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import MessageList from '@/components/chat/MessageList';
 import { useVoice } from '@/hooks/useVoice';
 import { Loader2 } from 'lucide-react';
+import { Message } from '@/components/chat/types';
 
 // Add interface for SpeechRecognition Web API
 interface SpeechRecognitionEvent extends Event {
@@ -25,8 +25,8 @@ interface DeepTalkProps {
 }
 
 const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage, onQueryData, onClose }) => {
-  const [messages, setMessages] = useState<{ sender: string; text: string }[]>(
-    initialMessage ? [{ sender: 'DeepCAL', text: initialMessage }] : []
+  const [messages, setMessages] = useState<Message[]>(
+    initialMessage ? [{ sender: "ai" as const, text: initialMessage }] : []
   );
   const [input, setInput] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -49,7 +49,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
 
     recognition.current.onstart = () => {
       setIsProcessing(true);
-      setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Listening...' }]);
+      setMessages(prevMessages => [...prevMessages, { sender: "ai" as const, text: 'Listening...' }]);
     };
 
     recognition.current.onresult = (event: SpeechRecognitionEvent) => {
@@ -59,7 +59,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
         .join('');
 
       setInput(transcript);
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'You', text: transcript }]);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "user" as const, text: transcript }]);
       processInput(transcript);
     };
 
@@ -71,7 +71,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
     recognition.current.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error);
       setIsProcessing(false);
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: `Error: ${event.error}` }]);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: `Error: ${event.error}` }]);
     };
 
     return () => {
@@ -86,7 +86,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
 
   const startListening = useCallback(() => {
     if (recognition.current) {
-      setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Listening...' }]);
+      setMessages(prevMessages => [...prevMessages, { sender: "ai" as const, text: 'Listening...' }]);
       recognition.current.start();
     }
   }, []);
@@ -105,13 +105,13 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
 
   const processInput = async (text: string) => {
     setIsProcessing(true);
-    setMessages(prevMessages => [...prevMessages, { sender: 'DeepCAL', text: 'Processing...' }]);
+    setMessages(prevMessages => [...prevMessages, { sender: "ai" as const, text: 'Processing...' }]);
 
     try {
       // Use onQueryData if provided, otherwise use default behavior
       if (onQueryData) {
         const response = await onQueryData(text);
-        setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: response }]);
+        setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: response }]);
         voice.speak(response, 'en-US', 1.2, 1.3);
       } else {
         // Simulate processing with a timeout
@@ -119,21 +119,21 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
 
         // Placeholder logic - replace with actual processing
         if (text.toLowerCase().includes('forwarder')) {
-          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Recommending best forwarder...' }]);
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: 'Recommending best forwarder...' }]);
           voice.speak('Recommending best forwarder...', 'en-US', 1.2, 1.3);
           onResult('forwarderRecommendation');
         } else if (text.toLowerCase().includes('route')) {
-          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'Analyzing optimal route...' }]);
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: 'Analyzing optimal route...' }]);
           voice.speak('Analyzing optimal route...', 'en-US', 1.2, 1.3);
           onResult('routeOptimization');
         } else {
-          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: 'No specific action triggered.' }]);
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: 'No specific action triggered.' }]);
           voice.speak('No specific action triggered.', 'en-US', 1.2, 1.3);
         }
       }
     } catch (error) {
       console.error('Error processing input:', error);
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: 'DeepCAL', text: `Error: ${error instanceof Error ? error.message : String(error)}` }]);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: `Error: ${error instanceof Error ? error.message : String(error)}` }]);
     } finally {
       setIsProcessing(false);
     }
@@ -146,7 +146,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      setMessages(prevMessages => [...prevMessages, { sender: 'You', text: input }]);
+      setMessages(prevMessages => [...prevMessages, { sender: "user" as const, text: input }]);
       processInput(input);
       setInput('');
     }
