@@ -109,23 +109,23 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
         </table>
         
         <div className="mt-6 p-4 bg-[#0A1A2F] border border-[#00FFD1]/10 rounded-md text-sm">
-          <h4 className="font-medium text-[#00FFD1] mb-3">Analysis Summary:</h4>
+          <h4 className="font-medium text-[#00FFD1] mb-3">Mathematical Analysis Summary:</h4>
           <div className="space-y-3 text-gray-300">
             <p>
               <span className="font-semibold text-white">{topForwarder.forwarder}</span> achieves the highest DeepScore™ of <span className="font-semibold text-[#00FFD1]">{(topForwarder.score * 100).toFixed(1)}%</span>, 
-              outperforming all other options across key metrics.
+              derived from our Neutrosophic AHP-TOPSIS hybrid model calculations.
             </p>
             
             {results.length > 1 && (
               <p>
-                This top performer outscores the second-ranked option 
-                (<span className="text-gray-200">{results[1].forwarder}</span>) by <span className="font-semibold text-[#00FFD1]">{scoreDifference}%</span> points,
-                with particular strength in <span className="font-semibold text-[#00FFD1]">{topDimension}</span> performance.
+                The top performer mathematically outscores the second-ranked option 
+                (<span className="text-gray-200">{results[1].forwarder}</span>) by <span className="font-semibold text-[#00FFD1]">{scoreDifference}%</span> percentage points,
+                with particular strength in <span className="font-semibold text-[#00FFD1]">{topDimension}</span> performance metrics.
               </p>
             )}
             
             <p>
-              <span className="font-semibold text-white">{topForwarder.forwarder}</span>'s performance breakdown:
+              <span className="font-semibold text-white">{topForwarder.forwarder}</span>'s mathematical performance breakdown:
               <ul className="list-disc list-inside mt-1 ml-2">
                 <li className={topDimension === 'cost' ? 'text-[#00FFD1]' : ''}>
                   <span className="font-medium">Cost efficiency:</span> {(topForwarder.costPerformance * 100).toFixed(1)}% 
@@ -143,7 +143,7 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
             </p>
             
             <p className="text-xs text-gray-400 mt-2">
-              This analysis is based on historical performance data, normalized on a 0-100% scale across all dimensions.
+              This analysis uses the Neutrosophic AHP for preference weighting (CR≈0.017), combined with TOPSIS for multi-criteria ranking and Grey Relational Analysis for uncertainty handling.
               {weakDimension && <span> Consider supplementary options for shipments where <span className="font-medium">{weakDimension}</span> is the highest priority.</span>}
             </p>
           </div>

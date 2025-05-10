@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, LabelList } from 'recharts';
 import { ForwarderScore } from '../types';
 
 interface ScoreComparisonChartProps {
@@ -57,6 +57,7 @@ const ScoreComparisonChart: React.FC<ScoreComparisonChartProps> = ({ results }) 
                   fill={index === 0 ? '#00FFD1' : `rgba(0, 255, 209, ${0.8 - (index * 0.2)})`} 
                 />
               ))}
+              <LabelList dataKey="score" position="right" formatter={(value: number) => `${value}%`} fill="#FFFFFF" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

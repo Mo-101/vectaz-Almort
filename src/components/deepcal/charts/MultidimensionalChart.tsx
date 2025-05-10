@@ -28,6 +28,9 @@ const MultidimensionalChart: React.FC<MultidimensionalChartProps> = ({ results }
     return colors[index % colors.length];
   };
 
+  // Create custom ticks for the radar chart
+  const customTicks = [0, 25, 50, 75, 100]; 
+
   return (
     <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
       <CardHeader className="p-3 sm:p-4">
@@ -43,7 +46,7 @@ const MultidimensionalChart: React.FC<MultidimensionalChartProps> = ({ results }
               domain={[0, 100]} 
               tickFormatter={(value) => `${value}%`} 
               stroke="#94A3B8"
-              ticks={[0, 25, 50, 75, 100]} 
+              ticks={customTicks}
             />
             
             {results.map((result, index) => (
