@@ -8,6 +8,34 @@ interface CalculatedMetricsTableProps {
 }
 
 const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results }) => {
+  // Find the strengths and weaknesses of the top forwarder
+  const topForwarder = results[0];
+  const getTopDimension = () => {
+    const scores = {
+      cost: topForwarder.costPerformance,
+      time: topForwarder.timePerformance,
+      reliability: topForwarder.reliabilityPerformance
+    };
+    return Object.entries(scores).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  };
+  
+  const getWeakDimension = () => {
+    const scores = {
+      cost: topForwarder.costPerformance,
+      time: topForwarder.timePerformance,
+      reliability: topForwarder.reliabilityPerformance
+    };
+    return Object.entries(scores).reduce((a, b) => a[1] < b[1] ? a : b)[0];
+  };
+
+  const topDimension = getTopDimension();
+  const weakDimension = getWeakDimension();
+  
+  // Calculate score difference between top forwarders
+  const scoreDifference = results.length > 1 
+    ? ((topForwarder.score - results[1].score) * 100).toFixed(1) 
+    : "N/A";
+
   return (
     <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20">
       <CardHeader className="p-3 sm:p-4">
@@ -28,38 +56,97 @@ const CalculatedMetricsTable: React.FC<CalculatedMetricsTableProps> = ({ results
           <tbody>
             {results.map((result, index) => (
               <tr key={index} className={`border-b border-[#00FFD1]/10 hover:bg-[#00FFD1]/5 ${index === 0 ? 'bg-[#00FFD1]/10' : ''}`}>
-                <td className="py-2 font-bold">{index + 1}</td>
-                <td className="py-2 font-medium text-white whitespace-nowrap">{result.forwarder}</td>
-                <td className="py-2 font-semibold">{(result.score * 100).toFixed(1)}%</td>
-                <td className="py-2">{(result.costPerformance * 100).toFixed(1)}%</td>
-                <td className="py-2">{(result.timePerformance * 100).toFixed(1)}%</td>
-                <td className="py-2">{(result.reliabilityPerformance * 100).toFixed(1)}%</td>
+                <td className="py-2 px-1">
+                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${index === 0 ? 'bg-[#00FFD1] text-black font-bold' : 'bg-gray-800 text-gray-200'}`}>
+                    {index + 1}
+                  </span>
+                </td>
+                <td className="py-2 font-medium text-white">
+                  {result.forwarder}
+                  {index === 0 && <span className="ml-2 text-[#00FFD1] text-xs font-bold">RECOMMENDED</span>}
+                </td>
+                <td className="py-2 font-semibold">
+                  <div className="flex items-center">
+                    <span className={index === 0 ? 'text-[#00FFD1]' : ''}>{(result.score * 100).toFixed(1)}%</span>
+                  </div>
+                </td>
+                <td className="py-2">
+                  <div className="flex items-center">
+                    <div className="w-12 bg-gray-700 rounded-full h-1.5 mr-2">
+                      <div 
+                        className={`h-1.5 rounded-full ${index === 0 ? 'bg-[#00FFD1]' : 'bg-blue-500'}`} 
+                        style={{ width: `${result.costPerformance * 100}%` }}
+                      ></div>
+                    </div>
+                    {(result.costPerformance * 100).toFixed(1)}%
+                  </div>
+                </td>
+                <td className="py-2">
+                  <div className="flex items-center">
+                    <div className="w-12 bg-gray-700 rounded-full h-1.5 mr-2">
+                      <div 
+                        className={`h-1.5 rounded-full ${index === 0 ? 'bg-[#00FFD1]' : 'bg-blue-500'}`} 
+                        style={{ width: `${result.timePerformance * 100}%` }}
+                      ></div>
+                    </div>
+                    {(result.timePerformance * 100).toFixed(1)}%
+                  </div>
+                </td>
+                <td className="py-2">
+                  <div className="flex items-center">
+                    <div className="w-12 bg-gray-700 rounded-full h-1.5 mr-2">
+                      <div 
+                        className={`h-1.5 rounded-full ${index === 0 ? 'bg-[#00FFD1]' : 'bg-blue-500'}`} 
+                        style={{ width: `${result.reliabilityPerformance * 100}%` }}
+                      ></div>
+                    </div>
+                    {(result.reliabilityPerformance * 100).toFixed(1)}%
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
         
-        <div className="mt-4 p-3 bg-[#0A1A2F] border border-[#00FFD1]/10 rounded-md text-sm">
-          <h4 className="font-medium text-[#00FFD1] mb-2">Analysis Summary:</h4>
-          <p className="text-gray-300 mb-2">
-            This analysis compares {results.length} forwarders across three key dimensions: cost efficiency, time performance, and reliability.
-          </p>
-          {results.length > 1 && (
-            <p className="text-gray-300 mb-2">
-              The top performer ({results[0].forwarder}) outscores the second-ranked option 
-              ({results[1].forwarder}) by {((results[0].score - results[1].score) * 100).toFixed(1)} percentage points,
-              with particular strength in {
-                results[0].costPerformance > results[0].timePerformance && results[0].costPerformance > results[0].reliabilityPerformance
-                  ? 'cost efficiency'
-                  : results[0].timePerformance > results[0].costPerformance && results[0].timePerformance > results[0].reliabilityPerformance
-                    ? 'time performance'
-                    : 'reliability'
-              }.
+        <div className="mt-6 p-4 bg-[#0A1A2F] border border-[#00FFD1]/10 rounded-md text-sm">
+          <h4 className="font-medium text-[#00FFD1] mb-3">Analysis Summary:</h4>
+          <div className="space-y-3 text-gray-300">
+            <p>
+              <span className="font-semibold text-white">{topForwarder.forwarder}</span> achieves the highest DeepScore™ of <span className="font-semibold text-[#00FFD1]">{(topForwarder.score * 100).toFixed(1)}%</span>, 
+              outperforming all other options across key metrics.
             </p>
-          )}
-          <p className="text-gray-300">
-            All metrics are normalized on a 0-100% scale, with higher values indicating better performance across all dimensions.
-          </p>
+            
+            {results.length > 1 && (
+              <p>
+                This top performer outscores the second-ranked option 
+                (<span className="text-gray-200">{results[1].forwarder}</span>) by <span className="font-semibold text-[#00FFD1]">{scoreDifference}%</span> points,
+                with particular strength in <span className="font-semibold text-[#00FFD1]">{topDimension}</span> performance.
+              </p>
+            )}
+            
+            <p>
+              <span className="font-semibold text-white">{topForwarder.forwarder}</span>'s performance breakdown:
+              <ul className="list-disc list-inside mt-1 ml-2">
+                <li className={topDimension === 'cost' ? 'text-[#00FFD1]' : ''}>
+                  <span className="font-medium">Cost efficiency:</span> {(topForwarder.costPerformance * 100).toFixed(1)}% 
+                  {topDimension === 'cost' ? ' (strongest attribute)' : ''}
+                </li>
+                <li className={topDimension === 'time' ? 'text-[#00FFD1]' : ''}>
+                  <span className="font-medium">Time performance:</span> {(topForwarder.timePerformance * 100).toFixed(1)}% 
+                  {topDimension === 'time' ? ' (strongest attribute)' : ''}
+                </li>
+                <li className={topDimension === 'reliability' ? 'text-[#00FFD1]' : ''}>
+                  <span className="font-medium">Reliability:</span> {(topForwarder.reliabilityPerformance * 100).toFixed(1)}% 
+                  {topDimension === 'reliability' ? ' (strongest attribute)' : ''}
+                </li>
+              </ul>
+            </p>
+            
+            <p className="text-xs text-gray-400 mt-2">
+              This analysis is based on historical performance data, normalized on a 0-100% scale across all dimensions.
+              {weakDimension && <span> Consider supplementary options for shipments where <span className="font-medium">{weakDimension}</span> is the highest priority.</span>}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>

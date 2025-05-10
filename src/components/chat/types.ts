@@ -1,9 +1,9 @@
 
 export interface Message {
-  id?: string;
+  id?: string;  // Made optional to fix compatibility issues
   text: string;
   sender: "user" | "ai";
-  timestamp?: Date;  // Changed from required to optional
+  timestamp?: Date;  // Optional timestamp
 }
 
 export interface MessageListProps {
