@@ -1,3 +1,4 @@
+
 export interface Shipment {
   id?: string;
   request_reference: string;
@@ -11,16 +12,18 @@ export interface Shipment {
   destination_longitude: number;
   carrier: string;
   "carrier+cost"?: string;
-  kuehne_nagel?: string;
-  scan_global_logistics?: string;
-  dhl_express?: string;
-  dhl_global?: string;
-  bwosi?: string;
-  agl?: string;
-  siginon?: string;
-  frieght_in_time?: string;
-  weight_kg: string;
-  volume_cbm: string;
+  "freight_carrier+cost"?: string;
+  freight_carrier?: string;
+  kuehne_nagel?: string | number | boolean;
+  scan_global_logistics?: string | number | boolean;
+  dhl_express?: string | number | boolean;
+  dhl_global?: string | number | boolean;
+  bwosi?: string | number | boolean;
+  agl?: string | number | boolean;
+  siginon?: string | number | boolean;
+  frieght_in_time?: string | number | boolean;
+  weight_kg: string | number;
+  volume_cbm: string | number;
   initial_quote_awarded?: string;
   final_quote_awarded_freight_forwader_Carrier?: string;
   comments?: string;
@@ -29,6 +32,8 @@ export interface Shipment {
   delivery_status?: string;
   mode_of_shipment?: string;
   date_of_greenlight_to_pickup?: string | null;
+  forwarder_quotes?: Record<string, number>;
+  updated_at?: string;
 }
 
 export interface ForwarderPerformance {
@@ -77,8 +82,9 @@ export interface CountryPerformance {
   totalVolume: number;
   totalCost: number;
   avgDelayDays: number;
-  forwarder(forwarder: any): unknown;
+  forwarder?(forwarder: any): unknown;
   country: string;
+  name?: string;
   totalShipments: number;
   avgCostPerRoute: number;
   avgCustomsClearanceTime: number;
@@ -176,18 +182,6 @@ export interface HistoricalTrends {
 
 export interface ShipmentAnalyticsProps {
   metrics: ShipmentMetrics;
-}
-
-export interface CountryPerformance {
-  name: string;
-  country: string;
-  totalShipments: number;
-  totalWeight: number;
-  totalVolume: number;
-  totalCost: number;
-  avgDelayDays: number;
-  avgCostPerRoute: number;
-  avgCustomsClearanceTime: number;
 }
 
 export interface CSVShipment {

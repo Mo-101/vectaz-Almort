@@ -1,12 +1,52 @@
 
 import React from 'react';
+import { useBaseDataStore } from '@/store/baseState';
+
 interface StatsOverlayProps {
   routesCount: number;
 }
+
 const StatsOverlay: React.FC<StatsOverlayProps> = ({
   routesCount
 }) => {
-  return <>
+  const { shipmentData } = useBaseDataStore();
+  
+  // Calculate shipment status counts
+  const statusCounts = {
+    inTransit: shipmentData.filter(s => s.delivery_status === 'in_transit' || s.delivery_status === 'In Transit').length,
+    delivered: shipmentData.filter(s => s.delivery_status === 'delivered' || s.delivery_status === 'Delivered').length,
+    delayed: shipmentData.filter(s => s.delivery_status === 'delayed' || s.delivery_status === 'Delayed').length,
+    pending: shipmentData.filter(s => s.delivery_status === 'pending' || s.delivery_status === 'Pending').length,
+    onTime: shipmentData.filter(s => 
+      (s.delivery_status === 'delivered' || s.delivery_status === 'Delivered') && 
+      s.date_of_arrival_destination !== undefined
+    ).length,
+  };
+
+  // Calculate top forwarders based on shipment counts
+  const forwarderCounts = shipmentData.reduce((acc: Record<string, number>, shipment) => {
+    const forwarder = shipment.final_quote_awarded_freight_forwader_Carrier || shipment.carrier || 'Unknown';
+    acc[forwarder] = (acc[forwarder] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Sort forwarders by count
+  const topForwarders = Object.entries(forwarderCounts)
+    .sort(([, countA], [, countB]) => countB - countA)
+    .slice(0, 3)
+    .map(([name, count]) => ({
+      name,
+      count,
+      onTimeRate: Math.round(
+        (shipmentData.filter(s => 
+          (s.final_quote_awarded_freight_forwader_Carrier === name || s.carrier === name) && 
+          (s.delivery_status === 'delivered' || s.delivery_status === 'Delivered')
+        ).length / Math.max(count, 1)) * 100
+      )
+    }));
+  
+  return (
+    <>
       {/* Map overlay with route count */}
       <div className="absolute bottom-4 right-4 pointer-events-none z-10">
         <div className="text-xs glassmorphism-card px-3 py-2 rounded-md shadow-sm border border-mostar-light-blue/30">
@@ -30,16 +70,16 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
           <h3 className="font-bold mb-2 text-sm text-cyber-blue">Active Shipments</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
-              <span className="text-muted-foreground">In Transit:</span> <span className="text-foreground">42</span>
+              <span className="text-muted-foreground">In Transit:</span> <span className="text-foreground">{statusCounts.inTransit}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Delayed:</span> <span className="text-red-400">7</span>
+              <span className="text-muted-foreground">Delayed:</span> <span className="text-red-400">{statusCounts.delayed}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">On Schedule:</span> <span className="text-mostar-green">35</span>
+              <span className="text-muted-foreground">On Schedule:</span> <span className="text-mostar-green">{statusCounts.onTime}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Early:</span> <span className="text-cyan-400">5</span>
+              <span className="text-muted-foreground">Pending:</span> <span className="text-cyan-400">{statusCounts.pending}</span>
             </div>
           </div>
         </div>
@@ -47,21 +87,23 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
         <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
           <h3 className="font-bold mb-2 text-sm text-cyber-blue">Top Performing Forwarders</h3>
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span>DHL</span>
-              <span className="text-mostar-green">94% On-Time</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Kuehne Nagel</span>
-              <span className="text-mostar-green">91% On-Time</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Scan Global logistics</span>
-              <span className="text-amber-500">86% On-Time</span>
-            </div>
+            {topForwarders.map((forwarder, index) => (
+              <div key={index} className="flex justify-between">
+                <span>{forwarder.name}</span>
+                <span className={forwarder.onTimeRate >= 90 ? "text-mostar-green" : 
+                                 forwarder.onTimeRate >= 80 ? "text-amber-500" : "text-red-400"}>
+                  {forwarder.onTimeRate}% On-Time
+                </span>
+              </div>
+            ))}
+            {topForwarders.length === 0 && (
+              <div className="text-muted-foreground">No forwarder data available</div>
+            )}
           </div>
         </div>
       </div>
-    </>;
+    </>
+  );
 };
+
 export default StatsOverlay;
