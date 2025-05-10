@@ -7,6 +7,7 @@ import { speakText } from './deepcal/VoiceService';
 import QuoteInputForm from './deepcal/QuoteInputForm';
 import AnalysisResults from './deepcal/AnalysisResults';
 import { QuoteData, ForwarderScore, WeightFactors, DeepCALProps } from './deepcal/types';
+import { toast } from 'sonner';
 
 const DeepCALSection: React.FC<DeepCALProps> = ({ 
   voicePersonality = 'sassy',
@@ -26,6 +27,7 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
     time: 0.3,
     reliability: 0.3
   });
+  const [processingStage, setProcessingStage] = useState<string>('');
 
   const analyzeQuotes = (
     quotes: QuoteData[], 
@@ -43,8 +45,36 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
     setWeightFactors(factors);
     setLoading(true);
     
-    setTimeout(() => {
+    // Create a dynamic processing sequence to show the multi-step analysis
+    const stages = [
+      'Initializing deep analysis engine...',
+      'Processing historical shipment data...',
+      'Calculating neutrosophic parameters...',
+      'Running TOPSIS with Grey factors...',
+      'Computing mathematical proofs...',
+      'Finalizing recommendation...'
+    ];
+    
+    // Show each stage with a small delay to visualize the process
+    let stageIndex = 0;
+    const stageInterval = setInterval(() => {
+      if (stageIndex < stages.length) {
+        setProcessingStage(stages[stageIndex]);
+        stageIndex++;
+      } else {
+        clearInterval(stageInterval);
+        completeAnalysis();
+      }
+    }, 500);
+    
+    // Final processing after showing all stages
+    const completeAnalysis = () => {
       try {
+        toast.success('Deep analysis completed!', {
+          description: `Based on ${shipmentData.length} historical records and neutrosophic calculations`,
+          duration: 3000,
+        });
+        
         const rankings = getForwarderRankings(factors);
         
         const filteredRankings = rankings
@@ -71,7 +101,7 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
         // Speak an error message
         speakText("I encountered an error while analyzing the quotes. Please try again or check your input data.", voicePersonality, voiceEnabled);
       }
-    }, 2000);
+    };
   };
 
   const handleNewAnalysis = () => {
@@ -104,6 +134,19 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
           shipmentCount={shipmentData.length}
           onNewAnalysis={handleNewAnalysis}
         />
+      )}
+      
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm z-50">
+          <div className="text-center p-8 rounded-lg bg-[#0A1A2F]/80 border border-[#00FFD1]/20 shadow-lg max-w-md">
+            <DeepCALSpinner />
+            <h3 className="text-[#00FFD1] text-xl font-semibold mt-4">DeepCAL™ Engine</h3>
+            <p className="text-white/80 mt-2">{processingStage}</p>
+            <div className="mt-4 h-2 bg-[#0A1A2F] rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-500 to-[#00FFD1] animate-pulse"></div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

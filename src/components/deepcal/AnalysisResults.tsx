@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,7 +33,17 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
   shipmentCount,
   onNewAnalysis 
 }) => {
-  const [activeResultTab, setActiveResultTab] = React.useState<string>('recommendation');
+  const [activeResultTab, setActiveResultTab] = useState<string>('recommendation');
+  const [showMathExplanation, setShowMathExplanation] = useState<boolean>(false);
+  
+  // Show mathematical explanation after a delay to simulate calculation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowMathExplanation(true);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   return (
     <div className="space-y-8">
@@ -59,7 +69,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
               <TabsTrigger value="recommendation" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Recommendation</TabsTrigger>
               <TabsTrigger value="comparison" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Comparison</TabsTrigger>
               <TabsTrigger value="detailed" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Detailed Analysis</TabsTrigger>
-              <TabsTrigger value="mathematics" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Mathematics</TabsTrigger>
+              <TabsTrigger value="mathematics" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]" disabled={!showMathExplanation}>Mathematics</TabsTrigger>
             </TabsList>
             
             <TabsContent value="recommendation">
@@ -92,11 +102,18 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
             </TabsContent>
 
             <TabsContent value="mathematics">
-              <MathematicalExplanation 
-                results={results}
-                weightFactors={weightFactors}
-                shipmentCount={shipmentCount}
-              />
+              {showMathExplanation ? (
+                <MathematicalExplanation 
+                  results={results}
+                  weightFactors={weightFactors}
+                  shipmentCount={shipmentCount}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1] mb-4"></div>
+                  <p className="text-[#00FFD1]">Calculating mathematical foundations...</p>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>

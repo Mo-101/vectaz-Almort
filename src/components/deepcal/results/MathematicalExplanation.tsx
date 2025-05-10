@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ForwarderScore, WeightFactors } from '../types';
-import { Brain, ChevronDown, Calculator, Square, Function, ArrowRight, Zap } from 'lucide-react';
+import { Brain, ChevronDown, Calculator, Square, ArrowRight, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface MathematicalExplanationProps {
@@ -51,7 +51,7 @@ const MathematicalExplanation: React.FC<MathematicalExplanationProps> = ({
     <Card className="bg-[#0A1A2F]/70 border border-[#00FFD1]/20 my-8">
       <CardHeader>
         <CardTitle className="text-lg text-[#00FFD1] flex items-center">
-          <Function className="h-5 w-5 mr-2" />
+          <Calculator className="h-5 w-5 mr-2" />
           Mathematical Foundation
         </CardTitle>
       </CardHeader>
