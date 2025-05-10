@@ -10,6 +10,7 @@ import ScoreComparisonChart from './charts/ScoreComparisonChart';
 import MultidimensionalChart from './charts/MultidimensionalChart';
 import CalculatedMetricsTable from './results/CalculatedMetricsTable';
 import MethodologyExplanation from './results/MethodologyExplanation';
+import MathematicalExplanation from './results/MathematicalExplanation';
 
 interface AnalysisResultsProps {
   results: ForwarderScore[];
@@ -54,10 +55,11 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue={activeResultTab} onValueChange={setActiveResultTab}>
-            <TabsList className="grid w-full grid-cols-3 mb-8 bg-[#0A1A2F]/60 border border-[#00FFD1]/20">
+            <TabsList className="grid w-full grid-cols-4 mb-8 bg-[#0A1A2F]/60 border border-[#00FFD1]/20">
               <TabsTrigger value="recommendation" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Recommendation</TabsTrigger>
               <TabsTrigger value="comparison" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Comparison</TabsTrigger>
               <TabsTrigger value="detailed" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Detailed Analysis</TabsTrigger>
+              <TabsTrigger value="mathematics" className="data-[state=active]:bg-[#00FFD1]/20 data-[state=active]:text-[#00FFD1]">Mathematics</TabsTrigger>
             </TabsList>
             
             <TabsContent value="recommendation">
@@ -87,6 +89,14 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
                   shipmentCount={shipmentCount} 
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="mathematics">
+              <MathematicalExplanation 
+                results={results}
+                weightFactors={weightFactors}
+                shipmentCount={shipmentCount}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
