@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { symbolicStats } from './symbolic-runtime';
+import { symbolicStats } from '@/lib/symbolic-runtime';
 
 export interface TrainingNode {
   name: string;
