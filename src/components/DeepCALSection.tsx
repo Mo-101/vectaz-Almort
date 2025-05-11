@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
-import { evaluateForwarders, getSampleForwarderData } from '@/utils/deepCalEngine'; // Updated import
+import { evaluateForwarders, getSampleForwarderData } from '@/utils/deepCalEngine'; 
 import DeepCALSpinner from './DeepCALSpinner';
 import { speakText } from './deepcal/VoiceService';
 import QuoteInputForm from './deepcal/QuoteInputForm';
@@ -9,6 +9,7 @@ import AnalysisResults from './deepcal/AnalysisResults';
 import { QuoteData, ForwarderScore, WeightFactors, DeepCALProps } from './deepcal/types';
 import { toast } from 'sonner';
 import { traceCalculation } from '@/utils/debugCalculations';
+import DebugPanel from './deepcal/debug/DebugPanel';
 
 const DeepCALSection: React.FC<DeepCALProps> = ({ 
   voicePersonality = 'sassy',
@@ -23,6 +24,7 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [results, setResults] = useState<ForwarderScore[]>([]);
   const [showResults, setShowResults] = useState<boolean>(false);
+  const [showDebugPanel, setShowDebugPanel] = useState<boolean>(false);
   const [weightFactors, setWeightFactors] = useState<WeightFactors>({
     cost: 0.4,
     time: 0.3,
@@ -152,6 +154,10 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
   const handleNewAnalysis = () => {
     setShowResults(false);
   };
+  
+  const toggleDebugPanel = () => {
+    setShowDebugPanel(!showDebugPanel);
+  };
 
   // Speak welcome message on component mount
   useEffect(() => {
@@ -163,6 +169,18 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
 
   return (
     <div className="container mx-auto py-8 max-w-7xl relative z-20">
+      <Button 
+        className="absolute top-4 right-4 bg-[#00FFD1]/10 border border-[#00FFD1]/30 hover:bg-[#00FFD1]/20 text-[#00FFD1]"
+        size="sm"
+        variant="outline"
+        onClick={toggleDebugPanel}
+      >
+        <Bug className="w-4 h-4 mr-2" /> 
+        Debug Panel
+      </Button>
+      
+      {showDebugPanel && <DebugPanel onClose={() => setShowDebugPanel(false)} />}
+      
       {!showResults ? (
         <QuoteInputForm 
           onAnalyze={analyzeQuotes}

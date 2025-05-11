@@ -17,9 +17,9 @@ interface QuoteInputFormProps {
 const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) => {
   // Prefill with sample data for quick testing
   const [quotes, setQuotes] = useState<QuoteData[]>([
-    { forwarder: 'Kenya Airways', quote: 2500 },
-    { forwarder: 'DHL', quote: 2700 },
-    { forwarder: 'Kuehne Nagel', quote: 2600 }
+    { forwarder: 'Kenya Airways', price: '2500', currency: 'USD', transitDays: '5', reliability: '85' },
+    { forwarder: 'DHL', price: '2700', currency: 'USD', transitDays: '3', reliability: '90' },
+    { forwarder: 'Kuehne Nagel', price: '2600', currency: 'USD', transitDays: '4', reliability: '87' }
   ]);
   const [weightKg, setWeightKg] = useState<number>(20000);
   const [source, setSource] = useState<string>('Kenya');
@@ -32,9 +32,9 @@ const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) =
     reliability: 0.3
   });
 
-  const handleQuoteChange = (index: number, value: string) => {
+  const handleQuoteChange = (index: number, field: keyof QuoteData, value: string) => {
     const newQuotes = [...quotes];
-    newQuotes[index].quote = Number(value) || 0;
+    newQuotes[index] = { ...newQuotes[index], [field]: value };
     setQuotes(newQuotes);
   };
 
@@ -44,7 +44,13 @@ const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) =
         f => !quotes.some(q => q.forwarder === f)
       );
       if (availableForwarders.length > 0) {
-        setQuotes([...quotes, { forwarder: availableForwarders[0], quote: 0 }]);
+        setQuotes([...quotes, { 
+          forwarder: availableForwarders[0], 
+          price: '0', 
+          currency: 'USD', 
+          transitDays: '1',
+          reliability: '75'
+        }]);
       }
     }
   };
@@ -142,11 +148,7 @@ const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) =
               <div className="w-full md:w-1/3">
                 <select 
                   value={quote.forwarder}
-                  onChange={(e) => {
-                    const newQuotes = [...quotes];
-                    newQuotes[index].forwarder = e.target.value;
-                    setQuotes(newQuotes);
-                  }}
+                  onChange={(e) => handleQuoteChange(index, 'forwarder', e.target.value)}
                   className="flex h-10 w-full rounded-md border border-[#00FFD1]/30 bg-[#0A1A2F]/50 px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00FFD1]/50 focus-visible:ring-offset-2"
                 >
                   {forwarders.map((name) => (
@@ -159,12 +161,32 @@ const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) =
                   <span className="mr-2 text-white">$</span>
                   <Input 
                     type="number"
-                    value={quote.quote}
-                    onChange={(e) => handleQuoteChange(index, e.target.value)}
+                    value={quote.price}
+                    onChange={(e) => handleQuoteChange(index, 'price', e.target.value)}
                     placeholder="Quote amount"
                     className="bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
                   />
                 </div>
+              </div>
+              <div className="w-full md:w-1/4">
+                <Input
+                  type="number"
+                  value={quote.transitDays}
+                  onChange={(e) => handleQuoteChange(index, 'transitDays', e.target.value)}
+                  placeholder="Transit Days"
+                  className="bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
+                />
+              </div>
+              <div className="w-full md:w-1/4">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={quote.reliability}
+                  onChange={(e) => handleQuoteChange(index, 'reliability', e.target.value)}
+                  placeholder="Reliability %"
+                  className="bg-[#0A1A2F]/50 border-[#00FFD1]/30 text-white"
+                />
               </div>
               <div>
                 <Button 
@@ -233,7 +255,7 @@ const QuoteInputForm: React.FC<QuoteInputFormProps> = ({ onAnalyze, loading }) =
             size="lg" 
             className="px-10 py-6 text-lg bg-gradient-to-r from-[#00FFD1]/80 to-[#00FFD1] hover:from-[#00FFD1] hover:to-[#00FFD1]/80 text-[#0A1A2F] font-bold transition-all"
             onClick={handleSubmit}
-            disabled={loading || quotes.some(q => q.quote <= 0)}
+            disabled={loading || quotes.some(q => parseFloat(q.price) <= 0)}
           >
             {loading ? (
               <span className="flex items-center">
