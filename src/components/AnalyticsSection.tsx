@@ -57,7 +57,10 @@ const AnalyticsSection: React.FC = () => {
       <AnalyticsLayout 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
-        title={
+        // This is the problematic line - we need to modify how we pass the title
+        // Instead of passing a JSX element directly, we need to pass it as a titleElement prop
+        title={getTabTitle()}
+        titleElement={
           <div className="flex items-center">
             {getTabTitle()}
             <Badge className="ml-3 bg-mostar-light-blue/20 text-mostar-light-blue hover:bg-mostar-light-blue/30">
