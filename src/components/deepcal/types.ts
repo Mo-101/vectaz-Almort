@@ -1,3 +1,4 @@
+
 export interface ForwarderScore {
   forwarder: string;
   score: number;
@@ -7,6 +8,11 @@ export interface ForwarderScore {
   reliabilityPerformance: number;
   greyGrade?: number; // Added for Grey Relational Analysis
   explanation?: any;
+  neutrosophic?: {
+    T: number;  // Truth (on-time delivery performance)
+    I: number;  // Indeterminacy (operational uncertainty)
+    F: number;  // Falsity (service failures and exceptions)
+  };
 }
 
 export interface WeightFactors {

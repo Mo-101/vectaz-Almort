@@ -27,13 +27,17 @@ export interface ResourceMetrics {
   gpu?: number[];
 }
 
+export type EventType = 'info' | 'warning' | 'error' | 'success';
+
 export interface TrainingEvent {
   id: string;
   timestamp: string;
-  type: 'info' | 'warning' | 'error' | 'success';
+  type: EventType;
   message: string;
   details?: string;
 }
+
+export type TimelineEvent = TrainingEvent;
 
 export interface TrainingStatus {
   systemStatus: 'operational' | 'degraded' | 'maintenance' | 'offline';

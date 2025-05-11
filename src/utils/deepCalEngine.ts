@@ -1,4 +1,3 @@
-
 /**
  * DeepCAL Engine TypeScript Implementation
  * 
@@ -18,6 +17,51 @@ type ForwarderData = {
   timeScore: number;     // normalized time performance (higher is better)
   reliabilityScore: number;  // normalized reliability performance (higher is better)
 };
+
+/**
+ * Normalize a value between min and max to a 0-1 scale
+ */
+const normalize = (value: number, min: number, max: number): number => {
+  if (max === min) return 0.5; // Handle edge case
+  return Math.max(0, Math.min(1, (value - min) / (max - min)));
+};
+
+/**
+ * Calculate Neutrosophic values for a forwarder based on performance metrics
+ * @param costScore Cost efficiency (higher is better)
+ * @param timeScore Time efficiency (higher is better)
+ * @param reliabilityScore Reliability performance (higher is better)
+ */
+export function calculateNeutrosophicValues(
+  costScore: number,
+  timeScore: number, 
+  reliabilityScore: number
+) {
+  // Map the performance metrics to Neutrosophic components
+  // T (Truth): Primarily based on reliability (on-time delivery)
+  // I (Indeterminacy): Primarily based on time performance variability
+  // F (Falsity): Primarily based on cost inefficiency (1 - costScore)
+  
+  // For this implementation:
+  // T - Truth represents the confidence from reliability performance
+  // I - Indeterminacy represents operational uncertainty 
+  // F - Falsity represents service failures and recorded exceptions
+  
+  const T = reliabilityScore;
+  
+  // For indeterminacy, we'll use a function of time performance
+  // Lower time scores indicate more variability/uncertainty
+  const I = 1 - timeScore * 0.8; // Scale to keep some uncertainty even with good time performance
+  
+  // For falsity, we'll use inverse of cost performance (higher cost = higher falsity)
+  const F = 1 - costScore * 0.9; // Scale to acknowledge that even good options have some falsity
+  
+  return {
+    T: parseFloat(T.toFixed(2)),
+    I: parseFloat(I.toFixed(2)),
+    F: parseFloat(F.toFixed(2))
+  };
+}
 
 /**
  * Main function to evaluate and rank forwarders based on weighted criteria
@@ -70,15 +114,25 @@ export function evaluateForwarders(
   );
   
   // 7. Create the resulting ForwarderScore array
-  const result: ForwarderScore[] = forwarderData.map((forwarder, index) => ({
-    forwarder: forwarder.forwarder,
-    score: allScores[index],
-    closeness: allScores[index],  // closeness coefficient from TOPSIS
-    costPerformance: forwarder.costScore,
-    timePerformance: forwarder.timeScore,
-    reliabilityPerformance: forwarder.reliabilityScore,
-    greyGrade: greyGrades[index]  // additional metric from Grey analysis
-  }));
+  const result: ForwarderScore[] = forwarderData.map((forwarder, index) => {
+    // Calculate Neutrosophic values for each forwarder
+    const neutrosophic = calculateNeutrosophicValues(
+      forwarder.costScore, 
+      forwarder.timeScore, 
+      forwarder.reliabilityScore
+    );
+    
+    return {
+      forwarder: forwarder.forwarder,
+      score: allScores[index],
+      closeness: allScores[index],  // closeness coefficient from TOPSIS
+      costPerformance: forwarder.costScore,
+      timePerformance: forwarder.timeScore,
+      reliabilityPerformance: forwarder.reliabilityScore,
+      greyGrade: greyGrades[index],  // additional metric from Grey analysis
+      neutrosophic  // Add Neutrosophic evaluation
+    };
+  });
   
   // 8. Sort by score in descending order
   result.sort((a, b) => b.score - a.score);
