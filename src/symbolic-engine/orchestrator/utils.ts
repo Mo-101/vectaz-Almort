@@ -1,5 +1,6 @@
 
 // utils.ts - Utility functions for symbolic orchestration
+import { haversineDistance } from '../utils/distanceEngine';
 
 /**
  * Processes geographic data for symbolic analysis
@@ -28,7 +29,8 @@ export function processGeographicData(
 }
 
 /**
- * Helper function that delegates to the haversineDistance utility
+ * Helper function that calls the haversineDistance directly
+ * (Changed to avoid circular dependencies and remove require())
  */
 function calculateRouteDistance(
   originLat: number,
@@ -36,8 +38,6 @@ function calculateRouteDistance(
   destLat: number,
   destLng: number
 ): number {
-  // Import here to avoid circular dependencies
-  const { haversineDistance } = require('../utils/distanceEngine');
   return haversineDistance(originLat, originLng, destLat, destLng);
 }
 
