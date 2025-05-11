@@ -11,6 +11,9 @@ import ShipmentResilienceChart from './shipment/ShipmentResilienceChart';
 import { useBaseDataStore } from '@/store/baseState';
 import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
 import SymbolicRecommendations from './symbolic/SymbolicRecommendations';
+import EnhancedShipmentMetrics from './shipment/EnhancedShipmentMetrics';
+import ShipmentRouteMap from './shipment/ShipmentRouteMap';
+import ShipmentTimeTrends from './shipment/ShipmentTimeTrends';
 
 interface ShipmentAnalyticsProps {
   metrics?: ShipmentMetrics;
@@ -33,13 +36,21 @@ const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics: propMetr
   const displayMetrics = propMetrics || computedMetrics;
   
   if (!displayMetrics) {
-    return <div className="p-4 text-center">Loading shipment analytics...</div>;
+    return (
+      <div className="p-4 text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-mostar-light-blue mx-auto"></div>
+        <p className="mt-2 text-mostar-light-blue">Loading shipment analytics...</p>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Top KPIs */}
       <ShipmentMetricsCards metrics={displayMetrics} />
+      
+      {/* Enhanced Metrics Section */}
+      <EnhancedShipmentMetrics metrics={displayMetrics} />
       
       {/* Symbolic Container Recommendations */}
       {symbolicResults && symbolicResults.recommendedContainer && (
@@ -65,6 +76,16 @@ const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics: propMetr
         </div>
         <div className="cyber-panel rounded-md overflow-hidden">
           <OnTimePerformanceChart delayedVsOnTimeRate={displayMetrics.delayedVsOnTimeRate} />
+        </div>
+      </div>
+
+      {/* New Charts Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <ShipmentRouteMap metrics={displayMetrics} />
+        </div>
+        <div className="cyber-panel rounded-md overflow-hidden">
+          <ShipmentTimeTrends metrics={displayMetrics} />
         </div>
       </div>
       

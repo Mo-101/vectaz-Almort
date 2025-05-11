@@ -56,6 +56,13 @@ export interface ForwarderPerformance {
   shipments?: number;
   reliability?: number;
   id?: string;
+  performanceTrend?: 'up' | 'down' | 'stable';
+  failureRate?: number;
+  documentationAccuracy?: number;
+  customerSatisfaction?: number;
+  costEfficiencyRatio?: number;
+  leadTimeVariance?: number;
+  routeResilienceScore?: number;
 }
 
 export interface CarrierPerformance {
@@ -69,6 +76,11 @@ export interface CarrierPerformance {
   handlingScore?: number;
   shipments: number;
   reliability: number;
+  lastMonthPerformance?: number;
+  performance3MonthTrend?: 'up' | 'down' | 'stable';
+  capacityUtilization?: number;
+  disruptionFrequency?: number;
+  routeEfficiency?: number;
 }
 
 export interface RoutePerformance {
@@ -79,6 +91,10 @@ export interface RoutePerformance {
   disruptionScore: number;
   reliabilityScore: number;
   totalShipments: number;
+  historicalDelays?: number;
+  weatherRiskFactor?: number;
+  geopoliticalRiskScore?: number;
+  infrastructureQualityScore?: number;
 }
 
 export interface CountryPerformance {
@@ -100,6 +116,12 @@ export interface CountryPerformance {
   reliabilityScore?: number;
   avgTransitDays?: number;
   deliverySuccessRate?: number;
+  currentStatusSummary?: string;
+  tradingVolumeChange?: number;
+  customsComplianceRate?: number;
+  logisticsPerformanceIndex?: number;
+  portCongestionLevel?: 'low' | 'medium' | 'high';
+  lastMilePerformance?: number;
 }
 
 export interface WarehousePerformance {
@@ -115,6 +137,12 @@ export interface WarehousePerformance {
   costDiscrepancy: number;
   dispatchSuccessRate?: number;
   avgTransitDays?: number;
+  capacityUtilization?: number;
+  laborEfficiency?: number;
+  inventoryAccuracy?: number;
+  equipmentDowntime?: number;
+  energyEfficiency?: number;
+  processingThroughput?: number;
 }
 
 export interface ShipmentMetrics {
@@ -142,6 +170,24 @@ export interface ShipmentMetrics {
   topCarrier?: string;
   carrierCount?: number;
   avgCostPerKg: number;
+  // New metrics
+  destinationCountryCount?: number;
+  originCountryCount?: number;
+  avgValuePerShipment?: number;
+  documentationAccuracy?: number;
+  costVariance?: number;
+  leadTimeVariance?: number;
+  onTimeInFullRate?: number;
+  totalShipmentValue?: number;
+  capacityUtilization?: number;
+  totalDistance?: number;
+  avgDistance?: number;
+  routeRiskAssessment?: Record<string, number>;
+  carbonFootprint?: number;
+  performanceByRegion?: Record<string, number>;
+  weatherImpactScore?: number;
+  outlierShipments?: number;
+  routeCount?: number;
 }
 
 export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'forms';
@@ -195,4 +241,43 @@ export interface CSVShipment {
   destination_country: string;
   destination_latitude: number;
   destination_longitude: number;
+}
+
+export interface ShipmentPerformanceTrend {
+  period: string;
+  transitTime: number;
+  onTimeRate: number;
+  cost: number;
+  disruptions?: number;
+  shipmentCount?: number;
+}
+
+export interface RouteRiskAssessment {
+  route: string; 
+  riskScore: number;
+  disruptionProbability: number;
+  historicalDelays: number;
+  weatherFactor: number;
+  geopoliticalFactor: number;
+}
+
+export interface EnhancedMetric {
+  value: number;
+  previousValue?: number;
+  trend?: TrendDirection;
+  trendValue?: number;
+  status?: 'good' | 'warning' | 'critical';
+  target?: number;
+  unit?: string;
+}
+
+export interface ShipmentEnhancedMetrics {
+  valuePerShipment: EnhancedMetric;
+  costVariance: EnhancedMetric;
+  documentAccuracy: EnhancedMetric;
+  onTimeDeliveryRate: EnhancedMetric;
+  containerUtilization: EnhancedMetric;
+  carbonFootprint: EnhancedMetric;
+  leadTimeVariance: EnhancedMetric;
+  routeRiskAssessment: EnhancedMetric;
 }

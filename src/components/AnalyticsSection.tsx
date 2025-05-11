@@ -10,6 +10,9 @@ import DeepCALExplainer from './analytics/DeepCALExplainer';
 import { useAnalyticsMetrics } from '@/hooks/useAnalyticsMetrics';
 import { useSymbolicAnalysis } from '@/hooks/useSymbolicAnalysis';
 import { useBaseDataStore } from '@/store/baseState';
+import { Badge } from '@/components/ui/badge';
+import { Info, ArrowUpRight } from 'lucide-react';
+import { Button } from './ui/button';
 
 const AnalyticsSection: React.FC = () => {
   const { shipmentData } = useBaseDataStore();
@@ -54,13 +57,32 @@ const AnalyticsSection: React.FC = () => {
       <AnalyticsLayout 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
-        title={getTabTitle()}
+        title={
+          <div className="flex items-center">
+            {getTabTitle()}
+            <Badge className="ml-3 bg-mostar-light-blue/20 text-mostar-light-blue hover:bg-mostar-light-blue/30">
+              Enhanced Analytics
+            </Badge>
+          </div>
+        }
       >
         {activeTab === 'overview' && coreMetrics && (
-          <OverviewContent 
-            metrics={coreMetrics}
-            symbolicResults={symbolicResults}
-          />
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Info className="h-4 w-4 mr-2" />
+                <span>Enhanced analytics with advanced metrics and improved visualizations</span>
+              </div>
+              <Button size="sm" variant="outline" className="text-xs border-mostar-light-blue/30 text-mostar-light-blue hover:bg-mostar-light-blue/10">
+                <ArrowUpRight className="h-3 w-3 mr-1" />
+                Export Report
+              </Button>
+            </div>
+            <OverviewContent 
+              metrics={coreMetrics}
+              symbolicResults={symbolicResults}
+            />
+          </>
         )}
         
         {activeTab === 'shipments' && (

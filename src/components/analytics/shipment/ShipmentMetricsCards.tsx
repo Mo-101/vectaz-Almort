@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShipmentMetrics } from '@/types/deeptrack';
-import { Package, Clock, AlertTriangle, Shield, Info, Users, Truck } from 'lucide-react';
+import { Package, Clock, AlertTriangle, Shield, Info, Users, Truck, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DeepExplainModal from '../DeepExplainModal';
 import { explainShipmentMetrics, MetricExplanation } from '@/services/deepSightNarrator';
@@ -26,10 +26,10 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-[29px] my-0 py-px mx-0">
-        <Card className="px-0 mx-0 py-0 my-0 relative group">
+        <Card className="px-0 mx-0 py-0 my-0 relative group bg-gradient-to-br from-black/70 to-mostar-blue/20 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
-              <Package className="h-4 w-4 mr-2 text-primary" />
+              <Package className="h-4 w-4 mr-2 text-mostar-light-blue" />
               Total Shipments
             </CardTitle>
           </CardHeader>
@@ -38,6 +38,14 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
             <p className="text-xs text-muted-foreground mt-1">
               Across all origins and destinations
             </p>
+            
+            <div className="mt-3 flex justify-between items-center">
+              <div className="flex items-center text-xs text-green-500">
+                <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-1"></span>
+                Active shipments: {metrics.shipmentStatusCounts.active}
+              </div>
+              <ArrowRight className="h-3 w-3 text-mostar-light-blue" />
+            </div>
             
             <Button 
               variant="ghost" 
@@ -51,7 +59,7 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
           </CardContent>
         </Card>
 
-        <Card className="relative group">
+        <Card className="relative group bg-gradient-to-br from-black/70 to-mostar-blue/20 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Clock className="h-4 w-4 mr-2 text-amber-500" />
@@ -71,6 +79,13 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
               )}
             </div>
             
+            <div className="mt-3 h-1.5 bg-gray-800/50 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-amber-500 to-red-500" 
+                style={{ width: `${Math.min(100, metrics.avgTransitTime / 10 * 100)}%` }}
+              ></div>
+            </div>
+            
             <Button 
               variant="ghost" 
               size="sm" 
@@ -83,7 +98,7 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
           </CardContent>
         </Card>
 
-        <Card className="relative group">
+        <Card className="relative group bg-gradient-to-br from-black/70 to-mostar-blue/20 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
@@ -105,6 +120,13 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
               </span>
             </div>
             
+            <div className="mt-3 h-1.5 bg-gray-800/50 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500 to-red-500" 
+                style={{ width: `${metrics.disruptionProbabilityScore * 10}%` }}
+              ></div>
+            </div>
+            
             <Button 
               variant="ghost" 
               size="sm" 
@@ -117,7 +139,7 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
           </CardContent>
         </Card>
 
-        <Card className="relative group">
+        <Card className="relative group bg-gradient-to-br from-black/70 to-mostar-blue/20 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Shield className="h-4 w-4 mr-2 text-green-500" />
@@ -139,6 +161,13 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
               </span>
             </div>
             
+            <div className="mt-3 h-1.5 bg-gray-800/50 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-red-500 to-green-500" 
+                style={{ width: `${metrics.resilienceScore}%` }}
+              ></div>
+            </div>
+            
             <Button 
               variant="ghost" 
               size="sm" 
@@ -153,7 +182,7 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 px-[29px] mt-4">
-        <Card className="relative group">
+        <Card className="relative group bg-gradient-to-br from-black/70 to-mostar-blue/20 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Users className="h-4 w-4 mr-2 text-blue-500" />
@@ -173,6 +202,15 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
               </span>
             </div>
             
+            <div className="mt-3 grid grid-cols-5 gap-1">
+              {[...Array(5)].map((_, idx) => (
+                <div 
+                  key={idx} 
+                  className={`h-1.5 rounded-full ${idx < 3 ? 'bg-blue-500' : 'bg-gray-700'}`}
+                ></div>
+              ))}
+            </div>
+            
             <Button 
               variant="ghost" 
               size="sm" 
@@ -185,7 +223,7 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
           </CardContent>
         </Card>
 
-        <Card className="relative group">
+        <Card className="relative group bg-gradient-to-br from-black/70 to-mostar-blue/20 backdrop-blur-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center">
               <Truck className="h-4 w-4 mr-2 text-purple-500" />
@@ -203,6 +241,15 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
               <span className="text-xs text-purple-600 font-medium">
                 Top: {metrics.topCarrier || "Kenya Airways"}
               </span>
+            </div>
+            
+            <div className="mt-3 grid grid-cols-8 gap-1">
+              {[...Array(8)].map((_, idx) => (
+                <div 
+                  key={idx} 
+                  className={`h-1.5 rounded-full ${idx < 5 ? 'bg-gradient-to-r from-purple-500 to-purple-400' : 'bg-gray-700'}`}
+                ></div>
+              ))}
             </div>
             
             <Button 
