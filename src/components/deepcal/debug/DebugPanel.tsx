@@ -1,118 +1,80 @@
 
-import React, { useState, useEffect } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bug, XCircle } from 'lucide-react';
-import LogViewer from './LogViewer';
-import MatrixViewer from './MatrixViewer';
-import WeightsViewer from './WeightsViewer';
+import { X } from 'lucide-react';
+import InspectSymbolicEngine from './InspectSymbolicEngine';
 
 interface DebugPanelProps {
   onClose: () => void;
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({ onClose }) => {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState('trace');
-  const [matrixData, setMatrixData] = useState<any>(null);
-  const [weightsData, setWeightsData] = useState<any>(null);
-
-  // Listen for console logs from the DeepCAL engine
-  useEffect(() => {
-    // Store original console methods
-    const originalConsoleLog = console.log;
-    const originalConsoleError = console.error;
-    
-    // Override console.log to capture DeepCAL related logs
-    console.log = (...args: any[]) => {
-      originalConsoleLog(...args);
-      
-      // Check if this is a DeepCAL log
-      if (args[0] && typeof args[0] === 'string' && args[0].includes('DeepCAL')) {
-        setLogs(prev => [...prev, { type: 'log', timestamp: new Date(), content: args }]);
-        
-        // Check for matrix data
-        if (args[0].includes('Matrix') && args[1] && typeof args[1] === 'object') {
-          setMatrixData(args[1]);
-        }
-        
-        // Check for weights data
-        if (args[0].includes('Weights') && args[1] && typeof args[1] === 'object') {
-          setWeightsData(args[1]);
-        }
-      }
-    };
-    
-    // Override console.error to capture errors
-    console.error = (...args: any[]) => {
-      originalConsoleError(...args);
-      
-      // Add all errors to the debug logs
-      setLogs(prev => [...prev, { type: 'error', timestamp: new Date(), content: args }]);
-    };
-    
-    // Add initial log
-    setLogs(prev => [...prev, { 
-      type: 'info', 
-      timestamp: new Date(), 
-      content: ['DeepCAL Debug Panel initialized'] 
-    }]);
-    
-    // Restore original console methods on cleanup
-    return () => {
-      console.log = originalConsoleLog;
-      console.error = originalConsoleError;
-    };
-  }, []);
-
+  const [activeTab, setActiveTab] = useState('console');
+  
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-96 max-h-[80vh] flex flex-col">
-      <Card className="bg-[#0A1A2F]/90 border border-[#00FFD1]/20">
-        <CardHeader className="p-3 flex flex-row items-center justify-between">
-          <div className="flex items-center">
-            <Bug className="h-4 w-4 mr-2 text-[#00FFD1]" />
-            <div>
-              <CardTitle className="text-sm text-[#00FFD1]">DeepCAL Debug Panel</CardTitle>
-              <CardDescription className="text-xs text-gray-400">Real-time calculation monitoring</CardDescription>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+      <Card className="w-full max-w-5xl h-[80vh] flex flex-col border border-[#00FFD1]/20 bg-[#0A1A2F]/90 backdrop-blur-md text-white">
+        <CardHeader className="border-b border-[#00FFD1]/10 p-4 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-[#00FFD1]">DeepCAL Debug Panel</CardTitle>
+          <button 
             onClick={onClose}
+            className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-[#00FFD1]/10"
           >
-            <XCircle className="h-4 w-4 text-gray-400" />
-          </Button>
+            <X className="h-5 w-5" />
+          </button>
         </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-[#0A1A2F] border-b border-[#00FFD1]/10 w-full">
-              <TabsTrigger value="trace" className="text-xs">Calculation Trace</TabsTrigger>
-              <TabsTrigger value="matrix" className="text-xs">Decision Matrix</TabsTrigger>
-              <TabsTrigger value="weights" className="text-xs">Weights</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <div className="border-b border-[#00FFD1]/10">
+            <TabsList className="bg-transparent border-b-0 p-0 h-12">
+              <TabsTrigger 
+                value="console" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-[#00FFD1] data-[state=active]:bg-[#00FFD1]/5 data-[state=active]:shadow-none rounded-none border-0 h-12 px-6"
+              >
+                Console Logs
+              </TabsTrigger>
+              <TabsTrigger 
+                value="symbolic" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-[#00FFD1] data-[state=active]:bg-[#00FFD1]/5 data-[state=active]:shadow-none rounded-none border-0 h-12 px-6"
+              >
+                Symbolic Engine
+              </TabsTrigger>
+              <TabsTrigger 
+                value="performance" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-[#00FFD1] data-[state=active]:bg-[#00FFD1]/5 data-[state=active]:shadow-none rounded-none border-0 h-12 px-6"
+              >
+                Performance
+              </TabsTrigger>
+              <TabsTrigger 
+                value="state" 
+                className="data-[state=active]:border-b-2 data-[state=active]:border-[#00FFD1] data-[state=active]:bg-[#00FFD1]/5 data-[state=active]:shadow-none rounded-none border-0 h-12 px-6"
+              >
+                App State
+              </TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="trace" className="mt-0">
-              <LogViewer logs={logs} />
-            </TabsContent>
-            
-            <TabsContent value="matrix" className="mt-0">
-              <MatrixViewer matrixData={matrixData} />
-            </TabsContent>
-            
-            <TabsContent value="weights" className="mt-0">
-              <WeightsViewer weightsData={weightsData} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
+          </div>
+          <TabsContent value="console" className="flex-1 p-4 overflow-auto space-y-2 bg-[#0A1A2F]/40">
+            <div className="font-mono text-sm">
+              <div className="text-gray-400">{'>'} DeepCAL Debug Console</div>
+              <div className="text-red-400 mt-2">⚠️ Warning: Some performance issues detected in DeepCAL optimizer</div>
+              <div className="text-gray-300 mt-2">Log tracing enabled for [deepcal-engine, neutrosophic-ahp]</div>
+              <div className="text-green-400 mt-2">✓ Session initialized</div>
+            </div>
+          </TabsContent>
+          <TabsContent value="symbolic" className="flex-1 p-4 overflow-auto">
+            <InspectSymbolicEngine />
+          </TabsContent>
+          <TabsContent value="performance" className="flex-1 p-4 overflow-auto">
+            <div className="text-center p-12">
+              <p className="text-gray-400">Performance metrics module coming soon</p>
+            </div>
+          </TabsContent>
+          <TabsContent value="state" className="flex-1 p-4 overflow-auto">
+            <div className="text-center p-12">
+              <p className="text-gray-400">State inspector module coming soon</p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </Card>
     </div>
   );

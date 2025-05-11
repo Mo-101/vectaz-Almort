@@ -1,4 +1,3 @@
-
 export interface ForwarderScore {
   forwarder: string;
   score: number;
@@ -27,4 +26,16 @@ export interface QuoteData {
 export interface DeepCALProps {
   voicePersonality?: string;
   voiceEnabled?: boolean;
+}
+
+export interface SymbolicEngineResult {
+  topChoice: string;
+  confidence: number;
+  recommendedContainer?: string;
+  routeDistanceKm?: number;
+  insights: {
+    name: string;
+    issue: string;
+  }[];
+  allScores: number[];
 }
