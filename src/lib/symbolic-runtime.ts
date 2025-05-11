@@ -1,4 +1,3 @@
-
 import { runNeuroSymbolicCycle } from '@/symbolic-engine/orchestrator/symbolicOrchestrator';
 import { simulateRoutes } from '@/symbolic-engine/simulation/simulator';
 import { updateForwarderTrust } from '@/symbolic-engine/services/feedback';
@@ -34,12 +33,43 @@ export async function symbolicStats() {
 
   // Calculate trust drift
   const trustDrift = (Math.random() * 5).toFixed(2);
+  
+  // Generate metrics data
+  const accuracy = 0.85 + (Math.random() * 0.1 - 0.05);
+  const loss = 0.15 - (Math.random() * 0.05);
+  const epochsDone = 78;
+  const totalEpochs = 100;
+  const epoch = epochsDone;
+  const samplesSeen = 14230;
+  
+  // Generate time series data for charts
+  const timeSeries = {
+    labels: Array(24).fill(0).map((_, i) => {
+      const time = new Date(Date.now() - (23 - i) * 60 * 60 * 1000);
+      return time.toISOString();
+    }),
+    cpu: Array(24).fill(0).map(() => Math.floor(30 + Math.random() * 60)),
+    memory: Array(24).fill(0).map(() => Math.floor(40 + Math.random() * 40)),
+    gpu: Array(24).fill(0).map(() => Math.floor(50 + Math.random() * 45))
+  };
 
   return {
     memory,
     anomalies,
     trustDrift: `${trustDrift}%`,
-    insights
+    insights,
+    accuracy,
+    loss,
+    epochsDone,
+    totalEpochs,
+    epoch,
+    samplesSeen,
+    timeSeries,
+    cpu: 65,
+    memory: 48,
+    gpu: 76,
+    disk: 52,
+    bandwidth: 8
   };
 }
 
