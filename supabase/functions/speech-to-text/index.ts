@@ -46,7 +46,7 @@ serve(async (req) => {
   try {
     // Either use OpenAI (if API key is available) or simulate speech-to-text
     const hasOpenAIKey = Boolean(Deno.env.get('OPENAI_API_KEY'));
-    const { audio } = await req.json();
+    const { audio, language = "en" } = await req.json();
     
     if (!audio) {
       throw new Error('No audio data provided');
@@ -67,6 +67,7 @@ serve(async (req) => {
       const blob = new Blob([binaryAudio], { type: 'audio/webm' });
       formData.append('file', blob, 'audio.webm');
       formData.append('model', 'whisper-1');
+      formData.append('language', language);
 
       // Send to OpenAI
       const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
@@ -78,27 +79,31 @@ serve(async (req) => {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${await response.text()}`);
+        const errorText = await response.text();
+        console.error("OpenAI API error:", errorText);
+        throw new Error(`OpenAI API error: ${errorText}`);
       }
 
       const result = await response.json();
       console.log("Transcription result:", result.text);
 
       return new Response(
-        JSON.stringify({ text: result.text }),
+        JSON.stringify({ 
+          text: result.text,
+          model: "whisper-1",
+          source: "OpenAI"
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } else {
       // If no OpenAI key is available, use a simulated response for testing
       console.log("No OpenAI API key available, using simulated response");
       
-      // This is just a placeholder. In a real implementation, you would
-      // need to integrate with another speech-to-text service, or implement
-      // one based on open-source models.
-      
       // Return a simulated response
       const simulatedResponse = {
-        text: "What's our most disrupted route?"
+        text: "What's our most disrupted route?",
+        model: "simulated",
+        source: "Development"
       };
       
       console.log("Simulated transcription:", simulatedResponse.text);

@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryProcessor } from '@/hooks/useQueryProcessor';
 import { useVoiceProcessor } from '@/hooks/useVoiceProcessor';
 import { getHumorResponse } from '../chat/useDeepCalHumor';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AudioRecorder, RecordingState } from '@/utils/audioRecorder';
 
 /**
  * Custom hook that provides functions for handling DeepTalk interactions
@@ -16,7 +17,14 @@ export const useDeepTalkHandler = () => {
   const [useSass, setUseSass] = useState<boolean>(true);
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isTranscribing, setIsTranscribing] = useState<boolean>(false);
+  const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.INACTIVE);
+  const [isAudioSupported, setIsAudioSupported] = useState<boolean>(true);
   const { toast } = useToast();
+  
+  // Check if browser supports audio recording
+  useEffect(() => {
+    setIsAudioSupported(AudioRecorder.isSupported());
+  }, []);
   
   // Combined processing state
   const isProcessing = isQueryProcessing || isVoiceProcessing || isTranscribing;
@@ -28,18 +36,32 @@ export const useDeepTalkHandler = () => {
 
   // Main query handler - can be used directly by components
   const handleQuery = async (query: string): Promise<string> => {
-    const response = await processQuery(query);
+    if (!query.trim()) {
+      return "I didn't catch that. Could you please try again?";
+    }
     
-    // Add DeepCAL humor if enabled (30% chance)
-    return useSass ? getHumorResponse(response) : response;
+    try {
+      const response = await processQuery(query);
+      
+      // Add DeepCAL humor if enabled
+      return useSass ? getHumorResponse(response) : response;
+    } catch (error) {
+      console.error("Error processing query:", error);
+      return "I'm having trouble processing your request right now. Please try again later.";
+    }
   };
 
   // Voice query handler - can be used directly by components
   const handleVoiceQuery = async (audioBlob: Blob): Promise<string> => {
-    const response = await processVoiceQuery(audioBlob);
-    
-    // Add DeepCAL humor if enabled (30% chance)
-    return useSass ? getHumorResponse(response) : response;
+    try {
+      const response = await processVoiceQuery(audioBlob);
+      
+      // Add DeepCAL humor if enabled
+      return useSass ? getHumorResponse(response) : response;
+    } catch (error) {
+      console.error("Error processing voice query:", error);
+      return "I'm having trouble processing your voice request. Please try typing your question instead.";
+    }
   };
   
   // Speech-to-speech handler - integrates both speech-to-text and text-to-speech
@@ -51,25 +73,8 @@ export const useDeepTalkHandler = () => {
       const useElevenLabs = localStorage.getItem('deepcal-use-elevenlabs') !== 'false';
       const personality = localStorage.getItem('deepcal-voice-personality') || 'sassy';
       
-      // Create Supabase client
-      const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co';
-      const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb2dveHJ4Y255eGlxam1xdGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDEwMjEsImV4cCI6MjA1ODc3NzAyMX0.9JA8cI1FYpyLJGn8VJGSQcUbnBmzNtMH_I_fkI-JMAE';
-      
-      const supabase = createClient(
-        supabaseUrl,
-        supabaseAnonKey,
-        { auth: { persistSession: false } }
-      );
-      
       // Convert audio to base64
-      const base64Audio = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          resolve(base64.split(',')[1]);
-        };
-        reader.readAsDataURL(audioBlob);
-      });
+      const base64Audio = await AudioRecorder.blobToBase64(audioBlob);
       
       // Call the speech-to-text edge function
       const { data: sttData, error: sttError } = await supabase.functions.invoke('speech-to-text', {
@@ -124,6 +129,10 @@ export const useDeepTalkHandler = () => {
   // Handle speech input from the speech-to-speech component
   const handleSpeechInput = async (text: string): Promise<string> => {
     try {
+      if (!text.trim()) {
+        return "I didn't catch that. Could you please try again?";
+      }
+      
       // Process the query with the regular query processor
       const response = await processQuery(text);
       
@@ -137,6 +146,17 @@ export const useDeepTalkHandler = () => {
     }
   };
 
+  // Handle recording state changes
+  const handleRecordingStateChange = (state: RecordingState) => {
+    setRecordingState(state);
+    
+    if (state === RecordingState.RECORDING) {
+      setIsListening(true);
+    } else if (state === RecordingState.INACTIVE || state === RecordingState.ERROR) {
+      setIsListening(false);
+    }
+  };
+
   return { 
     handleQuery, 
     handleVoiceQuery,
@@ -145,6 +165,9 @@ export const useDeepTalkHandler = () => {
     isProcessing,
     isListening,
     setIsListening,
+    recordingState,
+    handleRecordingStateChange,
+    isAudioSupported,
     useSass,
     toggleSass
   };

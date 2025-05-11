@@ -8,8 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// This function processes voice queries by converting audio to text
-// and then processing the text through the DeepTalk system
+// This function processes voice queries and text queries,
+// then returns an appropriate response from DeepTalk
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -20,32 +20,60 @@ serve(async (req) => {
     const { audio, text, context } = await req.json();
     let queryText = text;
     
-    // If audio is provided but no text, we would process audio to text here
+    // If audio is provided but no text, we need to transcribe it
     if (audio && !queryText) {
-      console.log("Audio processing would happen here in a full implementation");
-      // In a real implementation, this would call a speech-to-text service
-      // For now, we'll mock this by returning a placeholder text
-      queryText = "What are the trends in our logistics performance?";
+      console.log("Transcribing audio to text...");
+      
+      try {
+        // Call our speech-to-text function
+        // Note: In a real setup, we would directly call the function rather than making an HTTP request
+        // But for this example, we'll make an HTTP request to our speech-to-text function
+        const transcriptionResponse = await fetch('https://hpogoxrxcnyxiqjmqtaw.functions.supabase.co/speech-to-text', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ audio }),
+        });
+        
+        if (!transcriptionResponse.ok) {
+          throw new Error(`Transcription failed: ${await transcriptionResponse.text()}`);
+        }
+        
+        const transcriptionResult = await transcriptionResponse.json();
+        queryText = transcriptionResult.text;
+        
+        console.log("Transcribed text:", queryText);
+      } catch (transcriptionError) {
+        console.error("Error during transcription:", transcriptionError);
+        throw new Error(`Failed to transcribe audio: ${transcriptionError.message}`);
+      }
     }
     
     if (!queryText) {
       throw new Error("No query text or audio provided");
     }
     
-    console.log("Processing voice query:", queryText);
+    console.log("Processing query:", queryText);
     
     // Use the shared utility to get a response from DeepTalk
     const response = await getDeepTalkResponse(queryText, context);
     
     return new Response(JSON.stringify({ 
       response,
-      audioUrl: null // In a real implementation, this would be a URL to the TTS audio
+      query: queryText,
+      timestamp: new Date().toISOString(),
+      processed: true
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in voice-processor function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      processed: false,
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -1,9 +1,11 @@
 
 import React, { useState, useRef } from 'react';
-import { Send, Mic, MicOff } from 'lucide-react';
+import { Send, Mic, MicOff, Loader } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
+import { AudioRecorder, RecordingState } from '@/utils/audioRecorder';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChatInputProps {
   input: string;
@@ -19,44 +21,50 @@ const ChatInput: React.FC<ChatInputProps> = ({
   isProcessing 
 }) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [isSupported, setIsSupported] = useState(true);
   const { toast } = useToast();
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const recorderRef = useRef<AudioRecorder | null>(null);
+
+  // Check if audio recording is supported
+  useState(() => {
+    const supported = AudioRecorder.isSupported();
+    setIsSupported(supported);
+    
+    if (!supported) {
+      console.warn("Audio recording is not supported in this browser");
+    }
+  });
 
   const startRecording = async () => {
+    if (!isSupported) {
+      toast({
+        title: "Microphone Access Error",
+        description: "Voice recording is not supported in your browser. Please try a different browser or type your message.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
-      };
-
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        try {
-          // Process audio through voice-to-text service
-          const text = await processAudioToText(audioBlob);
-          setInput(text);
-          
-          // Automatically send the transcribed message
-          if (text.trim()) {
-            setTimeout(() => {
-              handleSendMessage();
-            }, 500);
+      // Initialize recorder if needed
+      if (!recorderRef.current) {
+        recorderRef.current = new AudioRecorder({
+          onStateChange: (state) => {
+            if (state === RecordingState.ERROR) {
+              setIsRecording(false);
+              toast({
+                title: "Recording Error",
+                description: "There was an error recording your voice. Please try again.",
+                variant: "destructive",
+              });
+            }
           }
-        } catch (error) {
-          console.error('Error processing audio:', error);
-          toast({
-            title: "Speech Recognition Error",
-            description: "We couldn't understand that. Please try again or type your question.",
-            variant: "destructive",
-          });
-        }
-      };
-
-      mediaRecorderRef.current.start();
+        });
+      }
+      
+      // Start recording
+      await recorderRef.current.start();
       setIsRecording(true);
       
       toast({
@@ -73,30 +81,56 @@ const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+  const stopRecording = async () => {
+    if (!recorderRef.current || !isRecording) return;
+    
+    setIsProcessingAudio(true);
+    
+    try {
+      // Stop recording and get audio blob
+      const audioBlob = await recorderRef.current.stop();
       setIsRecording(false);
+      
+      // Convert to base64
+      const base64Audio = await AudioRecorder.blobToBase64(audioBlob);
       
       toast({
         title: "Processing Your Voice",
         description: "Converting your speech to text...",
       });
+      
+      // Send to speech-to-text function
+      const { data, error } = await supabase.functions.invoke('speech-to-text', {
+        body: { audio: base64Audio }
+      });
+      
+      if (error) {
+        throw new Error(`Speech recognition failed: ${error.message}`);
+      }
+      
+      if (!data?.text) {
+        throw new Error('No transcript received');
+      }
+      
+      // Update input with transcribed text
+      setInput(data.text);
+      
+      // Automatically send the transcribed message after a brief delay
+      if (data.text.trim()) {
+        setTimeout(() => {
+          handleSendMessage();
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error processing audio:', error);
+      toast({
+        title: "Speech Recognition Error",
+        description: "We couldn't understand that. Please try again or type your question.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingAudio(false);
     }
-  };
-
-  const processAudioToText = async (audioBlob: Blob): Promise<string> => {
-    // This is a placeholder for the actual implementation
-    // In a real implementation, this would call a speech-to-text service
-    
-    // Mock implementation for demonstration purposes
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // This would be replaced with actual API call results
-        resolve("What are the logistics trends for Kenya in the last quarter?");
-      }, 1000);
-    });
   };
 
   return (
@@ -110,20 +144,32 @@ const ChatInput: React.FC<ChatInputProps> = ({
           placeholder="Ask about routes, forwarders, or risk metrics..."
           className="flex-1 px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm rounded-lg border border-blue-500/20 bg-black/30 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <Button 
-          onClick={isRecording ? stopRecording : startRecording}
-          size="sm"
-          variant="outline"
-          className={cn(
-            "bg-transparent border border-blue-500/20 h-8 w-8 sm:h-10 sm:w-10",
-            isRecording ? "text-red-400 hover:text-red-500" : "text-blue-400 hover:text-blue-500"
-          )}
-        >
-          {isRecording ? <MicOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Mic className="h-3 w-3 sm:h-4 sm:w-4" />}
-        </Button>
+        
+        {isSupported && (
+          <Button 
+            onClick={isRecording ? stopRecording : startRecording}
+            size="sm"
+            variant="outline"
+            disabled={isProcessingAudio}
+            className={cn(
+              "bg-transparent border border-blue-500/20 h-8 w-8 sm:h-10 sm:w-10",
+              isRecording ? "text-red-400 hover:text-red-500" : "text-blue-400 hover:text-blue-500",
+              isProcessingAudio && "opacity-50"
+            )}
+          >
+            {isProcessingAudio ? (
+              <Loader className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+            ) : isRecording ? (
+              <MicOff className="h-3 w-3 sm:h-4 sm:w-4" />
+            ) : (
+              <Mic className="h-3 w-3 sm:h-4 sm:w-4" />
+            )}
+          </Button>
+        )}
+        
         <Button 
           onClick={handleSendMessage}
-          disabled={!input.trim() || isProcessing}
+          disabled={!input.trim() || isProcessing || isProcessingAudio}
           size="sm"
           className="bg-blue-600 hover:bg-blue-700 text-white h-8 w-8 sm:h-10 sm:w-10"
         >

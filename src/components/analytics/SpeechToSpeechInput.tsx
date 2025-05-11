@@ -1,105 +1,92 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Mic, StopCircle, Loader } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
-import { blobToBase64 } from '@/utils/audioUtils';
+import { AudioRecorder, RecordingState } from '@/utils/audioRecorder';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SpeechToSpeechInputProps {
   onTranscriptReceived: (text: string) => void;
   isListening?: boolean;
   className?: string;
+  onStateChange?: (state: RecordingState) => void;
 }
 
 const SpeechToSpeechInput: React.FC<SpeechToSpeechInputProps> = ({
   onTranscriptReceived,
   isListening: externalIsListening,
-  className
+  className,
+  onStateChange
 }) => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
+  const [isSupported, setIsSupported] = useState(true);
+  const recorder = useRef<AudioRecorder | null>(null);
   const { toast } = useToast();
   
   // Use external state if provided, otherwise use internal state
   const listening = externalIsListening !== undefined ? externalIsListening : isListening;
+
+  // Check if audio recording is supported
+  useEffect(() => {
+    const supported = AudioRecorder.isSupported();
+    setIsSupported(supported);
+    
+    if (!supported) {
+      toast({
+        title: 'Speech Recognition Not Supported',
+        description: 'Your browser does not support audio recording. Please try a different browser.',
+        variant: 'destructive',
+        duration: 5000,
+      });
+    }
+  }, [toast]);
+  
+  // Initialize recorder
+  useEffect(() => {
+    if (isSupported && !recorder.current) {
+      recorder.current = new AudioRecorder({
+        onStateChange: (state) => {
+          if (onStateChange) onStateChange(state);
+          
+          if (state === RecordingState.ERROR) {
+            setIsListening(false);
+            setIsProcessing(false);
+            toast({
+              title: 'Recording Error',
+              description: 'There was an error with your microphone. Please try again.',
+              variant: 'destructive',
+            });
+          }
+        },
+        echoCancellation: true,
+        noiseSuppression: true,
+      });
+    }
+    
+    return () => {
+      if (recorder.current) {
+        recorder.current.releaseResources();
+        recorder.current = null;
+      }
+    };
+  }, [isSupported, onStateChange, toast]);
   
   const startListening = async () => {
+    if (!isSupported || isProcessing) return;
+    
     try {
-      // Request microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      
-      // Create media recorder
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-      
-      // Set up event handlers
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = async () => {
-        setIsProcessing(true);
-        
-        // Combine audio chunks into a single blob
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        
-        try {
-          // Convert audio to base64
-          const base64Audio = await blobToBase64(audioBlob);
-          
-          // Use the Supabase client
-          const supabaseUrl = 'https://hpogoxrxcnyxiqjmqtaw.supabase.co';
-          const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhwb2dveHJ4Y255eGlxam1xdGF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyMDEwMjEsImV4cCI6MjA1ODc3NzAyMX0.9JA8cI1FYpyLJGn8VJGSQcUbnBmzNtMH_I_fkI-JMAE';
-          
-          const supabase = createClient(
-            supabaseUrl,
-            supabaseAnonKey,
-            { auth: { persistSession: false } }
-          );
-          
-          // Call the speech-to-text edge function
-          const { data, error } = await supabase.functions.invoke('speech-to-text', {
-            body: { audio: base64Audio }
-          });
-          
-          if (error) {
-            throw new Error(`Error in speech recognition: ${error.message}`);
+      if (!recorder.current) {
+        recorder.current = new AudioRecorder({
+          onStateChange: (state) => {
+            if (onStateChange) onStateChange(state);
           }
-          
-          if (!data?.text) {
-            throw new Error('No transcript received');
-          }
-          
-          // Pass the transcript to the parent component
-          onTranscriptReceived(data.text);
-          
-        } catch (error) {
-          console.error('Error processing speech:', error);
-          toast({
-            title: 'Speech Recognition Error',
-            description: 'Could not understand the audio. Please try again.',
-            variant: 'destructive',
-          });
-        } finally {
-          // Stop all tracks in the stream
-          stream.getTracks().forEach(track => track.stop());
-          setIsProcessing(false);
-          
-          // Only update internal state if external state isn't provided
-          if (externalIsListening === undefined) {
-            setIsListening(false);
-          }
-        }
-      };
+        });
+      }
       
-      // Start recording
-      mediaRecorder.start();
+      await recorder.current.start();
       
       // Only update internal state if external state isn't provided
       if (externalIsListening === undefined) {
@@ -111,9 +98,8 @@ const SpeechToSpeechInput: React.FC<SpeechToSpeechInputProps> = ({
         description: 'Speak now... Click the mic button again to stop.',
         duration: 3000,
       });
-      
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error('Error starting microphone:', error);
       toast({
         title: 'Microphone Error',
         description: 'Could not access your microphone. Please check your permissions.',
@@ -122,9 +108,48 @@ const SpeechToSpeechInput: React.FC<SpeechToSpeechInputProps> = ({
     }
   };
   
-  const stopListening = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
+  const stopListening = async () => {
+    if (!recorder.current || !isSupported || isProcessing) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Stop the recorder and get the audio blob
+      const audioBlob = await recorder.current.stop();
+      
+      // Convert audio blob to base64
+      const base64Audio = await AudioRecorder.blobToBase64(audioBlob);
+      
+      // Use Supabase client to call the speech-to-text edge function
+      const { data, error } = await supabase.functions.invoke('speech-to-text', {
+        body: { audio: base64Audio }
+      });
+      
+      if (error) {
+        throw new Error(`Error in speech recognition: ${error.message}`);
+      }
+      
+      if (!data?.text) {
+        throw new Error('No transcript received');
+      }
+      
+      // Pass the transcript to the parent component
+      onTranscriptReceived(data.text);
+      
+    } catch (error) {
+      console.error('Error processing speech:', error);
+      toast({
+        title: 'Speech Recognition Error',
+        description: 'Could not understand the audio. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsProcessing(false);
+      
+      // Only update internal state if external state isn't provided
+      if (externalIsListening === undefined) {
+        setIsListening(false);
+      }
     }
   };
   
@@ -135,6 +160,23 @@ const SpeechToSpeechInput: React.FC<SpeechToSpeechInputProps> = ({
       startListening();
     }
   };
+  
+  if (!isSupported) {
+    return (
+      <div className={`flex items-center justify-center ${className}`}>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-10 w-10 rounded-full bg-gray-500/20 text-gray-400 border-gray-400 opacity-50"
+          disabled={true}
+          aria-label="Voice recognition not supported"
+        >
+          <Mic className="h-5 w-5" />
+        </Button>
+        <span className="ml-2 text-sm text-gray-400">Not supported in this browser</span>
+      </div>
+    );
+  }
   
   return (
     <div className={`flex items-center justify-center ${className}`}>
