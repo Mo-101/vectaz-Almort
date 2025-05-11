@@ -92,6 +92,19 @@
   .glass-panel {
     @apply bg-black/30 backdrop-blur-md;
   }
+  
+  /* For 3D card transforms */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
 }
 
 /* Animation for spinning elements */
