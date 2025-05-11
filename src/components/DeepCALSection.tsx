@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import { evaluateForwarders, getSampleForwarderData } from '@/utils/deepCalEngine'; 
@@ -10,6 +9,8 @@ import { QuoteData, ForwarderScore, WeightFactors, DeepCALProps } from './deepca
 import { toast } from 'sonner';
 import { traceCalculation } from '@/utils/debugCalculations';
 import DebugPanel from './deepcal/debug/DebugPanel';
+import { Button } from './ui/button';
+import { Bug } from 'lucide-react';
 
 const DeepCALSection: React.FC<DeepCALProps> = ({ 
   voicePersonality = 'sassy',

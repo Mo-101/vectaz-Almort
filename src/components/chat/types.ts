@@ -1,12 +1,23 @@
 
 export interface Message {
-  id?: string;  // Made optional to fix compatibility issues
-  text: string;
-  sender: "user" | "ai";
-  timestamp?: Date;  // Optional timestamp
+  id?: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: Date;
 }
 
-export interface MessageListProps {
+export interface ChatState {
   messages: Message[];
-  isProcessing?: boolean;
+  isTyping: boolean;
+}
+
+export interface ChatAction {
+  type: 'add_message' | 'set_typing' | 'clear';
+  payload?: any;
+}
+
+export interface ChatContextType {
+  state: ChatState;
+  dispatch: React.Dispatch<ChatAction>;
+  sendMessage: (content: string) => Promise<void>;
 }

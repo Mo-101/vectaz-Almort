@@ -8,13 +8,11 @@ import {
   CardDescription 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  Collapsible, 
-  CollapsibleContent, 
-  CollapsibleTrigger 
-} from '@/components/ui/collapsible';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bug, XCircle } from 'lucide-react';
+import LogViewer from './LogViewer';
+import MatrixViewer from './MatrixViewer';
+import WeightsViewer from './WeightsViewer';
 
 interface DebugPanelProps {
   onClose: () => void;
@@ -23,6 +21,8 @@ interface DebugPanelProps {
 const DebugPanel: React.FC<DebugPanelProps> = ({ onClose }) => {
   const [logs, setLogs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('trace');
+  const [matrixData, setMatrixData] = useState<any>(null);
+  const [weightsData, setWeightsData] = useState<any>(null);
 
   // Listen for console logs from the DeepCAL engine
   useEffect(() => {
@@ -37,6 +37,16 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ onClose }) => {
       // Check if this is a DeepCAL log
       if (args[0] && typeof args[0] === 'string' && args[0].includes('DeepCAL')) {
         setLogs(prev => [...prev, { type: 'log', timestamp: new Date(), content: args }]);
+        
+        // Check for matrix data
+        if (args[0].includes('Matrix') && args[1] && typeof args[1] === 'object') {
+          setMatrixData(args[1]);
+        }
+        
+        // Check for weights data
+        if (args[0].includes('Weights') && args[1] && typeof args[1] === 'object') {
+          setWeightsData(args[1]);
+        }
       }
     };
     
@@ -61,45 +71,6 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ onClose }) => {
       console.error = originalConsoleError;
     };
   }, []);
-
-  // Format timestamp for display
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false 
-    });
-  };
-
-  // Determine the color class based on log type
-  const getLogTypeClass = (type: string) => {
-    switch(type) {
-      case 'error': return 'text-red-400';
-      case 'info': return 'text-blue-400';
-      default: return 'text-gray-200';
-    }
-  };
-
-  // Format log content for display
-  const formatLogContent = (content: any[]) => {
-    return content.map((item, index) => {
-      if (typeof item === 'string') {
-        return <span key={index}>{item}</span>;
-      } else if (item && typeof item === 'object') {
-        try {
-          return (
-            <pre key={index} className="text-xs overflow-auto max-h-40 bg-black/30 p-2 rounded mt-1">
-              {JSON.stringify(item, null, 2)}
-            </pre>
-          );
-        } catch (e) {
-          return <span key={index}>[Object]</span>;
-        }
-      }
-      return <span key={index}>{String(item)}</span>;
-    });
-  };
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-96 max-h-[80vh] flex flex-col">
@@ -130,68 +101,15 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ onClose }) => {
             </TabsList>
             
             <TabsContent value="trace" className="mt-0">
-              <div className="h-64 overflow-y-auto text-xs p-3">
-                {logs.length === 0 ? (
-                  <div className="text-center text-gray-500 py-8">
-                    No traces captured yet. Run a calculation to see logs.
-                  </div>
-                ) : (
-                  logs.map((log, index) => (
-                    <div key={index} className={`mb-2 ${getLogTypeClass(log.type)}`}>
-                      <div className="flex">
-                        <span className="text-gray-500 mr-2">{formatTime(log.timestamp)}</span>
-                        <div className="flex-1">{formatLogContent(log.content)}</div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <LogViewer logs={logs} />
             </TabsContent>
             
             <TabsContent value="matrix" className="mt-0">
-              <div className="h-64 overflow-y-auto text-xs p-3">
-                <h3 className="text-[#00FFD1] mb-2">Decision Matrix</h3>
-                <p className="text-gray-400 mb-3">
-                  Input matrix used for TOPSIS algorithm with normalized values.
-                </p>
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="outline" size="sm" className="mb-2 text-xs">
-                      View Raw Matrix
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <pre className="text-xs overflow-auto max-h-40 bg-black/30 p-2 rounded my-2">
-                      {JSON.stringify({
-                        "Note": "This would be populated with real decision matrix data when calculations are performed"
-                      }, null, 2)}
-                    </pre>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
+              <MatrixViewer matrixData={matrixData} />
             </TabsContent>
             
             <TabsContent value="weights" className="mt-0">
-              <div className="h-64 overflow-y-auto text-xs p-3">
-                <h3 className="text-[#00FFD1] mb-2">AHP Weights</h3>
-                <p className="text-gray-400 mb-3">
-                  Weight factors derived from user preferences with AHP validation.
-                </p>
-                <Collapsible>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="outline" size="sm" className="mb-2 text-xs">
-                      View Computed Weights
-                    </Button>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <pre className="text-xs overflow-auto max-h-40 bg-black/30 p-2 rounded my-2">
-                      {JSON.stringify({
-                        "Note": "This would be populated with real weight calculations when performed"
-                      }, null, 2)}
-                    </pre>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
+              <WeightsViewer weightsData={weightsData} />
             </TabsContent>
           </Tabs>
         </CardContent>
