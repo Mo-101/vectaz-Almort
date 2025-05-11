@@ -30,7 +30,7 @@ export function processGeographicData(
 
 /**
  * Helper function that calls the haversineDistance directly
- * (Changed to avoid circular dependencies and remove require())
+ * (Using direct import instead of require to fix circular dependency)
  */
 function calculateRouteDistance(
   originLat: number,

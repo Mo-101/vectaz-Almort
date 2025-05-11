@@ -8,14 +8,19 @@ import expectedResult from './fixtures/expectedResult.json';
 
 describe('Symbolic Engine Tests', () => {
   test('runNeuroSymbolicCycle produces expected output', () => {
-    // TODO: Replace with actual test implementation
-    // This is a placeholder for the test harness structure
+    // Use the sample input from our test fixtures
     const input = sampleInput as SymbolicInput;
     const result = runNeuroSymbolicCycle(input);
     
+    // Validate core properties of the result
     expect(result.topChoice).toBeDefined();
     expect(result.confidence).toBeGreaterThan(0);
     expect(result.confidence).toBeLessThanOrEqual(1);
-    // Add more specific assertions based on expected behavior
+    
+    // Additional assertions can be added based on expected behavior
+    expect(result.routeDistanceKm).toBeDefined();
+    if (result.recommendedContainer) {
+      expect(typeof result.recommendedContainer).toBe('string');
+    }
   });
 });
