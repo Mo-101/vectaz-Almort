@@ -1,7 +1,7 @@
+
 import React, { useState, useCallback } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import { AppSection } from '@/types/deeptrack';
-import AppTabs from '@/components/AppTabs';
 import EntryAnimation from '@/components/EntryAnimation';
 import { AnimatePresence } from 'framer-motion';
 
@@ -12,7 +12,6 @@ import ContentRouter from '@/components/home/ContentRouter';
 import KonamiCodeEasterEgg from '@/components/home/KonamiCodeEasterEgg';
 import NotificationHandler from '@/components/home/NotificationHandler';
 import useRouteProcessor from '@/hooks/useRouteProcessor';
-import IconNavigation from '@/components/IconNavigation';
 
 const Index = () => {
   const { isDataLoaded } = useBaseDataStore();
@@ -24,9 +23,23 @@ const Index = () => {
     setShowEntry(false);
   }, []);
 
-  const handleTabChange = useCallback((tab: AppSection) => {
-    setActiveTab(tab);
-  }, []);
+  // Listen for hash changes to update the active tab
+  React.useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && hash !== activeTab) {
+        setActiveTab(hash as AppSection);
+      }
+    };
+
+    // Set initial tab from hash if present
+    handleHashChange();
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, [activeTab]);
 
   if (showEntry) {
     return <EntryAnimation onComplete={handleEntryComplete} />;
@@ -38,7 +51,7 @@ const Index = () => {
       <AnimatedBackground />
       
       {/* Application content */}
-      <div className="relative z-10">
+      <div className="relative z-10 pb-16">
         <AnimatePresence mode="wait">
           <ContentRouter 
             activeTab={activeTab} 
@@ -49,9 +62,6 @@ const Index = () => {
         
         {/* App name in top right with enhanced styling */}
         <AppLogo />
-        
-        {/* Navigation tabs (at the top) */}
-        <AppTabs activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
 
       {/* Non-visual components */}

@@ -17,7 +17,7 @@ const FlippableCard: React.FC<FlippableCardProps> = ({
   frontContent,
   backContent,
   className,
-  cardHeight = 'min-h-[280px]',
+  cardHeight = 'min-h-[300px]', // Increased height
   cardWidth = 'w-full',
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -64,9 +64,9 @@ const FlippableCard: React.FC<FlippableCardProps> = ({
         {/* Front */}
         <motion.div 
           className={cn(
-            "absolute backface-hidden w-full h-full rounded-lg overflow-hidden",
+            "absolute backface-hidden w-full h-full rounded-lg",
             "border border-[#00FFD1]/20 bg-[#0A1A2F]/80 backdrop-blur-md shadow-lg",
-            "p-4 flex flex-col"
+            "p-5 flex flex-col"
           )}
           style={{ backfaceVisibility: "hidden" }}
         >
@@ -79,9 +79,9 @@ const FlippableCard: React.FC<FlippableCardProps> = ({
         {/* Back */}
         <motion.div 
           className={cn(
-            "absolute backface-hidden w-full h-full rounded-lg overflow-hidden",
+            "absolute backface-hidden w-full h-full rounded-lg hide-scrollbar",
             "border border-[#00FFD1]/20 bg-[#0A1A2F]/90 backdrop-blur-md shadow-lg",
-            "p-4 flex flex-col"
+            "p-5 flex flex-col"
           )}
           style={{ 
             backfaceVisibility: "hidden",
