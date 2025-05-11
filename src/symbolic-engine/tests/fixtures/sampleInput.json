@@ -1,0 +1,24 @@
+
+{
+  "decisionMatrix": [
+    [0.85, 0.70, 0.90],
+    [0.75, 0.85, 0.80],
+    [0.90, 0.60, 0.75],
+    [0.80, 0.75, 0.70]
+  ],
+  "weights": [0.4, 0.3, 0.3],
+  "criteriaTypes": ["benefit", "benefit", "benefit"],
+  "alternatives": ["DHL", "FedEx", "Kuehne+Nagel", "DSV"],
+  "forwarders": [
+    { "name": "DHL", "reliability": 0.84, "delayRate": 0.12 },
+    { "name": "FedEx", "reliability": 0.76, "delayRate": 0.18 },
+    { "name": "Kuehne+Nagel", "reliability": 0.79, "delayRate": 0.22 },
+    { "name": "DSV", "reliability": 0.62, "delayRate": 0.34 }
+  ],
+  "weight": 14500,
+  "volume": 45,
+  "originLat": 1.3521,
+  "originLng": 103.8198,
+  "destLat": -33.8688,
+  "destLng": 151.2093
+}

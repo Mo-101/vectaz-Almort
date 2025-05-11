@@ -3,6 +3,9 @@
 
 import { Insight } from '../services/insightEngine';
 
+/**
+ * Input data structure for the symbolic engine
+ */
 export interface SymbolicInput {
   decisionMatrix: number[][];
   weights: number[];
@@ -17,6 +20,9 @@ export interface SymbolicInput {
   destLng?: number;
 }
 
+/**
+ * Output data structure from the symbolic engine
+ */
 export interface SymbolicResult {
   topChoice: string;
   confidence: number;
@@ -24,4 +30,24 @@ export interface SymbolicResult {
   routeDistanceKm?: number;
   insights: Insight[];
   allScores: number[];
+}
+
+/**
+ * Forwarder score type for detailed analytics
+ */
+export interface ForwarderScore {
+  name: string;
+  score: number;
+  reliabilityFactor?: number;
+}
+
+/**
+ * Type for lane-specific insights
+ */
+export interface LaneInsight {
+  origin: string;
+  destination: string;
+  distanceKm: number;
+  averageTransitDays: number;
+  riskFactors: string[];
 }

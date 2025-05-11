@@ -1,0 +1,11 @@
+
+{
+  "topChoice": "DHL",
+  "confidence": 0.84,
+  "recommendedContainer": "40ft Container",
+  "routeDistanceKm": 6296,
+  "insights": [
+    { "name": "DSV", "issue": "⚠️ Delay trend detected: 34%" }
+  ],
+  "allScores": [0.84, 0.78, 0.76, 0.65]
+}
