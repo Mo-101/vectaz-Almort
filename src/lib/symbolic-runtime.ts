@@ -95,7 +95,7 @@ export async function symbolicStats() {
     samplesSeen,
     timeSeries,
     cpu: 65,
-    memory: 48, // This is the duplicate property (memory)
+    memoryUsage: 48, // Renamed from memory to memoryUsage to avoid duplicate property
     gpu: 76,
     disk: 52,
     bandwidth: 8,
