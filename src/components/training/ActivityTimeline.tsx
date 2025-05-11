@@ -66,9 +66,9 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ events }) => {
               {getIconForType(event.type)}
             </div>
             <div className={`rounded-lg p-3 ${getBgColorForType(event.type)}`}>
-              <h4 className="font-medium">{event.title}</h4>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{event.description}</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatTimeAgo(event.time)}</p>
+              <h4 className="font-medium">{event.message}</h4>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{event.details || 'No additional details'}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{formatTimeAgo(event.timestamp)}</p>
             </div>
           </div>
         ))}
