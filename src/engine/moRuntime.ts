@@ -1,5 +1,5 @@
+
 // src/engine/moRuntime.ts
-import { useVoice } from '@/hooks/useVoice';
 import { MoScript, MoScriptResult } from './types';
 import { getTemplate } from './voiceTemplates';
 
@@ -38,20 +38,18 @@ export const generateVoiceLine = async (result: MoScriptResult, style = 'calm'):
 };
 
 export const runMoScript = async (script: MoScript, inputs: Record<string, any>) => {
-  const { speak } = useVoice();
+  // We can't use hooks directly in non-component functions, so we'll return voice data to be handled by the component
   const result = script.logic(inputs);
+  let voiceLine = null;
 
   try {
     if (script.voiceLine) {
       // Try GROQ first, fallback to local voiceLine
-      const line = script.voiceLine?.(result) || await generateVoiceLine(result);
-      
-      // Force Nigerian English with high energy
-      speak(line, 'en-NG', 1.2, 1.3);
+      voiceLine = script.voiceLine?.(result) || await generateVoiceLine(result);
     }
   } catch (error) {
-    console.error('Voice narration failed:', error);
+    console.error('Voice narration generation failed:', error);
   }
 
-  return result;
+  return { result, voiceLine };
 };

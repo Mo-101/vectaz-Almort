@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { createClient } from '@supabase/supabase-js';
 import { getHumorResponse } from './useDeepCalHumor';
-import { Message } from './MessageItem';
+import { Message } from './types';
 
 export const useVoiceFunctions = (p0: string) => {
   const { toast } = useToast();
@@ -80,6 +80,9 @@ export const useVoiceFunctions = (p0: string) => {
   // Browser's built-in speech synthesis as a fallback or token-saving option
   const useBrowserSpeech = (text: string, personality: string): void => {
     if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech first
+      window.speechSynthesis.cancel();
+      
       const utterance = new SpeechSynthesisUtterance(text);
       
       // Try to find a female voice, preferably for consistency
@@ -190,7 +193,8 @@ export const useVoiceFunctions = (p0: string) => {
   
   // Play audio for a specific message
   const playMessageAudio = (message: Message) => {
-    if (!message.text) return false;
+    const messageText = message.content || message.text || '';
+    if (!messageText) return false;
     
     // Already speaking this message
     if (isSpeaking && currentMessageId === message.id) {
@@ -198,16 +202,21 @@ export const useVoiceFunctions = (p0: string) => {
     }
     
     // Use cached personality and model if available
-    const personality = message.personality || determinePersonality(message.text);
-    const model = message.model || determineModel(message.text);
+    const personality = message.personality || determinePersonality(messageText);
+    const model = message.model || determineModel(messageText);
     
-    return speakResponse(message.text, message.id, personality, model);
+    return speakResponse(messageText, message.id, personality, model);
   };
   
   // Main function to speak a response
   const speakResponse = async (text: string, messageId?: string, forcedPersonality?: string, forcedModel?: string) => {
     try {
       console.log("Speaking response:", text.substring(0, 50) + "...");
+      
+      // Cancel any ongoing speech
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
       
       // Check if we should inject humor
       const enhancedText = getHumorResponse(text);

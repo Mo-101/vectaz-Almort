@@ -4,6 +4,11 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: Date;
+  // Backward compatibility with DeepTalk component
+  sender?: 'user' | 'ai';
+  text?: string;
+  personality?: string;
+  model?: string;
 }
 
 export interface ChatState {

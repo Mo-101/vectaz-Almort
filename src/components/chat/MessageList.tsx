@@ -5,9 +5,10 @@ import { Message } from './types';
 
 interface MessageListProps {
   messages: Message[];
+  isProcessing?: boolean; // Added isProcessing prop
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, isProcessing }) => {
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,6 +22,13 @@ const MessageList: React.FC<MessageListProps> = ({ messages }) => {
       {messages.map((message) => (
         <MessageItem key={message.id || `msg-${Date.now()}`} message={message} />
       ))}
+      {isProcessing && (
+        <div className="flex items-center text-sm text-gray-400 animate-pulse">
+          <span className="mr-2">●</span>
+          <span className="mr-1">●</span>
+          <span>●</span>
+        </div>
+      )}
       <div ref={endRef} />
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +27,7 @@ interface DeepTalkProps {
 
 const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage, onQueryData, onClose }) => {
   const [messages, setMessages] = useState<Message[]>(
-    initialMessage ? [{ sender: "ai" as const, text: initialMessage }] : []
+    initialMessage ? [{ role: 'assistant', content: initialMessage }] : []
   );
   const [input, setInput] = useState('');
   const [isMuted, setIsMuted] = useState(false);
@@ -49,7 +50,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
 
     recognition.current.onstart = () => {
       setIsProcessing(true);
-      setMessages(prevMessages => [...prevMessages, { sender: "ai" as const, text: 'Listening...' }]);
+      setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: 'Listening...' }]);
     };
 
     recognition.current.onresult = (event: SpeechRecognitionEvent) => {
@@ -59,19 +60,18 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
         .join('');
 
       setInput(transcript);
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "user" as const, text: transcript }]);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'user', content: transcript }]);
       processInput(transcript);
     };
 
     recognition.current.onend = () => {
       setIsProcessing(false);
-      voice.speak('', 'en-US', 1.2, 1.3);
     };
 
     recognition.current.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error('Speech recognition error:', event.error);
       setIsProcessing(false);
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: `Error: ${event.error}` }]);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'assistant', content: `Error: ${event.error}` }]);
     };
 
     return () => {
@@ -82,14 +82,17 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
         recognition.current.onerror = null;
       }
     };
-  }, [voice]);
+  }, []);
 
   const startListening = useCallback(() => {
     if (recognition.current) {
-      setMessages(prevMessages => [...prevMessages, { sender: "ai" as const, text: 'Listening...' }]);
+      if (voice.isSpeaking) {
+        voice.stop(); // Stop any ongoing speech before listening
+      }
+      setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: 'Listening...' }]);
       recognition.current.start();
     }
-  }, []);
+  }, [voice]);
 
   const stopListening = useCallback(() => {
     if (recognition.current && isProcessing) {
@@ -105,35 +108,44 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
 
   const processInput = async (text: string) => {
     setIsProcessing(true);
-    setMessages(prevMessages => [...prevMessages, { sender: "ai" as const, text: 'Processing...' }]);
+    setMessages(prevMessages => [...prevMessages, { role: 'assistant', content: 'Processing...' }]);
 
     try {
       // Use onQueryData if provided, otherwise use default behavior
       if (onQueryData) {
         const response = await onQueryData(text);
-        setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: response }]);
-        voice.speak(response, 'en-US', 1.2, 1.3);
+        setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'assistant', content: response }]);
+        
+        if (!voice.isMuted) {
+          voice.speak(response, 'en-US', 1.2, 1.3);
+        }
       } else {
         // Simulate processing with a timeout
         await new Promise(resolve => setTimeout(resolve, 1500));
 
         // Placeholder logic - replace with actual processing
         if (text.toLowerCase().includes('forwarder')) {
-          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: 'Recommending best forwarder...' }]);
-          voice.speak('Recommending best forwarder...', 'en-US', 1.2, 1.3);
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'assistant', content: 'Recommending best forwarder...' }]);
+          if (!voice.isMuted) {
+            voice.speak('Recommending best forwarder...', 'en-US', 1.2, 1.3);
+          }
           onResult('forwarderRecommendation');
         } else if (text.toLowerCase().includes('route')) {
-          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: 'Analyzing optimal route...' }]);
-          voice.speak('Analyzing optimal route...', 'en-US', 1.2, 1.3);
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'assistant', content: 'Analyzing optimal route...' }]);
+          if (!voice.isMuted) {
+            voice.speak('Analyzing optimal route...', 'en-US', 1.2, 1.3);
+          }
           onResult('routeOptimization');
         } else {
-          setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: 'No specific action triggered.' }]);
-          voice.speak('No specific action triggered.', 'en-US', 1.2, 1.3);
+          setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'assistant', content: 'No specific action triggered.' }]);
+          if (!voice.isMuted) {
+            voice.speak('No specific action triggered.', 'en-US', 1.2, 1.3);
+          }
         }
       }
     } catch (error) {
       console.error('Error processing input:', error);
-      setMessages(prevMessages => [...prevMessages.slice(0, -1), { sender: "ai" as const, text: `Error: ${error instanceof Error ? error.message : String(error)}` }]);
+      setMessages(prevMessages => [...prevMessages.slice(0, -1), { role: 'assistant', content: `Error: ${error instanceof Error ? error.message : String(error)}` }]);
     } finally {
       setIsProcessing(false);
     }
@@ -146,7 +158,7 @@ const DeepTalk: React.FC<DeepTalkProps> = ({ onResult, className, initialMessage
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      setMessages(prevMessages => [...prevMessages, { sender: "user" as const, text: input }]);
+      setMessages(prevMessages => [...prevMessages, { role: 'user', content: input }]);
       processInput(input);
       setInput('');
     }
