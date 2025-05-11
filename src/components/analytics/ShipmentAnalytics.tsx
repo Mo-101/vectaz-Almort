@@ -10,12 +10,14 @@ import ShipmentInsights from './shipment/ShipmentInsights';
 import ShipmentResilienceChart from './shipment/ShipmentResilienceChart';
 import { useBaseDataStore } from '@/store/baseState';
 import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
+import SymbolicRecommendations from './symbolic/SymbolicRecommendations';
 
 interface ShipmentAnalyticsProps {
   metrics?: ShipmentMetrics;
+  symbolicResults?: any;
 }
 
-const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics: propMetrics }) => {
+const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics: propMetrics, symbolicResults }) => {
   const { shipmentData } = useBaseDataStore();
   const [computedMetrics, setComputedMetrics] = useState<ShipmentMetrics | null>(null);
   
@@ -38,6 +40,13 @@ const ShipmentAnalytics: React.FC<ShipmentAnalyticsProps> = ({ metrics: propMetr
     <div className="space-y-6">
       {/* Top KPIs */}
       <ShipmentMetricsCards metrics={displayMetrics} />
+      
+      {/* Symbolic Container Recommendations */}
+      {symbolicResults && symbolicResults.recommendedContainer && (
+        <div className="cyber-panel rounded-md p-4 mb-4">
+          <SymbolicRecommendations symbolicResults={symbolicResults} />
+        </div>
+      )}
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

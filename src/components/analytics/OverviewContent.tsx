@@ -1,144 +1,204 @@
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShipmentMetrics, CountryPerformance } from '@/types/deeptrack';
-import { Package, Clock, AlertTriangle, Shield } from 'lucide-react';
-import ShipmentResilienceChart from './shipment/ShipmentResilienceChart';
-import ShipmentModeChart from './shipment/ShipmentModeChart';
+import { useBaseDataStore } from '@/store/baseState';
+import { 
+  BarChart, 
+  Bar, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TruckIcon, Ship, Plane, Clock, DollarSign, ShieldCheck } from 'lucide-react';
+import SymbolicSummaryPanel from './symbolic/SymbolicSummaryPanel';
 
-interface OverviewContentProps {
-  metrics: {
-    totalShipments: number;
-    onTimeRate: number;
-    avgTransitDays: number;
-    costEfficiency: number;
-    routeResilience: number;
-    modeSplit: {
-      air: number;
-      sea: number;
-      road: number;
-    };
+interface CoreMetrics {
+  totalShipments: number;
+  onTimeRate: number;
+  avgTransitDays: number;
+  costEfficiency: number;
+  routeResilience: number;
+  modeSplit: {
+    air: number;
+    sea: number;
+    road: number;
   };
-  countryPerformance?: CountryPerformance[];
 }
 
-const OverviewContent: React.FC<OverviewContentProps> = ({
-  metrics,
-  countryPerformance = []
-}) => {
-  // Convert to shipmentMetrics format expected by charts
-  const shipmentMetrics: ShipmentMetrics = {
-    totalShipments: metrics.totalShipments,
-    avgTransitTime: metrics.avgTransitDays,
-    shipmentsByMode: {
-      air: metrics.modeSplit.air,
-      sea: metrics.modeSplit.sea,
-      road: metrics.modeSplit.road
-    },
-    delayedVsOnTimeRate: {
-      onTime: Math.round(metrics.onTimeRate * metrics.totalShipments),
-      delayed: Math.round((1 - metrics.onTimeRate) * metrics.totalShipments)
-    },
-    monthlyTrend: [],
-    disruptionProbabilityScore: 0,
-    resilienceScore: metrics.routeResilience * 100,
-    shipmentStatusCounts: {
-      active: 0,
-      completed: metrics.totalShipments,
-      failed: 0,
-      onTime: Math.round(metrics.onTimeRate * metrics.totalShipments),
-      inTransit: 0
-    },
-    noQuoteRatio: 0,
-    avgCostPerKg: metrics.costEfficiency
-  };
+interface OverviewContentProps {
+  metrics: CoreMetrics;
+  symbolicResults?: any;
+}
+
+const OverviewContent: React.FC<OverviewContentProps> = ({ metrics, symbolicResults }) => {
+  const { shipmentData } = useBaseDataStore();
+
+  // Format mode split data for pie chart
+  const modeSplitData = [
+    { name: 'Air', value: metrics.modeSplit.air, color: '#00FFD1' },
+    { name: 'Sea', value: metrics.modeSplit.sea, color: '#3b82f6' },
+    { name: 'Road', value: metrics.modeSplit.road, color: '#f97316' }
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Metrics Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="glassmorphism-card border-mostar-light-blue/20 hover:border-mostar-light-blue/40 hover:shadow-neon-blue transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center text-cyber-blue">
-              <Package className="h-4 w-4 mr-2 text-mostar-light-blue" />
-              Total Shipments
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              On-Time Delivery Rate
             </CardTitle>
+            <Clock className="h-4 w-4 text-[#00FFD1]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{shipmentMetrics.totalShipments}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Across all origins and destinations
-            </p>
+            <div className="text-2xl font-bold">{Math.round(metrics.onTimeRate * 100)}%</div>
+            <div className="text-xs text-gray-500 mt-1">Target: 95%</div>
+            <div className="w-full h-1.5 bg-gray-800 rounded-full mt-2 overflow-hidden">
+              <div 
+                className="h-full bg-[#00FFD1]" 
+                style={{ width: `${Math.round(metrics.onTimeRate * 100)}%` }}
+              />
+            </div>
           </CardContent>
         </Card>
-
-        <Card className="glassmorphism-card border-mostar-cyan/20 hover:border-mostar-cyan/40 hover:shadow-neon-cyan transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center text-mostar-cyan">
-              <Clock className="h-4 w-4 mr-2 text-mostar-cyan" />
-              Avg Transit Time
+        
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              Average Transit Time
             </CardTitle>
+            <Clock className="h-4 w-4 text-[#00FFD1]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{shipmentMetrics.avgTransitTime.toFixed(1)} days</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              From collection to delivery
-            </p>
+            <div className="text-2xl font-bold">
+              {metrics.avgTransitDays.toFixed(1)} days
+            </div>
+            <div className="text-xs text-gray-500 mt-1">Last month: 7.2 days</div>
+            <div className="text-xs text-green-500 mt-1">
+              ↓ 8.3% decrease
+            </div>
           </CardContent>
         </Card>
-
-        <Card className="glassmorphism-card-magenta border-mostar-magenta/20 hover:border-mostar-magenta/40 hover:shadow-neon-magenta transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center text-cyber-magenta">
-              <AlertTriangle className="h-4 w-4 mr-2 text-mostar-magenta" />
-              Disruption Score
+        
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              Cost Efficiency
             </CardTitle>
+            <DollarSign className="h-4 w-4 text-[#00FFD1]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{shipmentMetrics.disruptionProbabilityScore.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Risk index (0-10)
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="glassmorphism-card-green border-mostar-green/20 hover:border-mostar-green/40 hover:shadow-neon-green transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center text-cyber-green">
-              <Shield className="h-4 w-4 mr-2 text-mostar-green" />
-              Resilience Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{shipmentMetrics.resilienceScore.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Ability to overcome disruptions
-            </p>
+            <div className="text-2xl font-bold">
+              ${metrics.costEfficiency.toFixed(2)}/kg
+            </div>
+            <div className="text-xs text-gray-500 mt-1">Target: $3.50/kg</div>
+            <div className="text-xs text-amber-500 mt-1">
+              ↑ 2.1% increase
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Visualization Cards */}
+      {/* Symbolic Engine Summary */}
+      {symbolicResults && (
+        <SymbolicSummaryPanel symbolicResults={symbolicResults} />
+      )}
+
+      {/* Chart Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="cyber-panel rounded-md overflow-hidden border border-mostar-light-blue/20 hover:border-mostar-light-blue/40 transition-all duration-300">
-          <div className="p-4">
-            <h3 className="text-xl font-semibold text-cyber-blue">Resilience Analysis</h3>
-            <p className="text-sm text-muted-foreground">Key resilience metrics visualization</p>
-          </div>
-          <div className="h-[360px]">
-            <ShipmentResilienceChart metrics={shipmentMetrics} />
-          </div>
-        </div>
-        
-        <div className="cyber-panel rounded-md overflow-hidden border border-mostar-light-blue/20 hover:border-mostar-light-blue/40 transition-all duration-300">
-          <div className="p-4">
-            <h3 className="text-xl font-semibold text-cyber-blue">Shipment Mode Distribution</h3>
-            <p className="text-sm text-muted-foreground">Distribution by transportation mode</p>
-          </div>
-          <div className="h-[360px]">
-            <ShipmentModeChart shipmentsByMode={shipmentMetrics.shipmentsByMode} />
-          </div>
-        </div>
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader>
+            <CardTitle className="text-[#00FFD1]">Transport Mode Split</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={modeSplitData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+                  >
+                    {modeSplitData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${Number(value).toFixed(1)}%`} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-between text-xs text-gray-400 mt-4">
+              <div className="flex items-center gap-1">
+                <Plane className="h-3 w-3" />
+                <span>Air: {metrics.modeSplit.air.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Ship className="h-3 w-3" />
+                <span>Sea: {metrics.modeSplit.sea.toFixed(1)}%</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <TruckIcon className="h-3 w-3" />
+                <span>Road: {metrics.modeSplit.road.toFixed(1)}%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader>
+            <CardTitle className="text-[#00FFD1]">Route Resilience</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="text-2xl font-bold">
+                  {Math.round(metrics.routeResilience * 100)}%
+                </div>
+                <div className="text-xs text-gray-400">
+                  Overall network resilience
+                </div>
+              </div>
+              <div className="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center">
+                <ShieldCheck className="h-8 w-8 text-[#00FFD1]" />
+              </div>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { name: 'Risk Levels', low: 70, medium: 20, high: 10 },
+                  ]}
+                  layout="vertical"
+                  stackOffset="expand"
+                >
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                  <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
+                  <YAxis type="category" dataKey="name" hide />
+                  <Tooltip formatter={(value) => [`${value}%`, 'Percentage']} />
+                  <Bar dataKey="low" stackId="a" fill="#22c55e" name="Low Risk" />
+                  <Bar dataKey="medium" stackId="a" fill="#f59e0b" name="Medium Risk" />
+                  <Bar dataKey="high" stackId="a" fill="#ef4444" name="High Risk" />
+                  <Legend />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

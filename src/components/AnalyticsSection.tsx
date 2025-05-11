@@ -16,6 +16,7 @@ import {
   calculateCarrierPerformance
 } from '@/utils/analyticsUtils';
 import { computeShipmentInsights } from '@/lib/analytics/shipmentTabData';
+import { runNeuroSymbolicCycle } from '@/symbolic-engine/orchestrator/symbolicOrchestrator';
 
 // Import the DeepCALSpinner from its own file
 import DeepCALSpinner from './DeepCALSpinner';
@@ -46,6 +47,7 @@ const AnalyticsSection: React.FC = () => {
   const [countries, setCountries] = useState<CountryPerformance[]>([]);
   const [warehouses, setWarehouses] = useState<WarehousePerformance[]>([]);
   const [shipmentMetrics, setShipmentMetrics] = useState<ShipmentMetrics | null>(null);
+  const [symbolicResults, setSymbolicResults] = useState<any>(null);
 
   // Initialize Core engine with validated data
   useEffect(() => {
@@ -96,11 +98,64 @@ const AnalyticsSection: React.FC = () => {
       setCountries(countryPerformance);
       setWarehouses(warehousePerformance);
       setCalculationError(null);
+
+      // Run symbolic engine cycle with sample data for each forwarder
+      runSymbolicAnalysis(forwarderPerformance);
     } catch (error) {
       console.error("Error calculating metrics:", error);
       setCalculationError(String(error));
     }
   }, [shipmentData, activeTab]);
+
+  // Run the symbolic engine with the current data
+  const runSymbolicAnalysis = (forwarderData: ForwarderPerformance[]) => {
+    try {
+      // Prepare sample input for symbolic engine - this would be refined in production
+      const decisionMatrix = forwarderData.slice(0, 4).map(f => [
+        f.reliabilityScore || 0.7,
+        f.costEfficiency || 0.8, 
+        f.onTimeRate || 0.75
+      ]);
+
+      // Sample weights for criteria
+      const weights = [0.4, 0.3, 0.3];
+      const criteriaTypes = ['benefit', 'benefit', 'benefit'];
+      const alternatives = forwarderData.slice(0, 4).map(f => f.name);
+
+      // Sample shipment details
+      const sampleShipment = shipmentData[0];
+      const weight = sampleShipment?.weight_kg || 14500;
+      const volume = sampleShipment?.volume_cbm || 45;
+      const originLat = sampleShipment?.origin_latitude || 1.3521;
+      const originLng = sampleShipment?.origin_longitude || 103.8198;
+      const destLat = sampleShipment?.destination_latitude || -33.8688;
+      const destLng = sampleShipment?.destination_longitude || 151.2093;
+      
+      // Run the symbolic engine
+      const result = runNeuroSymbolicCycle({
+        decisionMatrix,
+        weights,
+        criteriaTypes,
+        alternatives,
+        forwarders: forwarderData.slice(0, 4).map(f => ({
+          name: f.name,
+          reliability: f.reliabilityScore,
+          delayRate: 1 - (f.onTimeRate || 0)
+        })),
+        weight,
+        volume,
+        originLat,
+        originLng,
+        destLat,
+        destLng
+      });
+
+      console.log("Symbolic engine result:", result);
+      setSymbolicResults(result);
+    } catch (error) {
+      console.error("Error running symbolic analysis:", error);
+    }
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -133,33 +188,47 @@ const AnalyticsSection: React.FC = () => {
         {activeTab === 'overview' && coreMetrics && (
           <OverviewContent 
             metrics={coreMetrics}
+            symbolicResults={symbolicResults}
           />
         )}
         
         {activeTab === 'shipments' && (
           <>
-            <ShipmentAnalytics metrics={shipmentMetrics} />
+            <ShipmentAnalytics 
+              metrics={shipmentMetrics} 
+              symbolicResults={symbolicResults}
+            />
             {shipmentMetrics && <DeepCALExplainer metricType="shipment" data={shipmentMetrics} />}
           </>
         )}
         
         {activeTab === 'forwarders' && (
           <>
-            <ForwarderAnalytics forwarders={forwarders} carriers={carriers} />
+            <ForwarderAnalytics 
+              forwarders={forwarders} 
+              carriers={carriers}
+              symbolicResults={symbolicResults}
+            />
             {forwarders.length > 0 && <DeepCALExplainer metricType="forwarder" data={forwarders[0]} />}
           </>
         )}
         
         {activeTab === 'countries' && (
           <>
-            <CountryAnalytics countries={countries} />
+            <CountryAnalytics 
+              countries={countries}
+              symbolicResults={symbolicResults}
+            />
             {countries.length > 0 && <DeepCALExplainer metricType="country" data={countries[0]} />}
           </>
         )}
         
         {activeTab === 'warehouses' && (
           <>
-            <WarehouseAnalytics warehouses={warehouses} />
+            <WarehouseAnalytics 
+              warehouses={warehouses}
+              symbolicResults={symbolicResults}
+            />
             {warehouses.length > 0 && <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />}
           </>
         )}

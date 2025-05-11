@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { runNeuroSymbolicCycle, SymbolicInput, SymbolicResult } from '@/symbolic-engine/orchestrator/symbolicOrchestrator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Beaker } from 'lucide-react';
+import { Beaker, Zap } from 'lucide-react';
+import MatrixViewer from './MatrixViewer';
+import WeightsViewer from './WeightsViewer';
 
 const DEFAULT_INPUT: SymbolicInput = {
   decisionMatrix: [
@@ -37,12 +39,14 @@ interface InspectSymbolicEngineProps {
 const InspectSymbolicEngine: React.FC<InspectSymbolicEngineProps> = ({ onClose }) => {
   const [result, setResult] = useState<SymbolicResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [input, setInput] = useState<SymbolicInput>(DEFAULT_INPUT);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   
   const runEngine = () => {
     setLoading(true);
     setTimeout(() => {
       try {
-        const engineResult = runNeuroSymbolicCycle(DEFAULT_INPUT);
+        const engineResult = runNeuroSymbolicCycle(input);
         setResult(engineResult);
         console.log('Symbolic Engine Result:', engineResult);
       } catch (error) {
@@ -51,6 +55,19 @@ const InspectSymbolicEngine: React.FC<InspectSymbolicEngineProps> = ({ onClose }
         setLoading(false);
       }
     }, 500);
+  };
+
+  const handleWeightChange = (index: number, value: number) => {
+    const newWeights = [...input.weights];
+    newWeights[index] = value;
+    setInput({ ...input, weights: newWeights });
+  };
+
+  // Function to modify a value in the decision matrix
+  const handleMatrixChange = (row: number, col: number, value: number) => {
+    const newMatrix = [...input.decisionMatrix];
+    newMatrix[row][col] = value;
+    setInput({ ...input, decisionMatrix: newMatrix });
   };
   
   return (
@@ -70,19 +87,128 @@ const InspectSymbolicEngine: React.FC<InspectSymbolicEngineProps> = ({ onClose }
                 Test the neuro-symbolic engine with sample data
               </p>
             </div>
-            <Button
-              onClick={runEngine}
-              disabled={loading}
-              className="bg-[#00FFD1]/20 hover:bg-[#00FFD1]/30 text-[#00FFD1] border border-[#00FFD1]/30"
-            >
-              {loading ? 'Running...' : 'Run Engine Test'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#00FFD1]/10"
+              >
+                {showAdvanced ? "Hide Advanced" : "Show Advanced"}
+              </Button>
+              <Button
+                onClick={runEngine}
+                disabled={loading}
+                className="bg-[#00FFD1]/20 hover:bg-[#00FFD1]/30 text-[#00FFD1] border border-[#00FFD1]/30"
+              >
+                {loading ? 'Running...' : 'Run Engine Test'}
+              </Button>
+            </div>
           </div>
+
+          {/* Advanced Inspector Panel */}
+          {showAdvanced && (
+            <div className="grid md:grid-cols-2 gap-4 mt-4 bg-black/20 p-3 rounded-md border border-gray-800">
+              <div>
+                <h4 className="text-sm font-medium text-[#00FFD1] mb-2">Decision Matrix</h4>
+                <div className="space-y-2">
+                  {input.decisionMatrix.map((row, rowIndex) => (
+                    <div key={rowIndex} className="flex gap-2 items-center">
+                      <span className="text-xs w-24 truncate">{input.alternatives[rowIndex] || `Option ${rowIndex+1}`}</span>
+                      {row.map((value, colIndex) => (
+                        <input
+                          key={colIndex}
+                          type="number"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={value}
+                          onChange={(e) => handleMatrixChange(rowIndex, colIndex, parseFloat(e.target.value))}
+                          className="w-16 text-xs p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                        />
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-[#00FFD1] mb-2">Criteria Weights</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-24">Reliability</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={input.weights[0]}
+                      onChange={(e) => handleWeightChange(0, parseFloat(e.target.value))}
+                      className="w-16 text-xs p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-24">Cost</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={input.weights[1]}
+                      onChange={(e) => handleWeightChange(1, parseFloat(e.target.value))}
+                      className="w-16 text-xs p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs w-24">Time</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={input.weights[2]}
+                      onChange={(e) => handleWeightChange(2, parseFloat(e.target.value))}
+                      className="w-16 text-xs p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                    />
+                  </div>
+                </div>
+                
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-[#00FFD1] mb-2">Shipment Data</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs">Weight:</span>
+                      <input
+                        type="number"
+                        value={input.weight}
+                        onChange={(e) => setInput({...input, weight: parseFloat(e.target.value)})}
+                        className="w-20 text-xs p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                      />
+                      <span className="text-xs text-gray-500">kg</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs">Volume:</span>
+                      <input
+                        type="number"
+                        value={input.volume}
+                        onChange={(e) => setInput({...input, volume: parseFloat(e.target.value)})}
+                        className="w-20 text-xs p-1 bg-gray-800 border border-gray-700 rounded text-white"
+                      />
+                      <span className="text-xs text-gray-500">cbm</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {result && (
             <div className="space-y-4 mt-6">
               <div className="p-4 rounded-md bg-[#0A1A2F]/50 border border-[#00FFD1]/10">
-                <h4 className="font-medium mb-2 text-[#00FFD1]">Top Recommendation</h4>
+                <h4 className="font-medium mb-2 text-[#00FFD1] flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Top Recommendation
+                </h4>
                 <div className="flex justify-between items-center">
                   <div className="text-xl font-bold">{result.topChoice}</div>
                   <div className="text-sm bg-[#00FFD1]/20 px-2 py-1 rounded">
@@ -107,7 +233,7 @@ const InspectSymbolicEngine: React.FC<InspectSymbolicEngineProps> = ({ onClose }
                 </div>
               )}
 
-              {result.insights.length > 0 && (
+              {result.insights && result.insights.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="font-medium text-[#00FFD1]">Insights</h4>
                   {result.insights.map((insight, idx) => (
@@ -122,9 +248,9 @@ const InspectSymbolicEngine: React.FC<InspectSymbolicEngineProps> = ({ onClose }
               <div className="p-4 rounded-md bg-[#0A1A2F]/50 border border-[#00FFD1]/10">
                 <h4 className="font-medium mb-2 text-[#00FFD1]">All Alternative Scores</h4>
                 <div className="space-y-2">
-                  {result.allScores.map((score, idx) => (
+                  {result.allScores && result.allScores.map((score, idx) => (
                     <div key={idx} className="flex justify-between items-center">
-                      <div>{DEFAULT_INPUT.alternatives[idx]}</div>
+                      <div>{input.alternatives[idx] || `Option ${idx+1}`}</div>
                       <div className="w-1/2 h-2 bg-[#0A1A2F] rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#00FFD1]" 
