@@ -79,7 +79,7 @@ const AnalysisResults: React.FC<AnalysisResultsProps> = ({
               <h3 className="text-xl font-medium text-[#00FFD1]">Performance Comparison</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <ScoreComparisonChart results={results} />
-                <MultidimensionalChart results={results} />
+                <MultidimensionalChart data={results} />
               </div>
             </div>
             

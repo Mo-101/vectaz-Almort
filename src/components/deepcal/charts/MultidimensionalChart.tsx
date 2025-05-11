@@ -8,6 +8,15 @@ interface MultidimensionalChartProps {
 }
 
 const MultidimensionalChart: React.FC<MultidimensionalChartProps> = ({ data }) => {
+  // Guard clause for undefined or empty data
+  if (!Array.isArray(data) || data.length === 0) {
+    return (
+      <div className="w-full h-64 flex items-center justify-center bg-gray-800/50 border border-gray-700 rounded">
+        <p className="text-gray-300">No data available for radar analysis</p>
+      </div>
+    );
+  }
+  
   // Transform the data for the radar chart
   const chartData = [
     {
@@ -39,19 +48,13 @@ const MultidimensionalChart: React.FC<MultidimensionalChartProps> = ({ data }) =
     return colors[index % colors.length];
   };
 
-  // Fix for the ticks issue - create proper tick items
-  const ticks = [0.2, 0.4, 0.6, 0.8, 1].map(value => ({
-    value,
-    coordinate: value
-  }));
-
   return (
     <div className="w-full h-64">
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart data={chartData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
           <PolarGrid stroke="#444" />
           <PolarAngleAxis dataKey="subject" tick={{ fill: '#eee' }} />
-          <PolarRadiusAxis tickCount={5} tick={ticks} />
+          <PolarRadiusAxis tickCount={5} domain={[0, 1]} tick={{ fill: '#eee' }} />
           
           {data.map((item, index) => (
             <Radar
