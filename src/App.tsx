@@ -1,4 +1,5 @@
 
+import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,9 @@ import GlobalNavigation from "./components/GlobalNavigation";
 
 // Create a client
 const queryClient = new QueryClient();
+
+// Lazily load the Training page
+const TrainingPage = React.lazy(() => import('./pages/training'));
 
 // Setup App with React Query for data fetching and caching
 function App() {
@@ -116,7 +120,11 @@ function App() {
                 <Route path="/" element={<IndexPage />} />
                 <Route path="/forms" element={<FormsPage />} />
                 <Route path="/deepcal" element={<DeepCALPage />} />
-                <Route path="/training" element={<React.lazy(() => import("./pages/training"))/>} />
+                <Route path="/training" element={
+                  <Suspense fallback={<LoadingScreen />}>
+                    <TrainingPage />
+                  </Suspense>
+                } />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

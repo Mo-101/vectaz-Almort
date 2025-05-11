@@ -1,6 +1,6 @@
 
-import React, { useEffect, useState } from 'react';
-import { fetchTrainingStatus, TrainingStatus } from '@/lib/training-status';
+import React from 'react';
+import { fetchTrainingStatus } from '@/lib/training-status';
 import SystemStatusCard from '@/components/training/SystemStatusCard';
 import NodeGrid from '@/components/training/NodeGrid';
 import ResourceChart from '@/components/training/ResourceChart';
@@ -9,11 +9,11 @@ import ActivityTimeline from '@/components/training/ActivityTimeline';
 import { Loader2 } from 'lucide-react';
 
 const TrainingDashboard: React.FC = () => {
-  const [status, setStatus] = useState<TrainingStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
@@ -66,52 +66,38 @@ const TrainingDashboard: React.FC = () => {
     );
   }
 
-  // Ensure required fields exist in status.resources
-  const resourcesWithDefaults = {
-    ...status.resources,
-    time: status.resources.time || ['now'],
-    cpu: status.resources.cpu || [0],
-    memory: status.resources.memory || [0],
-    gpu: status.resources.gpu
-  };
-
-  // Ensure metrics has the required epoch field
-  const metricsWithDefaults = {
-    ...(status.metrics || status.trainingMetrics),
-    epoch: (status.metrics?.epochsDone || status.trainingMetrics?.epochsDone || 0),
-    accuracy: status.metrics?.accuracy || status.trainingMetrics?.accuracy || 0,
-    loss: status.metrics?.loss || status.trainingMetrics?.loss || 0,
-    totalEpochs: status.metrics?.totalEpochs || status.trainingMetrics?.totalEpochs || 0
-  };
-
   return (
     <div className="container mx-auto py-6 px-4">
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">DeepCAL++ Training Dashboard</h1>
         
-        <SystemStatusCard
-          systemStatus={status.systemStatus}
-          trainingStatus={status.trainingStatus}
-          nextTraining={status.nextTraining || "Unknown"}
-          trainingInterval={status.trainingInterval || "Unknown"}
-          uptime={status.uptime || "Unknown"}
-          responseTime={status.responseTime || "Unknown"}
-          pendingUpdates={status.pendingUpdates || 0}
-          lastIncident={status.lastIncident || "None"}
-          lastUpdated={status.lastUpdated || "Unknown"}
-        />
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          <ResourceChart 
-            resources={resourcesWithDefaults}
-            metrics={metricsWithDefaults}
-          />
-          <TrainingMetrics metrics={metricsWithDefaults} />
-        </div>
-        
-        <NodeGrid nodes={status.nodes} />
-        
-        <ActivityTimeline events={status.events || []} />
+        {status && (
+          <>
+            <SystemStatusCard
+              systemStatus={status.systemStatus}
+              trainingStatus={status.trainingStatus}
+              nextTraining={status.nextTraining || "Unknown"}
+              trainingInterval={status.trainingInterval || "Unknown"}
+              uptime={status.uptime || "Unknown"}
+              responseTime={status.responseTime || "Unknown"}
+              pendingUpdates={status.pendingUpdates || 0}
+              lastIncident={status.lastIncident || "None"}
+              lastUpdated={status.lastUpdated || "Unknown"}
+            />
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <ResourceChart 
+                resources={status.resources || {}}
+                metrics={status.metrics || {}}
+              />
+              <TrainingMetrics metrics={status.metrics || status.trainingMetrics || {}} />
+            </div>
+            
+            <NodeGrid nodes={status.nodes || []} />
+            
+            <ActivityTimeline events={status.events || []} />
+          </>
+        )}
       </div>
     </div>
   );
