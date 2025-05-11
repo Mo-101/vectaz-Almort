@@ -1,3 +1,4 @@
+
 // app/components/MathematicalExplanation.tsx
 
 "use client";
@@ -5,7 +6,7 @@
 import React, { useState } from 'react';
 import {
   Brain, ChevronDown, Calculator, Square,
-  ArrowRight, Zap, Sigma, Function, BookText
+  ArrowRight, Zap, Sigma, BookText, Infinity
 } from 'lucide-react';
 import {
   Card, CardHeader, CardTitle, CardContent
@@ -70,22 +71,24 @@ const MathematicalExplanation: React.FC<MathematicalExplanationProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="px-4 pb-4 text-sm">
-            <p>
-              Neutrosophic logic evaluates data as a triple:
-              <br />
-              <code className="text-xs block my-2 bg-black/30 p-2 rounded">
-                N(x) = {'{T(x), I(x), F(x)}'} where T = truth, I = indeterminacy, F = falsity
-              </code>
-              The constraint: <code>T + I + F ≤ 1</code>
-            </p>
-            <p className="mt-2">
-              Example (Reliability on {result.forwarder}):
-              <br />
-              <code className="block bg-black/30 p-2 rounded mt-1 text-xs">
-                T = 0.85, I = 0.10, F = 0.05
-              </code>
-              Based on {shipmentCount} historical shipments, uncertainties were modeled using neutrosophic filters.
-            </p>
+            <div className="space-y-4">
+              <p>
+                Neutrosophic logic evaluates data as a triple:
+              </p>
+              <div className="bg-black/30 p-3 rounded">
+                <code className="text-xs">
+                  N(x) = {'{T(x), I(x), F(x)}'} where T = truth, I = indeterminacy, F = falsity
+                </code>
+                <p className="mt-2 text-xs">The constraint: <code>0 ≤ T + I + F ≤ 3</code></p>
+              </div>
+              <p>
+                Example (Reliability on {result.forwarder}):
+              </p>
+              <div className="bg-black/30 p-3 rounded font-mono text-xs">
+                <p>T = 0.85, I = 0.10, F = 0.05</p>
+                <p className="mt-1">Based on {shipmentCount} historical shipments, uncertainties were modeled using neutrosophic filters.</p>
+              </div>
+            </div>
           </CollapsibleContent>
         </Collapsible>
 
@@ -93,24 +96,43 @@ const MathematicalExplanation: React.FC<MathematicalExplanationProps> = ({
         <Collapsible open={expanded.ahp} onOpenChange={() => toggle('ahp')}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full justify-between text-left">
-              <span className="flex items-center"><Function className="h-4 w-4 mr-2 text-[#00FFD1]" /> AHP (Preference Weighting)</span>
+              <span className="flex items-center"><Infinity className="h-4 w-4 mr-2 text-[#00FFD1]" /> AHP (Preference Weighting)</span>
               <ChevronDown className={`h-4 w-4 transition-transform ${expanded.ahp ? 'rotate-180' : ''}`} />
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="px-4 pb-4 text-sm">
-            <p>AHP calculates weight priorities from your preferences:</p>
-            <ol className="list-decimal ml-5 space-y-1 mt-2">
-              <li>Pairwise matrix of Cost, Time, Reliability</li>
-              <li>Calculate eigenvector of matrix \( A \):<br />
-                <code className="block bg-black/30 p-2 mt-1 text-xs">w = [0.40, 0.30, 0.30]</code>
-              </li>
-              <li>Validate consistency:<br />
-                <code className="block bg-black/30 p-2 mt-1 text-xs">
-                  CR = (λₘₐₓ - n) / (n - 1) ÷ RI<br />
-                  CR ≈ 0.017 &lt; 0.1 ✅
-                </code>
-              </li>
-            </ol>
+            <div className="space-y-4">
+              <p>AHP calculates weight priorities from your preferences:</p>
+              <div className="ml-4 space-y-3">
+                <div>
+                  <p className="font-semibold">1. Pairwise matrix of Cost, Time, Reliability</p>
+                  <div className="bg-black/30 p-3 rounded mt-1">
+                    <pre className="text-xs overflow-x-auto whitespace-pre">
+                      A = [
+                        [1     4/3   4/3]
+                        [3/4   1     1  ]
+                        [3/4   1     1  ]
+                      ]
+                    </pre>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold">2. Calculate eigenvector of matrix A:</p>
+                  <p className="font-mono text-xs mt-1">
+                    w = [0.40, 0.30, 0.30]
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold">3. Validate consistency:</p>
+                  <p className="font-mono text-xs mt-1">
+                    CR = (λₘₐₓ - n) / (n - 1) ÷ RI
+                  </p>
+                  <p className="font-mono text-xs mt-2">
+                    CR ≈ 0.017 (acceptable: CR &lt; 0.1)
+                  </p>
+                </div>
+              </div>
+            </div>
           </CollapsibleContent>
         </Collapsible>
 
@@ -123,21 +145,35 @@ const MathematicalExplanation: React.FC<MathematicalExplanationProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="px-4 pb-4 text-sm">
-            <p>TOPSIS ranks forwarders using:</p>
-            <ul className="list-disc ml-5 mt-2 space-y-2">
-              <li>Normalize criteria:<br />
-                <code className="block bg-black/30 p-2 text-xs">r<sub>ij</sub> = x<sub>ij</sub> / √Σx<sub>ij</sub>²</code>
-              </li>
-              <li>Apply weights:<br />
-                <code className="block bg-black/30 p-2 text-xs">v<sub>ij</sub> = w<sub>j</sub> × r<sub>ij</sub></code>
-              </li>
-              <li>Compute distances:<br />
-                <code className="block bg-black/30 p-2 text-xs">S⁺ = √Σ(v<sub>ij</sub> - A⁺<sub>j</sub>)²,  S⁻ = √Σ(v<sub>ij</sub> - A⁻<sub>j</sub>)²</code>
-              </li>
-              <li>Closeness coefficient:<br />
-                <code className="block bg-black/30 p-2 text-xs">Cᵢ = S⁻ / (S⁺ + S⁻) = {Math.round(result.score * 1000) / 10}%</code>
-              </li>
-            </ul>
+            <div className="space-y-3">
+              <p>TOPSIS ranks forwarders using:</p>
+              <div className="ml-4 space-y-3">
+                <div>
+                  <p className="font-semibold">1. Normalize criteria:</p>
+                  <div className="bg-black/30 p-3 rounded mt-1">
+                    <code className="text-xs">r<sub>ij</sub> = x<sub>ij</sub> / √Σx<sub>ij</sub>²</code>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold">2. Apply weights:</p>
+                  <div className="bg-black/30 p-3 rounded mt-1">
+                    <code className="text-xs">v<sub>ij</sub> = w<sub>j</sub> × r<sub>ij</sub></code>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold">3. Compute distances:</p>
+                  <div className="bg-black/30 p-3 rounded mt-1">
+                    <code className="text-xs">S⁺ = √Σ(v<sub>ij</sub> - A⁺<sub>j</sub>)²,  S⁻ = √Σ(v<sub>ij</sub> - A⁻<sub>j</sub>)²</code>
+                  </div>
+                </div>
+                <div>
+                  <p className="font-semibold">4. Closeness coefficient:</p>
+                  <div className="bg-black/30 p-3 rounded mt-1">
+                    <code className="text-xs">Cᵢ = S⁻ / (S⁺ + S⁻) = {Math.round(result.score * 1000) / 10}%</code>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CollapsibleContent>
         </Collapsible>
 
@@ -150,13 +186,17 @@ const MathematicalExplanation: React.FC<MathematicalExplanationProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="px-4 pb-4 text-sm">
-            <p>This model detects patterns in sparse data using:</p>
-            <code className="block bg-black/30 p-2 mt-2 text-xs">
-              ξ<sub>i</sub>(j) = (Δmin + ζΔmax) / (Δ<sub>i</sub>(j) + ζΔmax)
-            </code>
-            <p className="mt-2 text-xs text-gray-400">
-              where ζ = 0.5, Δ = deviation from reference
-            </p>
+            <div className="space-y-3">
+              <p>This model detects patterns in sparse data using:</p>
+              <div className="bg-black/30 p-3 rounded mt-2">
+                <code className="text-xs">
+                  ξ<sub>i</sub>(j) = (Δmin + ζΔmax) / (Δ<sub>i</sub>(j) + ζΔmax)
+                </code>
+                <p className="mt-2 text-xs text-gray-400">
+                  where ζ = 0.5, Δ = deviation from reference
+                </p>
+              </div>
+            </div>
           </CollapsibleContent>
         </Collapsible>
 
