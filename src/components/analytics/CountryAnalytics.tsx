@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Card, CardContent, CardHeader, CardTitle
@@ -16,11 +17,12 @@ const VALID_FORWARDERS = [
 
 interface CountryAnalyticsProps {
   countries: CountryPerformance[];
+  symbolicResults?: any;
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A288E3', '#FF6B6B'];
 
-const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
+const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries, symbolicResults }) => {
   const topCountries = countries.slice(0, 6);
 
   const volumeData = topCountries.map(c => ({ name: c.country, shipments: c.totalShipments }));
@@ -91,20 +93,22 @@ const CountryAnalytics: React.FC<CountryAnalyticsProps> = ({ countries }) => {
         <CardContent><ul className="text-sm space-y-2">{costAnomalies.slice(0, 5).map((item, idx) => (<li key={idx}><strong>{item.country}</strong> → Z: {item.zScore}</li>))}</ul></CardContent>
       </Card>
 
-      <Card><CardHeader><CardTitle className="flex items-center"><Brain className="h-5 w-5 mr-2 text-blue-500" />DeepSight™ Country Insights</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-md border">
-              <h4 className="font-semibold">Cost Optimization</h4>
-              <p className="text-sm text-muted-foreground">{costAnomalies[0]?.country} is showing unusual cost patterns. Recommend renegotiation or route shift.</p>
+      {symbolicResults && (
+        <Card><CardHeader><CardTitle className="flex items-center"><Brain className="h-5 w-5 mr-2 text-blue-500" />DeepSight™ Country Insights</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-blue-50 rounded-md border">
+                <h4 className="font-semibold">Cost Optimization</h4>
+                <p className="text-sm text-muted-foreground">{costAnomalies[0]?.country} is showing unusual cost patterns. Recommend renegotiation or route shift.</p>
+              </div>
+              <div className="p-4 bg-red-50 rounded-md border">
+                <h4 className="font-semibold">Risk Hotspot</h4>
+                <p className="text-sm text-muted-foreground">{countries.sort((a, b) => b.deliveryFailureRate - a.deliveryFailureRate)[0]?.country} leads in failures. Evaluate local partners and customs engagement strategies.</p>
+              </div>
             </div>
-            <div className="p-4 bg-red-50 rounded-md border">
-              <h4 className="font-semibold">Risk Hotspot</h4>
-              <p className="text-sm text-muted-foreground">{countries.sort((a, b) => b.deliveryFailureRate - a.deliveryFailureRate)[0]?.country} leads in failures. Evaluate local partners and customs engagement strategies.</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

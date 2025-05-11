@@ -113,19 +113,23 @@ const AnalyticsSection: React.FC = () => {
       // Prepare sample input for symbolic engine - this would be refined in production
       const decisionMatrix = forwarderData.slice(0, 4).map(f => [
         f.reliabilityScore || 0.7,
-        f.costEfficiency || 0.8, 
-        f.onTimeRate || 0.75
+        f.onTimeRate / 100 || 0.8, 
+        f.avgTransitDays ? 1 / (f.avgTransitDays + 1) : 0.75 // Normalize transit days
       ]);
 
       // Sample weights for criteria
       const weights = [0.4, 0.3, 0.3];
-      const criteriaTypes = ['benefit', 'benefit', 'benefit'];
+      const criteriaTypes: ("benefit" | "cost")[] = ['benefit', 'benefit', 'benefit'];
       const alternatives = forwarderData.slice(0, 4).map(f => f.name);
 
       // Sample shipment details
       const sampleShipment = shipmentData[0];
-      const weight = sampleShipment?.weight_kg || 14500;
-      const volume = sampleShipment?.volume_cbm || 45;
+      const weight = typeof sampleShipment?.weight_kg === 'string' 
+        ? parseFloat(sampleShipment.weight_kg) 
+        : (sampleShipment?.weight_kg || 14500);
+      const volume = typeof sampleShipment?.volume_cbm === 'string'
+        ? parseFloat(sampleShipment.volume_cbm)
+        : (sampleShipment?.volume_cbm || 45);
       const originLat = sampleShipment?.origin_latitude || 1.3521;
       const originLng = sampleShipment?.origin_longitude || 103.8198;
       const destLat = sampleShipment?.destination_latitude || -33.8688;
@@ -140,7 +144,7 @@ const AnalyticsSection: React.FC = () => {
         forwarders: forwarderData.slice(0, 4).map(f => ({
           name: f.name,
           reliability: f.reliabilityScore,
-          delayRate: 1 - (f.onTimeRate || 0)
+          delayRate: 1 - (f.onTimeRate || 0) / 100
         })),
         weight,
         volume,
@@ -215,20 +219,14 @@ const AnalyticsSection: React.FC = () => {
         
         {activeTab === 'countries' && (
           <>
-            <CountryAnalytics 
-              countries={countries}
-              symbolicResults={symbolicResults}
-            />
+            <CountryAnalytics countries={countries} />
             {countries.length > 0 && <DeepCALExplainer metricType="country" data={countries[0]} />}
           </>
         )}
         
         {activeTab === 'warehouses' && (
           <>
-            <WarehouseAnalytics 
-              warehouses={warehouses}
-              symbolicResults={symbolicResults}
-            />
+            <WarehouseAnalytics warehouses={warehouses} />
             {warehouses.length > 0 && <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />}
           </>
         )}

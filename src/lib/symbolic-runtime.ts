@@ -55,7 +55,7 @@ export async function analyzeShipmentWithSymbolic(shipmentData: any[]) {
   ];
   
   const weights = [0.4, 0.3, 0.3];
-  const criteriaTypes = ['benefit', 'benefit', 'benefit'];
+  const criteriaTypes: ("benefit" | "cost")[] = ['benefit', 'benefit', 'benefit'];
   const alternatives = ['DHL', 'FedEx', 'Kuehne+Nagel', 'DSV'];
   
   const weight = recentShipment?.weight_kg || 14500;

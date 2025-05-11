@@ -85,20 +85,19 @@ const ForwarderRankingTable: React.FC<ForwarderRankingTableProps> = ({
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  {forwarder.onTimeRate ? `${Math.round(forwarder.onTimeRate * 100)}%` : 'N/A'}
+                  {forwarder.onTimeRate ? `${Math.round(forwarder.onTimeRate)}%` : 'N/A'}
                 </TableCell>
                 <TableCell className="text-right">
-                  {forwarder.costEfficiency ? 
-                    forwarder.costEfficiency.toLocaleString('en-US', {
-                      style: 'currency',
-                      currency: 'USD',
-                      minimumFractionDigits: 2
-                    }) : 'N/A'
+                  {forwarder.avgCostPerKg ? 
+                    `$${forwarder.avgCostPerKg.toFixed(2)}` : 'N/A'
                   }
                 </TableCell>
                 <TableCell className="text-right">
-                  {forwarder.avgResponseTime ? 
-                    `${forwarder.avgResponseTime.toFixed(1)} hrs` : 'N/A'
+                  {/* Use avgTransitDays as a fallback for response time */}
+                  {(forwarder as any).avgResponseTime ? 
+                    `${(forwarder as any).avgResponseTime.toFixed(1)} hrs` : 
+                    (forwarder.avgTransitDays ? 
+                      `~${forwarder.avgTransitDays.toFixed(1)} days` : 'N/A')
                   }
                 </TableCell>
                 <TableCell className="text-right">
