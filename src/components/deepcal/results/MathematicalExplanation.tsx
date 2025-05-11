@@ -152,7 +152,7 @@ R     [3/4    1      1  ]`}
                 CR = (λ<sub>max</sub> - n) / (n - 1) ÷ RI
               </p>
               <p className="font-mono text-xs mt-2">
-                CR ≈ 0.017 (acceptable: CR < 0.1)
+                CR ≈ 0.017 (acceptable: CR &lt; 0.1)
               </p>
             </div>
             
