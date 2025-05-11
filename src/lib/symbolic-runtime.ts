@@ -3,6 +3,7 @@ import { runNeuroSymbolicCycle } from '@/symbolic-engine/orchestrator/symbolicOr
 import { simulateRoutes } from '@/symbolic-engine/simulation/simulator';
 import { updateForwarderTrust } from '@/symbolic-engine/services/feedback';
 import { trainForwarderModels } from '@/symbolic-engine/services/modelTrainer';
+import { detectAnomalies } from '@/symbolic-engine/services/insightEngine';
 
 export async function symbolicStats() {
   // This is a wrapper function that provides symbolic statistics
@@ -21,6 +22,9 @@ export async function symbolicStats() {
 
   // Identify anomalies
   const anomalies = simulated.filter(f => f.delayRate > 0.25).length;
+  
+  // Get insights about problematic forwarders
+  const insights = detectAnomalies(sampleForwarders);
 
   // Calculate current memory utilization (just a mock for demo)
   const memory = simulated.reduce((acc, curr) => {
@@ -34,7 +38,8 @@ export async function symbolicStats() {
   return {
     memory,
     anomalies,
-    trustDrift: `${trustDrift}%`
+    trustDrift: `${trustDrift}%`,
+    insights
   };
 }
 

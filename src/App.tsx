@@ -116,6 +116,7 @@ function App() {
                 <Route path="/" element={<IndexPage />} />
                 <Route path="/forms" element={<FormsPage />} />
                 <Route path="/deepcal" element={<DeepCALPage />} />
+                <Route path="/training" element={<React.lazy(() => import("./pages/training"))/>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -7,7 +7,8 @@ import {
   BrainCircuitIcon, 
   InfoIcon, 
   SettingsIcon,
-  ClipboardListIcon
+  ClipboardListIcon,
+  ServerIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppSection } from '@/types/deeptrack';
@@ -20,6 +21,7 @@ const GlobalNavigation = () => {
   const isIndex = pathname === '/';
   const isDeepCal = pathname === '/deepcal';
   const isForms = pathname === '/forms';
+  const isTraining = pathname === '/training';
   
   // Set the appropriate active section based on location
   const getActiveSection = (): string => {
@@ -30,6 +32,8 @@ const GlobalNavigation = () => {
       return 'deepcal';
     } else if (isForms) {
       return 'forms';
+    } else if (isTraining) {
+      return 'training';
     }
     return '';
   };
@@ -42,6 +46,7 @@ const GlobalNavigation = () => {
     { id: 'analytics', icon: BarChart3Icon, label: 'Analytics', path: '/' },
     { id: 'forms', icon: ClipboardListIcon, label: 'Forms', path: '/forms' },
     { id: 'deepcal', icon: BrainCircuitIcon, label: 'DeepCAL', path: '/deepcal' },
+    { id: 'training', icon: ServerIcon, label: 'Training', path: '/training' },
     { id: 'about', icon: InfoIcon, label: 'About', path: '/' },
     { id: 'settings', icon: SettingsIcon, label: 'Settings', path: '/' }
   ];
