@@ -1,9 +1,4 @@
 
-export interface QuoteData {
-  forwarder: string;
-  quote: number;
-}
-
 export interface ForwarderScore {
   forwarder: string;
   score: number;
@@ -11,12 +6,22 @@ export interface ForwarderScore {
   costPerformance: number;
   timePerformance: number;
   reliabilityPerformance: number;
+  greyGrade?: number; // Added for Grey Relational Analysis
+  explanation?: any;
 }
 
 export interface WeightFactors {
   cost: number;
   time: number;
   reliability: number;
+}
+
+export interface QuoteData {
+  forwarder: string;
+  price: string;
+  currency: string;
+  transitDays: string;
+  reliability: string;
 }
 
 export interface DeepCALProps {

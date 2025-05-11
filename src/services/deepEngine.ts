@@ -1,4 +1,7 @@
 
+import { evaluateForwarders, getSampleForwarderData } from '@/utils/deepCalEngine';
+import { traceCalculation } from '@/utils/debugCalculations';
+
 // Fix for lines 196 and 197 - converting string|number to number before addition
 export function fixNumberAddition(value: string | number) {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
@@ -15,35 +18,16 @@ export function processShipmentData(shipmentData: any) {
   };
 }
 
-// Adding the missing getForwarderRankings function
+// Updated getForwarderRankings function to use the real engine implementation
 export function getForwarderRankings(weightFactors: { cost: number, time: number, reliability: number }) {
-  // This is a mock implementation - in a real app this would do more complex ranking
-  return [
-    {
-      forwarder: "DHL Express",
-      score: 0.85,
-      closeness: 0.9,
-      costPerformance: 0.8,
-      timePerformance: 0.9,
-      reliabilityPerformance: 0.85
-    },
-    {
-      forwarder: "FedEx",
-      score: 0.82,
-      closeness: 0.85,
-      costPerformance: 0.75,
-      timePerformance: 0.85,
-      reliabilityPerformance: 0.9
-    },
-    {
-      forwarder: "UPS",
-      score: 0.78,
-      closeness: 0.8,
-      costPerformance: 0.7,
-      timePerformance: 0.8,
-      reliabilityPerformance: 0.85
-    }
-  ];
+  // Trace the calculation for debugging
+  traceCalculation('getForwarderRankings', { weightFactors }, null, { logToConsole: true });
+  
+  // Get sample data for now, in a real app this would be replaced with API data
+  const forwarderData = getSampleForwarderData();
+  
+  // Use the real DeepCAL engine to evaluate and rank forwarders
+  return evaluateForwarders(forwarderData, weightFactors);
 }
 
 // Adding the missing loadMockData function for dataIntake.ts

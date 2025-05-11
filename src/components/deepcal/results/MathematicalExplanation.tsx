@@ -1,6 +1,4 @@
 
-// app/components/MathematicalExplanation.tsx
-
 "use client";
 
 import React, { useState } from 'react';

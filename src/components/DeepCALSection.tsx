@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
-import { getForwarderRankings } from '@/services/deepEngine';
+import { evaluateForwarders, getSampleForwarderData } from '@/utils/deepCalEngine'; // Updated import
 import DeepCALSpinner from './DeepCALSpinner';
 import { speakText } from './deepcal/VoiceService';
 import QuoteInputForm from './deepcal/QuoteInputForm';
 import AnalysisResults from './deepcal/AnalysisResults';
 import { QuoteData, ForwarderScore, WeightFactors, DeepCALProps } from './deepcal/types';
 import { toast } from 'sonner';
+import { traceCalculation } from '@/utils/debugCalculations';
 
 const DeepCALSection: React.FC<DeepCALProps> = ({ 
   voicePersonality = 'sassy',
@@ -37,6 +38,11 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
     shipmentMode: string,
     factors: WeightFactors
   ) => {
+    // Use traceCalculation to log the input for debugging
+    traceCalculation('User Input', {
+      quotes, sourceCountry, destCountry, shipmentWeight, shipmentMode, factors
+    });
+    
     setQuotes(quotes);
     setSource(sourceCountry);
     setDestination(destCountry);
@@ -75,20 +81,59 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
           duration: 3000,
         });
         
-        const rankings = getForwarderRankings(factors);
+        // Convert QuoteData to ForwarderData for engine calculation
+        const forwarderInputData = quotes.map(quote => {
+          // Convert quote prices to normalized cost scores (higher is better)
+          const quotePrice = parseFloat(quote.price);
+          const maxPrice = Math.max(...quotes.map(q => parseFloat(q.price)));
+          const minPrice = Math.min(...quotes.map(q => parseFloat(q.price)));
+          const range = maxPrice - minPrice;
+          
+          // Normalize cost score (invert so lower price = higher score)
+          const costScore = range === 0 ? 0.5 : 1 - ((quotePrice - minPrice) / range);
+          
+          // Convert transit days to normalized time scores
+          const transitDays = parseInt(quote.transitDays, 10);
+          const maxDays = Math.max(...quotes.map(q => parseInt(q.transitDays, 10)));
+          const minDays = Math.min(...quotes.map(q => parseInt(q.transitDays, 10)));
+          const daysRange = maxDays - minDays;
+          
+          // Normalize time score (invert so fewer days = higher score)
+          const timeScore = daysRange === 0 ? 0.5 : 1 - ((transitDays - minDays) / daysRange);
+          
+          // Use the reliability rating directly as it's already on a 0-1 scale
+          const reliabilityScore = parseFloat(quote.reliability) / 100;
+          
+          return {
+            forwarder: quote.forwarder,
+            costScore,
+            timeScore,
+            reliabilityScore
+          };
+        });
+
+        // Log before ranking calculation
+        traceCalculation('Before Ranking Calculation', { 
+          forwarderInputData,
+          factors
+        });
         
-        const filteredRankings = rankings
-          .filter(r => quotes.some(q => q.forwarder.toLowerCase().includes(r.forwarder.toLowerCase()) || 
-                                    r.forwarder.toLowerCase().includes(q.forwarder.toLowerCase())))
-          .sort((a, b) => b.score - a.score);
+        // Use our real engine to calculate rankings
+        const rankings = evaluateForwarders(
+          forwarderInputData.length > 0 ? forwarderInputData : getSampleForwarderData(),
+          factors
+        );
         
-        setResults(filteredRankings);
+        // Log after ranking calculation
+        traceCalculation('After Ranking Calculation', { factors }, rankings);
+        
+        setResults(rankings);
         setShowResults(true);
         setLoading(false);
         
         // Speak a success message when analysis is complete
-        if (filteredRankings.length > 0) {
-          const topForwarder = filteredRankings[0]?.forwarder || "Unknown";
+        if (rankings.length > 0) {
+          const topForwarder = rankings[0]?.forwarder || "Unknown";
           speakText(`I have completed my analysis. Based on your preferences, ${topForwarder} is the optimal choice for your shipment from ${sourceCountry} to ${destCountry}.`, voicePersonality, voiceEnabled);
         } else {
           speakText("Analysis complete. I couldn't find a perfect match, but I've ranked the options based on your criteria.", voicePersonality, voiceEnabled);
