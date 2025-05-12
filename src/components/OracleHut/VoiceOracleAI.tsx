@@ -11,14 +11,22 @@ interface VoiceOracleAIProps {
   onMessageReceived: (message: string) => void;
 }
 
+// Define the correct message type for ElevenLabs API
+interface ElevenLabsMessage {
+  type: string;
+  text?: string;
+  final?: boolean;
+  // Add other properties as needed
+}
+
 const VoiceOracleAI = ({ isOpen, onMessageReceived }: VoiceOracleAIProps) => {
   const [isMuted, setIsMuted] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   
   const conversation = useConversation({
-    onMessage: (message) => {
+    onMessage: (message: ElevenLabsMessage) => {
       // When we receive a message from the AI, pass it to the parent
-      if (message.type === 'llmResponse' && message.final) {
+      if (message.type === 'llmResponse' && message.final && message.text) {
         onMessageReceived(message.text);
       }
     },
