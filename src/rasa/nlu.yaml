@@ -1,0 +1,65 @@
+version: "3.1"
+nlu:
+  - intent: greet
+    examples: |
+      - hi
+      - hello
+      - hey
+      - good morning
+  - intent: get_rankings
+    examples: |
+      - show me the top forwarders
+      - who is the best carrier this month?
+      - rank freight partners by performance
+  - intent: kpi_request
+    examples: |
+      - what's the average transit time?
+      - give me delivery KPIs for March
+      - how much did I spend on freight last month?
+  - intent: explain_decision
+    examples: |
+      - why did DeepCAL choose Forwarder A?
+      - explain this ranking
+      - what made this forwarder best?
+  - intent: deep_sight_alert
+    examples: |
+      - any disruptions today?
+      - alert me on freight issues
+      - what's the risk level right now?
+  - intent: ask_fun_fact
+    examples: |
+      - tell me something funny
+      - got any jokes?
+      - lighten the mood, DeepCAL
+  - intent: ask_who_are_you
+    examples: |
+      - who are you?
+      - are you an AI?
+      - what can you do?
+  - intent: encourage_continue
+    examples: |
+      - motivate me
+      - say something uplifting
+      - I'm feeling tired
+  - intent: out_of_scope
+    examples: |
+      - what’s your favorite color?
+      - do you like pizza?
+      - how tall are you?
+  - intent: ask_how_is_your_day
+    examples: |
+      - how's your day going?
+      - what’s up today?
+      - how are you feeling?
+  - intent: ask_how_is_your_mood
+    examples: |
+      - how's your mood?
+      - are you happy today?
+      - feeling good?
+  - intent: ask_joke
+    examples: |
+      - tell me a joke
+      - make me laugh
+      - do you know any funny stories?
+  - intent: ask_how_can_i_help
+    examples: "- how can I assist you?\n- what do you need help with?\n- how can I support you?  "
