@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import { evaluateForwarders, getSampleForwarderData } from '@/utils/deepCalEngine'; 
 import DeepCALSpinner from './DeepCALSpinner';
-import { speakText } from './deepcal/VoiceService';
 import QuoteInputForm from './deepcal/QuoteInputForm';
 import AnalysisResults from './deepcal/AnalysisResults';
 import { QuoteData, ForwarderScore, WeightFactors, DeepCALProps } from './deepcal/types';
@@ -134,20 +133,13 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
         setShowResults(true);
         setLoading(false);
         
-        // Speak a success message when analysis is complete
-        if (rankings.length > 0) {
-          const topForwarder = rankings[0]?.forwarder || "Unknown";
-          speakText(`I have completed my analysis. Based on your preferences, ${topForwarder} is the optimal choice for your shipment from ${sourceCountry} to ${destCountry}.`, voicePersonality, voiceEnabled);
-        } else {
-          speakText("Analysis complete. I couldn't find a perfect match, but I've ranked the options based on your criteria.", voicePersonality, voiceEnabled);
-        }
-        
       } catch (error) {
         console.error("Error calculating rankings:", error);
         setLoading(false);
         
-        // Speak an error message
-        speakText("I encountered an error while analyzing the quotes. Please try again or check your input data.", voicePersonality, voiceEnabled);
+        toast.error("Analysis failed", {
+          description: "There was an error analyzing the quotes. Please try again."
+        });
       }
     };
   };
@@ -159,14 +151,6 @@ const DeepCALSection: React.FC<DeepCALProps> = ({
   const toggleDebugPanel = () => {
     setShowDebugPanel(!showDebugPanel);
   };
-
-  // Speak welcome message on component mount
-  useEffect(() => {
-    if (voiceEnabled) {
-      const welcomeMessage = "Welcome to DeepCAL Optimizer. Enter your freight quotes, and I'll analyze them for the best logistics options.";
-      speakText(welcomeMessage, voicePersonality, voiceEnabled);
-    }
-  }, [voiceEnabled, voicePersonality]);
 
   return (
     <div className="container mx-auto py-8 max-w-7xl relative z-20">

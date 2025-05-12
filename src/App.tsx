@@ -14,7 +14,6 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
-import FloatingDeepTalk from "./components/FloatingDeepTalk";
 import GlobalNavigation from "./components/GlobalNavigation";
 
 // Create a client
@@ -131,9 +130,6 @@ function App() {
               
               {/* Global Navigation appears on every page */}
               <GlobalNavigation />
-              
-              {/* Floating DeepTalk appears on every page */}
-              <FloatingDeepTalk />
             </BrowserRouter>
         
             {/* UI Components for notifications */}
