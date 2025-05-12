@@ -1,14 +1,15 @@
 
 import { useState, useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
-import { Route } from '@/types/deeptrack';
+import { Route } from '@/types/route';
 import { CountryMarker } from '../types';
 import { 
   createRouteMarkers, 
   createCountryMarkers, 
-  createCountryPopup, 
+  createEnhancedCountryPopup, 
   clearMarkers 
 } from '../utils/MapMarkers';
+import { addNairobiWarehouse } from '../utils/WarehouseMarkers';
 import { spinGlobe } from '../utils/MapInitializer';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,6 +24,7 @@ export const useMapInteractions = (
   const [spinEnabled] = useState(true);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const countryMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const warehouseMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const spinIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
@@ -87,7 +89,7 @@ export const useMapInteractions = (
           }
           
           // Create a new popup
-          popupRef.current = createCountryPopup(mapRef.current!, country);
+          popupRef.current = createEnhancedCountryPopup(mapRef.current!, country);
           return popupRef.current;
         } catch (error) {
           handleError(`Failed to create popup for country ${country.name}`, error);
@@ -120,6 +122,40 @@ export const useMapInteractions = (
       }
     };
   }, [countries, mapRef.current, onCountryClick, toast]);
+
+  // Add Nairobi warehouse marker
+  useEffect(() => {
+    if (!mapRef.current) return;
+    
+    try {
+      if (warehouseMarkerRef.current) {
+        warehouseMarkerRef.current.remove();
+      }
+      
+      // Add the Nairobi warehouse marker
+      warehouseMarkerRef.current = addNairobiWarehouse(mapRef.current);
+      
+      // Notify that warehouse has been added
+      toast({
+        title: "Nairobi Hub",
+        description: "Primary OSL Warehouse marker added to map",
+        duration: 3000,
+      });
+    } catch (error) {
+      handleError("Failed to add warehouse marker", error);
+    }
+    
+    return () => {
+      try {
+        if (warehouseMarkerRef.current) {
+          warehouseMarkerRef.current.remove();
+          warehouseMarkerRef.current = null;
+        }
+      } catch (error) {
+        console.error("Error cleaning up warehouse marker:", error);
+      }
+    };
+  }, [mapRef.current, toast]);
 
   // Setup globe spinning interval
   useEffect(() => {
@@ -163,8 +199,12 @@ export const useMapInteractions = (
       try {
         clearMarkers(markersRef.current);
         clearMarkers(countryMarkersRef.current);
+        if (warehouseMarkerRef.current) {
+          warehouseMarkerRef.current.remove();
+        }
         markersRef.current = [];
         countryMarkersRef.current = [];
+        warehouseMarkerRef.current = null;
         
         if (popupRef.current) {
           popupRef.current.remove();
