@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShipmentMetrics } from '@/types/shipment';
+import { ShipmentMetrics } from '@/types/deeptrack';
 import { Map, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface ShipmentRouteMapProps {

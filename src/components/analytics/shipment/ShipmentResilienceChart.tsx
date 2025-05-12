@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   LineChart,
@@ -11,7 +12,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader } from 'lucide-react';
-import { ShipmentMetrics } from '@/types/shipment';
+import { ShipmentMetrics } from '@/types/deeptrack';
 
 type ChartDataItem = {
   date: string;

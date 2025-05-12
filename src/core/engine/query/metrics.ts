@@ -1,9 +1,10 @@
+
 /**
  * Query Metrics Module
  * 
  * This module calculates metrics and insights from shipment data.
  */
-import { Shipment } from '@/types/shipment';
+import { Shipment } from '@/types/deeptrack';
 
 /**
  * Analyze shipment data to generate metrics and insights

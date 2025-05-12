@@ -47,8 +47,6 @@ const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({
     if (!mapContainerRef.current || isLoading || mapRef.current) return;
     
     try {
-      console.log("Initializing map with container:", mapContainerRef.current);
-      
       // Create a new map instance
       const map = initializeMap(mapContainerRef.current);
       mapRef.current = map;
@@ -130,11 +128,6 @@ const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({
               <AlertDescription className="text-xs">{displayError}</AlertDescription>
             </Alert>
           )}
-          
-          {/* Debug message showing render happened */}
-          <div className="absolute top-2 left-2 bg-black/50 text-xs text-white px-2 py-1 rounded z-10">
-            Map Container Rendered
-          </div>
         </>
       )}
     </div>

@@ -23,7 +23,7 @@ export const initializeMap = (container: HTMLDivElement): mapboxgl.Map => {
     
     const map = new mapboxgl.Map({
       container,
-      style: 'mapbox://styles/mapbox/dark-v11', // Use a darker style that works better with our visualization
+      style: 'mapbox://styles/akanimo1/cm8bw23rp00i501sbgbr258r0',
       center: [0, 20], // Center on Africa
       zoom: 2,
       pitch: 40,
@@ -75,27 +75,6 @@ export const setupMapEnvironment = (map: mapboxgl.Map): void => {
         'maxzoom': 14
       });
     }
-    
-    // Add 3D buildings layer when map is loaded
-    map.on('style.load', () => {
-      // Add 3D building layer if it doesn't exist
-      if (!map.getLayer('3d-buildings')) {
-        map.addLayer({
-          id: '3d-buildings',
-          source: 'composite',
-          'source-layer': 'building',
-          filter: ['==', 'extrude', 'true'],
-          type: 'fill-extrusion',
-          minzoom: 15,
-          paint: {
-            'fill-extrusion-color': '#aaa',
-            'fill-extrusion-height': ['get', 'height'],
-            'fill-extrusion-base': ['get', 'min_height'],
-            'fill-extrusion-opacity': 0.6
-          }
-        }, 'waterway-label');
-      }
-    });
   } catch (error) {
     console.error("Failed to setup map environment:", error);
     // Continue without environment effects

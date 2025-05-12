@@ -1,6 +1,5 @@
-
 import { create } from 'zustand';
-import type { Shipment } from '@/types/shipment';
+import type { Shipment } from '@/types/deeptrack';
 
 interface ShipmentStore {
   shipments: Shipment[];

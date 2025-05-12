@@ -1,4 +1,5 @@
-import { Route } from '@/types/route';
+
+import { Route } from '@/types/deeptrack';
 
 export interface CountryMarker {
   name: string;
