@@ -1,7 +1,10 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, TooltipProps } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
+import { TrendingDown, TrendingUp, Minus } from 'lucide-react';
+
 interface ResourceChartProps {
   resources: {
     time: string[];
@@ -16,6 +19,7 @@ interface ResourceChartProps {
     totalEpochs: number;
   };
 }
+
 const ResourceChart: React.FC<ResourceChartProps> = ({
   resources,
   metrics
@@ -27,6 +31,7 @@ const ResourceChart: React.FC<ResourceChartProps> = ({
     Memory: resources.memory[index],
     GPU: resources.gpu ? resources.gpu[index] : undefined
   }));
+
   const chartConfig = {
     CPU: {
       label: "CPU Usage",
@@ -41,6 +46,7 @@ const ResourceChart: React.FC<ResourceChartProps> = ({
       color: "#f59e0b"
     }
   };
+
   return <Card className="border-mostar-light-blue/15 shadow-lg">
       <CardHeader>
         <CardTitle className="text-xl font-semibold tracking-tight">Resource Utilization</CardTitle>
@@ -77,16 +83,33 @@ const ResourceChart: React.FC<ResourceChartProps> = ({
       </CardContent>
     </Card>;
 };
+
 interface MetricCardProps {
   label: string;
   value: string;
   trend?: 'up' | 'down' | 'neutral';
 }
+
 const MetricCard: React.FC<MetricCardProps> = ({
   label,
   value,
   trend
 }) => {
-  return;
+  return (
+    <div className="bg-card/50 border border-border/50 rounded-lg p-4 flex flex-col">
+      <div className="text-muted-foreground text-sm mb-1">{label}</div>
+      <div className="flex items-center justify-between">
+        <div className="text-lg font-medium">{value}</div>
+        {trend && (
+          <div className="flex items-center">
+            {trend === 'up' && <TrendingUp className="h-4 w-4 text-green-500" />}
+            {trend === 'down' && <TrendingDown className="h-4 w-4 text-red-500" />}
+            {trend === 'neutral' && <Minus className="h-4 w-4 text-yellow-500" />}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
+
 export default ResourceChart;
