@@ -13,26 +13,27 @@ export const createAnimatedRoutePath = (
 ): { line: any; marker: mapboxgl.Marker; animation: number } => {
   try {
     // Create the GeoJSON for the route line
-    const routeSource: mapboxgl.GeoJSONSource = {
-      type: 'geojson',
-      data: {
-        type: 'Feature',
-        properties: {},
-        geometry: {
-          type: 'LineString',
-          coordinates: [
-            [route.origin.lng, route.origin.lat],
-            [route.destination.lng, route.destination.lat]
-          ]
-        }
+    const routeGeoJSON = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [route.origin.lng, route.origin.lat],
+          [route.destination.lng, route.destination.lat]
+        ]
       }
-    };
+    } as GeoJSON.Feature<GeoJSON.LineString>;
     
     // Add the line to the map
     const sourceId = `route-${Date.now()}`;
     const layerId = `layer-${sourceId}`;
     
-    map.addSource(sourceId, routeSource);
+    map.addSource(sourceId, {
+      type: 'geojson',
+      data: routeGeoJSON
+    });
+    
     map.addLayer({
       id: layerId,
       type: 'line',
@@ -120,7 +121,7 @@ export const createAnimatedRoutePath = (
     });
     
     return {
-      line: routeSource.data,
+      line: routeGeoJSON,
       marker: movingMarker,
       animation: animationFrame
     };
