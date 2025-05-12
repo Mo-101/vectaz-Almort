@@ -1,5 +1,6 @@
+
 import { create } from 'zustand';
-import { Shipment } from '@/types/deeptrack';
+import { Shipment } from '@/types/shipment';
 import { CriteriaWeights } from '@/core/engine';
 
 // Define the state store interface

@@ -1,4 +1,3 @@
-
 /**
  * Data Loader Module
  * 
@@ -6,7 +5,7 @@
  * from the deeptrack_3.json file.
  */
 import { z } from 'zod';
-import { Shipment } from '@/types/deeptrack';
+import { Shipment } from '@/types/shipment';
 
 // Shipment schema validation
 const ShipmentSchema = z.object({

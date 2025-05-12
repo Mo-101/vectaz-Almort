@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { storePendingOperation } from '@/utils/offlineCache';
-import type { Shipment } from '@/types/deeptrack';
+import type { Shipment } from '@/types/shipment';
 
 export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' | 'updated_at'>) => {
   try {

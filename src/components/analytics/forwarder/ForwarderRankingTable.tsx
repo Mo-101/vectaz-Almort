@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ForwarderPerformance } from '@/types/deeptrack';
+import { ForwarderPerformance } from '@/types/forwarder';
 import { 
   Table, 
   TableBody, 

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShipmentMetrics } from '@/types/deeptrack';
+import { ShipmentMetrics } from '@/types/shipment';
 import { Clock, TrendingUp, TrendingDown } from 'lucide-react';
 import { 
   LineChart, 
