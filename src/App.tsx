@@ -10,6 +10,7 @@ import IndexPage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
+import OracleHutPage from "./pages/OracleHutPage";
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
@@ -120,6 +121,7 @@ function App() {
                 <Route path="/" element={<IndexPage />} />
                 <Route path="/forms" element={<FormsPage />} />
                 <Route path="/deepcal" element={<DeepCALPage />} />
+                <Route path="/oracle" element={<OracleHutPage />} />
                 <Route path="/training" element={
                   <Suspense fallback={<LoadingScreen />}>
                     <TrainingPage />

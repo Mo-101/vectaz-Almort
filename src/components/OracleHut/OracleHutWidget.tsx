@@ -1,6 +1,6 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, Mic } from 'lucide-react';
+import { Send, X, Mic, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import styles from './styles.module.css';
 import { OracleHutEngine } from './OracleHutEngine';
 import VoiceOracleAI from './VoiceOracleAI';
@@ -122,6 +122,14 @@ const OracleHutWidget = () => {
           <div className={styles.header}>
             <span><span className={styles.symbolIcon}>🔮</span>Oracle Hut</span>
             <div className={styles.headerControls}>
+              <Link 
+                to="/oracle"
+                className={styles.fullPageLink}
+                title="Open full Oracle Hut"
+                aria-label="Open full Oracle Hut"
+              >
+                <ExternalLink size={16} />
+              </Link>
               <button
                 className={styles.voiceToggle}
                 onClick={toggleVoice}

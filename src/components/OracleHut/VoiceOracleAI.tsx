@@ -24,7 +24,7 @@ const VoiceOracleAI = ({ isOpen, onMessageReceived }: VoiceOracleAIProps) => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   
   const conversation = useConversation({
-    onMessage: (message: ElevenLabsMessage) => {
+    onMessage: (message: any) => {
       // When we receive a message from the AI, pass it to the parent
       if (message.type === 'llmResponse' && message.final && message.text) {
         onMessageReceived(message.text);

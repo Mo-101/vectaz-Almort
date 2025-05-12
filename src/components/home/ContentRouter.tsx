@@ -7,6 +7,7 @@ import AnalyticsSection from '@/components/AnalyticsSection';
 import DeepCALSection from '@/components/DeepCALSection';
 import AboutSection from '@/components/AboutSection';
 import SettingsSection from '@/components/SettingsSection';
+import OracleHutSection from '@/components/OracleHut/OracleHutSection';
 
 interface ContentRouterProps {
   activeTab: AppSection;
@@ -50,6 +51,18 @@ const ContentRouter: React.FC<ContentRouterProps> = ({ activeTab, routes, isData
           className="pt-8 pb-24"
         >
           <DeepCALSection />
+        </motion.div>
+      );
+    case 'oracle':
+      return (
+        <motion.div 
+          key="oracle-section"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          className="pt-8 pb-24"
+        >
+          <OracleHutSection />
         </motion.div>
       );
     case 'about':

@@ -1,4 +1,3 @@
-
 export interface Shipment {
   id?: string;
   request_reference: string;
@@ -190,7 +189,7 @@ export interface ShipmentMetrics {
   routeCount?: number;
 }
 
-export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'forms';
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'forms' | 'oracle';
 
 export interface TabItem {
   id: AppSection;
