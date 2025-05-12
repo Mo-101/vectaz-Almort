@@ -35,7 +35,7 @@ const ContentRouter: React.FC<ContentRouterProps> = ({ activeTab, routes, isData
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="pt-8 pb-24"
+          className="container mx-auto pt-20 pb-24 px-4 h-screen overflow-y-auto"
         >
           <AnalyticsSection />
         </motion.div>

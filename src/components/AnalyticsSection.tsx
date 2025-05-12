@@ -52,76 +52,90 @@ const AnalyticsSection: React.FC = () => {
     }
   };
 
+  const renderTabContent = () => {
+    if (activeTab === 'overview' && coreMetrics) {
+      return (
+        <>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Info className="h-4 w-4 mr-2" />
+              <span>Enhanced analytics with advanced metrics and improved visualizations</span>
+            </div>
+            <Button size="sm" variant="outline" className="text-xs border-mostar-light-blue/30 text-mostar-light-blue hover:bg-mostar-light-blue/10">
+              <ArrowUpRight className="h-3 w-3 mr-1" />
+              Export Report
+            </Button>
+          </div>
+          <OverviewContent 
+            metrics={coreMetrics}
+            symbolicResults={symbolicResults}
+          />
+        </>
+      );
+    }
+    
+    if (activeTab === 'shipments') {
+      return (
+        <>
+          <ShipmentAnalytics 
+            metrics={shipmentMetrics} 
+            symbolicResults={symbolicResults}
+          />
+          {shipmentMetrics && <DeepCALExplainer metricType="shipment" data={shipmentMetrics} />}
+        </>
+      );
+    }
+    
+    if (activeTab === 'forwarders') {
+      return (
+        <>
+          <ForwarderAnalytics 
+            forwarders={forwarders} 
+            carriers={carriers}
+            symbolicResults={symbolicResults}
+          />
+          {forwarders.length > 0 && <DeepCALExplainer metricType="forwarder" data={forwarders[0]} />}
+        </>
+      );
+    }
+    
+    if (activeTab === 'countries') {
+      return (
+        <>
+          <CountryAnalytics countries={countries} />
+          {countries.length > 0 && <DeepCALExplainer metricType="country" data={countries[0]} />}
+        </>
+      );
+    }
+    
+    if (activeTab === 'warehouses') {
+      return (
+        <>
+          <WarehouseAnalytics warehouses={warehouses} />
+          {warehouses.length > 0 && <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />}
+        </>
+      );
+    }
+    
+    return null;
+  };
+
   return (
     <div className="w-full h-full">
       <AnalyticsLayout 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
-        // This is the problematic line - we need to modify how we pass the title
-        // Instead of passing a JSX element directly, we need to pass it as a titleElement prop
         title={getTabTitle()}
         titleElement={
           <div className="flex items-center">
             {getTabTitle()}
-            <Badge className="ml-3 bg-mostar-light-blue/20 text-mostar-light-blue hover:bg-mostar-light-blue/30">
+            <Badge className="ml-3 bg-mostar-light-blue/20 text-mostar-light-blue hover:bg-mostar-light-blue/30" variant="cyber">
               Enhanced Analytics
             </Badge>
           </div>
         }
       >
-        {activeTab === 'overview' && coreMetrics && (
-          <>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Info className="h-4 w-4 mr-2" />
-                <span>Enhanced analytics with advanced metrics and improved visualizations</span>
-              </div>
-              <Button size="sm" variant="outline" className="text-xs border-mostar-light-blue/30 text-mostar-light-blue hover:bg-mostar-light-blue/10">
-                <ArrowUpRight className="h-3 w-3 mr-1" />
-                Export Report
-              </Button>
-            </div>
-            <OverviewContent 
-              metrics={coreMetrics}
-              symbolicResults={symbolicResults}
-            />
-          </>
-        )}
-        
-        {activeTab === 'shipments' && (
-          <>
-            <ShipmentAnalytics 
-              metrics={shipmentMetrics} 
-              symbolicResults={symbolicResults}
-            />
-            {shipmentMetrics && <DeepCALExplainer metricType="shipment" data={shipmentMetrics} />}
-          </>
-        )}
-        
-        {activeTab === 'forwarders' && (
-          <>
-            <ForwarderAnalytics 
-              forwarders={forwarders} 
-              carriers={carriers}
-              symbolicResults={symbolicResults}
-            />
-            {forwarders.length > 0 && <DeepCALExplainer metricType="forwarder" data={forwarders[0]} />}
-          </>
-        )}
-        
-        {activeTab === 'countries' && (
-          <>
-            <CountryAnalytics countries={countries} />
-            {countries.length > 0 && <DeepCALExplainer metricType="country" data={countries[0]} />}
-          </>
-        )}
-        
-        {activeTab === 'warehouses' && (
-          <>
-            <WarehouseAnalytics warehouses={warehouses} />
-            {warehouses.length > 0 && <DeepCALExplainer metricType="warehouse" data={warehouses[0]} />}
-          </>
-        )}
+        {renderTabContent()}
       </AnalyticsLayout>
     </div>
   );
