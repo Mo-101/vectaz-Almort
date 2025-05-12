@@ -15,6 +15,7 @@ import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
 import GlobalNavigation from "./components/GlobalNavigation";
+import DeepTalk from "./components/chat/DeepTalk";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -135,6 +136,9 @@ function App() {
             {/* UI Components for notifications */}
             <Toaster />
             <Sonner />
+            
+            {/* Floating DeepTalk chatbot */}
+            <DeepTalk />
           </>
         )}
       </TooltipProvider>
