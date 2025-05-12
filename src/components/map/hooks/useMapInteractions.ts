@@ -18,7 +18,9 @@ export const useMapInteractions = (
     setupRouteMarkers, 
     setupCountryMarkers, 
     clearAllMarkers,
-    popupRef
+    popupRef,
+    markersRef,
+    countryMarkersRef
   } = useMapMarkers(mapRef, routes, countries, onRouteClick, onCountryClick);
   
   const { 
@@ -27,9 +29,11 @@ export const useMapInteractions = (
   } = useWarehouseMarker(mapRef);
   
   const {
+    userInteracting,
     setUserInteracting,
     startGlobeSpin,
-    stopGlobeSpin
+    stopGlobeSpin,
+    spinEnabled
   } = useGlobeSpin(mapRef);
 
   // Add markers when routes change
@@ -37,8 +41,7 @@ export const useMapInteractions = (
     setupRouteMarkers();
     return () => {
       try {
-        clearMarkers(markersRef.current);
-        markersRef.current = [];
+        clearAllMarkers();
       } catch (error) {
         console.error("Error cleaning up route markers:", error);
       }
@@ -50,8 +53,7 @@ export const useMapInteractions = (
     setupCountryMarkers();
     return () => {
       try {
-        clearMarkers(countryMarkersRef.current);
-        countryMarkersRef.current = [];
+        clearAllMarkers();
         
         if (popupRef.current) {
           popupRef.current.remove();
@@ -80,12 +82,6 @@ export const useMapInteractions = (
       stopGlobeSpin();
     };
   }, [mapRef.current, userInteracting, spinEnabled]);
-
-  // Import these from the smaller hooks to avoid having to pass them through
-  // This is necessary because the original file had these references
-  const markersRef = useMapMarkers(mapRef, routes, countries, onRouteClick, onCountryClick).markersRef;
-  const countryMarkersRef = useMapMarkers(mapRef, routes, countries, onRouteClick, onCountryClick).countryMarkersRef;
-  const spinEnabled = useGlobeSpin(mapRef).spinEnabled;
 
   return {
     setUserInteracting,

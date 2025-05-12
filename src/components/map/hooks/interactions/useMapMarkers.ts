@@ -8,7 +8,7 @@ import {
   createCountryMarkers,
   createEnhancedCountryPopup,
   clearMarkers 
-} from '../../utils/MapMarkers';
+} from '../../utils/markers';
 import { useToast } from '@/hooks/use-toast';
 
 export const useMapMarkers = (
@@ -109,6 +109,8 @@ export const useMapMarkers = (
     setupRouteMarkers,
     setupCountryMarkers,
     clearAllMarkers,
-    popupRef
+    popupRef,
+    markersRef,
+    countryMarkersRef
   };
 };

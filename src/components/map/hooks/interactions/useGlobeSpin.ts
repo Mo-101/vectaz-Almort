@@ -41,6 +41,7 @@ export const useGlobeSpin = (
     userInteracting,
     setUserInteracting,
     startGlobeSpin,
-    stopGlobeSpin
+    stopGlobeSpin,
+    spinEnabled
   };
 };
