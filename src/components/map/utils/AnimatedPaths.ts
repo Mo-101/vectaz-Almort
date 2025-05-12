@@ -13,7 +13,7 @@ export const createAnimatedRoutePath = (
 ): { line: any; marker: mapboxgl.Marker; animation: number } => {
   try {
     // Create the GeoJSON for the route line
-    const routeSource: mapboxgl.GeoJSONSourceRaw = {
+    const routeSource: mapboxgl.GeoJSONSource = {
       type: 'geojson',
       data: {
         type: 'Feature',
