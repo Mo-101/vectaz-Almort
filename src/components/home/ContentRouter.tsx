@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { AppSection } from '@/types/deeptrack';
 import MapVisualizer from '@/components/MapVisualizer';
 import AnalyticsSection from '@/components/AnalyticsSection';

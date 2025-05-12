@@ -129,7 +129,7 @@ const AnalyticsSection: React.FC = () => {
         titleElement={
           <div className="flex items-center">
             {getTabTitle()}
-            <Badge className="ml-3 bg-mostar-light-blue/20 text-mostar-light-blue hover:bg-mostar-light-blue/30" variant="cyber">
+            <Badge className="ml-3 bg-mostar-light-blue/20 text-mostar-light-blue hover:bg-mostar-light-blue/30">
               Enhanced Analytics
             </Badge>
           </div>
