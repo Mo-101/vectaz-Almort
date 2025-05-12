@@ -24,7 +24,10 @@ const AnalyticsLayout: React.FC<AnalyticsLayoutProps> = ({
           <div className="text-lg font-medium text-[#00FFD1]">
             {titleElement || title}
           </div>
-          <AnalyticsTabs activeTab={activeTab} onTabChange={onTabChange} />
+          <AnalyticsTabs 
+            activeTab={activeTab} 
+            onTabChange={onTabChange} 
+          />
         </div>
       </div>
       <div className="flex-1 overflow-auto p-4">
