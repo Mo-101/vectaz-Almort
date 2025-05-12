@@ -1,8 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X } from 'lucide-react';
+import { Send, X, Mic } from 'lucide-react';
 import styles from './styles.module.css';
 import { OracleHutEngine } from './OracleHutEngine';
+import VoiceOracleAI from './VoiceOracleAI';
 
 interface Message {
   role: 'user' | 'oracle';
@@ -15,6 +16,7 @@ const OracleHutWidget = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Example prompts to help users get started
@@ -98,19 +100,44 @@ const OracleHutWidget = () => {
     }
   };
 
+  const handleVoiceMessage = (message: string) => {
+    // Add the AI's voice message to the chat
+    const oracleMessage: Message = {
+      role: 'oracle',
+      content: message,
+      id: `oracle-voice-${Date.now()}`
+    };
+    
+    setMessages(prev => [...prev, oracleMessage]);
+  };
+
+  const toggleVoice = () => {
+    setVoiceEnabled(!voiceEnabled);
+  };
+
   return (
     <div className={styles.oracleHutContainer}>
       {open ? (
         <div className={styles.chatBox}>
           <div className={styles.header}>
             <span><span className={styles.symbolIcon}>🔮</span>Oracle Hut</span>
-            <button 
-              className={styles.closeButton} 
-              onClick={() => setOpen(false)}
-              aria-label="Close"
-            >
-              <X size={18} />
-            </button>
+            <div className={styles.headerControls}>
+              <button
+                className={styles.voiceToggle}
+                onClick={toggleVoice}
+                aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
+                title={voiceEnabled ? "Disable voice" : "Enable voice"}
+              >
+                <Mic size={18} className={voiceEnabled ? styles.activeVoice : ''} />
+              </button>
+              <button 
+                className={styles.closeButton} 
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
           
           <div className={styles.messages}>
@@ -133,6 +160,8 @@ const OracleHutWidget = () => {
             
             <div ref={messagesEndRef} />
           </div>
+          
+          {voiceEnabled && <VoiceOracleAI isOpen={open} onMessageReceived={handleVoiceMessage} />}
           
           <div className={styles.prompt}>
             {samplePrompts.map((prompt, index) => (
