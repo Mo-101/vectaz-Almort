@@ -1,0 +1,193 @@
+
+.oracleHutContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  font-family: 'Courier New', monospace;
+  z-index: 50;
+}
+
+.chatBox {
+  background-color: #0A1A2F;
+  border: 2px solid #00FFD1;
+  color: #00FFD1;
+  border-radius: 16px;
+  width: 320px;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 255, 209, 0.3);
+  backdrop-filter: blur(8px);
+}
+
+.header {
+  background: #00FFD1;
+  color: #0A1A2F;
+  text-align: center;
+  padding: 10px;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #0A1A2F;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0 8px;
+}
+
+.messages {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-behavior: smooth;
+}
+
+.userMsg {
+  text-align: right;
+  background-color: rgba(0, 255, 209, 0.1);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 14px 14px 0 14px;
+  max-width: 80%;
+  align-self: flex-end;
+  word-break: break-word;
+}
+
+.oracleMsg {
+  text-align: left;
+  background-color: rgba(0, 255, 209, 0.3);
+  color: #0fee4e;
+  padding: 8px 12px;
+  border-radius: 14px 14px 14px 0;
+  max-width: 80%;
+  align-self: flex-start;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.inputArea {
+  display: flex;
+  border-top: 1px solid #00FFD1;
+  background: #0A1A2F;
+  padding: 8px;
+}
+
+.inputArea input {
+  flex: 1;
+  background: rgba(0, 255, 209, 0.1);
+  color: white;
+  border: 1px solid rgba(0, 255, 209, 0.3);
+  border-radius: 20px;
+  padding: 8px 15px;
+  margin-right: 8px;
+  outline: none;
+}
+
+.inputArea input:focus {
+  border-color: rgba(0, 255, 209, 0.8);
+}
+
+.inputArea button {
+  background: rgba(0, 255, 209, 0.2);
+  border: 1px solid rgba(0, 255, 209, 0.5);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  color: #00FFD1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.inputArea button:hover {
+  background: rgba(0, 255, 209, 0.4);
+}
+
+.inputArea button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.openButton {
+  background: #0A1A2F;
+  color: #00FFD1;
+  padding: 12px 18px;
+  border-radius: 24px;
+  border: 2px solid #00FFD1;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 255, 209, 0.3);
+  transition: all 0.2s;
+}
+
+.openButton:hover {
+  background: rgba(0, 255, 209, 0.2);
+  transform: translateY(-2px);
+}
+
+.prompt {
+  color: #e5f10d;
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 5px;
+  margin-top: 5px;
+}
+
+.promptButton {
+  background: none;
+  border: none;
+  color: #e5f10d;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 3px 6px;
+  margin: 0 2px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.promptButton:hover {
+  background: rgba(229, 241, 13, 0.2);
+}
+
+.loadingDots span {
+  animation: blink 1.4s infinite both;
+  display: inline-block;
+  margin: 0 2px;
+}
+
+.loadingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loadingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 0.2;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.symbolIcon {
+  margin-right: 6px;
+  font-size: 1.1rem;
+}
