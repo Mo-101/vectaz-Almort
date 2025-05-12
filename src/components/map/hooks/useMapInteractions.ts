@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Route } from '@/types/route';
 import { CountryMarker } from '../types';
-import { useMapMarkers, useWarehouseMarker, useGlobeSpin } from './interactions';
+import { useMapMarkers, useWarehouseMarker, useGlobeSpin, useRouteAnimations } from './interactions';
 
 export const useMapInteractions = (
   mapRef: React.MutableRefObject<mapboxgl.Map | null>,
@@ -28,6 +28,12 @@ export const useMapInteractions = (
     clearWarehouseMarker 
   } = useWarehouseMarker(mapRef);
   
+  // Add the new hook for route animations
+  const {
+    setupRouteAnimations,
+    clearRouteAnimations
+  } = useRouteAnimations(mapRef, routes);
+  
   const {
     userInteracting,
     setUserInteracting,
@@ -47,6 +53,20 @@ export const useMapInteractions = (
       }
     };
   }, [routes, mapRef.current, onRouteClick]);
+  
+  // Add route animations when routes change
+  useEffect(() => {
+    if (mapRef.current && routes.length > 0) {
+      setupRouteAnimations();
+    }
+    return () => {
+      try {
+        clearRouteAnimations();
+      } catch (error) {
+        console.error("Error cleaning up route animations:", error);
+      }
+    };
+  }, [routes, mapRef.current]);
 
   // Add country markers when countries change
   useEffect(() => {
@@ -91,6 +111,7 @@ export const useMapInteractions = (
       try {
         clearAllMarkers();
         clearWarehouseMarker();
+        clearRouteAnimations();
       } catch (error) {
         setError(error instanceof Error ? error : new Error(String(error)));
       }
