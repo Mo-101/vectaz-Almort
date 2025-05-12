@@ -16,7 +16,14 @@ export * from './data/sourceRegistry';
 // Export decision engine functionality
 export * from './decision/computeRankings';
 export * from './decision/forwarderScore';
-export * from './decision/types';
+
+// Re-export types with care to avoid collisions
+export type {
+  CriteriaWeights,
+  CriteriaType,
+  Recommendation,
+  DecisionResult
+} from './decision/types';
 
 // Export symbolic engine functionality
 export * from './symbolic/orchestrator';
