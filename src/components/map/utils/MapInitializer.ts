@@ -23,7 +23,7 @@ export const initializeMap = (container: HTMLDivElement): mapboxgl.Map => {
     
     const map = new mapboxgl.Map({
       container,
-      style: 'mapbox://styles/akanimo1/cm8bw23rp00i501sbgbr258r0',
+      style: 'mapbox://styles/mapbox/dark-v11', // Use a darker style that works better with our visualization
       center: [0, 20], // Center on Africa
       zoom: 2,
       pitch: 40,

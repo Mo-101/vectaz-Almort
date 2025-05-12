@@ -25,6 +25,8 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
   isLoading = false, 
   className 
 }) => {
+  console.log("MapVisualizer rendering with routes:", routes);
+
   const {
     mapLoaded,
     countryMarkers,
@@ -41,6 +43,13 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
     handleResetView,
     errorDisplay
   } = useMapVisualization(routes);
+  
+  // Debug indicator for main content
+  const debugIndicator = (
+    <div className="absolute top-2 right-2 bg-black/50 text-xs text-white px-2 py-1 rounded z-10">
+      Map Visualizer Active | Routes: {routes.length}
+    </div>
+  );
 
   // Memoize the content based on mapLoaded state
   const mapContent = useMemo(() => {
@@ -92,6 +101,7 @@ const MapVisualizer: React.FC<MapVisualizerProps> = ({
 
   return (
     <div className={cn("relative h-full w-full", className)}>
+      {debugIndicator}
       <MapContainer 
         routes={limitedRoutes} 
         countries={countryMarkers}
