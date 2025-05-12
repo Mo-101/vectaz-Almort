@@ -6,21 +6,11 @@ import { BarChartIcon, Package, Users, Globe, Warehouse } from 'lucide-react';
 interface AnalyticsTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  overviewContent: React.ReactNode;
-  shipmentsContent: React.ReactNode;
-  forwardersContent: React.ReactNode;
-  countriesContent: React.ReactNode;
-  warehousesContent: React.ReactNode;
 }
 
 const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
   activeTab,
-  onTabChange,
-  overviewContent,
-  shipmentsContent,
-  forwardersContent,
-  countriesContent,
-  warehousesContent
+  onTabChange
 }) => {
   return (
     <Tabs defaultValue={activeTab} onValueChange={onTabChange} className="w-full">
@@ -46,26 +36,6 @@ const AnalyticsTabs: React.FC<AnalyticsTabsProps> = ({
           <span className="font-medium">Warehouses</span>
         </TabsTrigger>
       </TabsList>
-      
-      <TabsContent value="overview" className="space-y-6 mt-0">
-        {overviewContent}
-      </TabsContent>
-      
-      <TabsContent value="shipments" className="mt-0">
-        {shipmentsContent}
-      </TabsContent>
-      
-      <TabsContent value="forwarders" className="mt-0">
-        {forwardersContent}
-      </TabsContent>
-      
-      <TabsContent value="countries" className="mt-0">
-        {countriesContent}
-      </TabsContent>
-      
-      <TabsContent value="warehouses" className="mt-0">
-        {warehousesContent}
-      </TabsContent>
     </Tabs>
   );
 };
