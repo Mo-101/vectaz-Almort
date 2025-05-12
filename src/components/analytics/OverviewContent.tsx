@@ -17,7 +17,7 @@ import {
   Cell
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TruckIcon, Ship, Plane, Clock, DollarSign, ShieldCheck } from 'lucide-react';
+import { TruckIcon, Ship, Plane, Clock, DollarSign, ShieldCheck, Globe, Package, Scale, DollarSign as Money } from 'lucide-react';
 import SymbolicSummaryPanel from './symbolic/SymbolicSummaryPanel';
 
 interface CoreMetrics {
@@ -47,9 +47,96 @@ const OverviewContent: React.FC<OverviewContentProps> = ({ metrics, symbolicResu
     { name: 'Sea', value: metrics.modeSplit.sea, color: '#3b82f6' },
     { name: 'Road', value: metrics.modeSplit.road, color: '#f97316' }
   ];
+  
+  // Calculate total weight, volume, and value
+  const totalWeight = shipmentData.reduce((sum, shipment) => {
+    const weight = typeof shipment.weight_kg === 'string' 
+      ? parseFloat(shipment.weight_kg) 
+      : shipment.weight_kg || 0;
+    return sum + weight;
+  }, 0);
+  
+  const totalVolume = shipmentData.reduce((sum, shipment) => {
+    const volume = typeof shipment.volume_cbm === 'string'
+      ? parseFloat(shipment.volume_cbm)
+      : shipment.volume_cbm || 0;
+    return sum + volume;
+  }, 0);
+  
+  const totalValue = shipmentData.reduce((sum, shipment) => {
+    let cost = 0;
+    if (shipment.forwarder_quotes) {
+      Object.values(shipment.forwarder_quotes).forEach(quote => {
+        const quoteValue = typeof quote === 'string' ? parseFloat(quote) : quote || 0;
+        cost += quoteValue;
+      });
+    }
+    return sum + cost;
+  }, 0);
+  
+  // Calculate unique destination countries
+  const destinationCountries = new Set(
+    shipmentData.map(shipment => shipment.destination_country)
+      .filter(country => country !== undefined && country !== null)
+  );
 
   return (
     <div className="space-y-6">
+      {/* New Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              Destination Countries
+            </CardTitle>
+            <Globe className="h-4 w-4 text-[#00FFD1]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{destinationCountries.size}</div>
+            <div className="text-xs text-gray-500 mt-1">Unique delivery locations</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              Total Weight
+            </CardTitle>
+            <Scale className="h-4 w-4 text-[#00FFD1]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalWeight.toLocaleString()} kg</div>
+            <div className="text-xs text-gray-500 mt-1">Cumulative cargo weight</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              Total Volume
+            </CardTitle>
+            <Package className="h-4 w-4 text-[#00FFD1]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalVolume.toLocaleString()} m³</div>
+            <div className="text-xs text-gray-500 mt-1">Cumulative cargo volume</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              Total Value
+            </CardTitle>
+            <Money className="h-4 w-4 text-[#00FFD1]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalValue.toLocaleString()}</div>
+            <div className="text-xs text-gray-500 mt-1">Total shipping costs</div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-[#0A1A2F]/60 border-[#00FFD1]/10">

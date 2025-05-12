@@ -40,8 +40,8 @@ function App() {
         return;
       }
 
-      // Generate 105 sample shipments for accurate data representation
-      const shipments: Shipment[] = Array(105).fill(0).map((_, i) => {
+      // Generate 25 sample shipments for accurate data representation (reduced from 105)
+      const shipments: Shipment[] = Array(25).fill(0).map((_, i) => {
         const requestRef = `SR_24-${i.toString().padStart(3, '0')}_NBO`;
         return {
           id: requestRef,
