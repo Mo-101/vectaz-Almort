@@ -1,7 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Mic, Plane, Truck, Ship, Download, FileText } from "lucide-react";
 
@@ -19,7 +17,9 @@ function MOSVehicle({ mode }: { mode: "air" | "sea" | "road" }) {
 const OracleHutPage = () => {
   const [shipmentMode, setShipmentMode] = useState<"air" | "sea" | "road">("road");
   const [voiceActive, setVoiceActive] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  
+  // Start with the chat interface visible
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const startVoice = () => {
     // Placeholder voice logic
@@ -29,13 +29,7 @@ const OracleHutPage = () => {
     );
     utterance.voice = speechSynthesis.getVoices()[0];
     speechSynthesis.speak(utterance);
-    
-    // Show the chat interface when activating voice
-    setShowChat(true);
   };
-
-  const downloadPDF = () => alert("🚚 PDF Export Placeholder");
-  const downloadCSV = () => alert("📦 CSV Export Placeholder");
   
   return (
     <div className="h-screen w-full overflow-x-hidden relative tech-bg">
@@ -44,7 +38,7 @@ const OracleHutPage = () => {
       <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:30px_30px] z-0" />
       
       {/* Content */}
-      <div className="relative z-10 h-full flex flex-col pb-16">
+      <div className="relative z-10 h-full flex flex-col">
         {/* App Title/Logo */}
         <div className="absolute top-4 right-6 z-20">
           <div className="text-xl font-bold text-[#00FFD1] tracking-wider">
@@ -52,20 +46,18 @@ const OracleHutPage = () => {
           </div>
         </div>
         
-        {showChat ? (
-          <div className="flex-1 overflow-y-auto pb-20">
-            <OracleHutSection />
-            <div className="flex justify-center mt-6">
-              <Button 
-                variant="outline" 
-                className="border-[#00FFD1] text-[#00FFD1] hover:bg-[#00FFD1]/10"
-                onClick={() => setShowChat(false)}
-              >
-                Back to Dashboard
-              </Button>
-            </div>
-          </div>
-        ) : (
+        {/* Toggle button for switching between views */}
+        <div className="absolute top-4 left-6 z-20">
+          <Button 
+            variant="outline" 
+            className="border-[#00FFD1] text-[#00FFD1] hover:bg-[#00FFD1]/10"
+            onClick={() => setShowDashboard(!showDashboard)}
+          >
+            {showDashboard ? "Chat with Oracle" : "View Dashboard"}
+          </Button>
+        </div>
+        
+        {showDashboard ? (
           <div className="flex-1 overflow-y-auto pb-20">
             <div className="container mx-auto pt-20 pb-24 px-4">
               <div className="flex items-center justify-between">
@@ -77,6 +69,7 @@ const OracleHutPage = () => {
               </div>
 
               <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+                {/* Keep existing dashboard card code */}
                 <Card>
                   <CardContent className="p-4">
                     <h2 className="text-xl font-semibold text-white">SASHATIED</h2>
@@ -111,6 +104,7 @@ const OracleHutPage = () => {
                 </Card>
               </div>
 
+              {/* Keep existing dashboard content */}
               <div className="my-6 flex justify-center">
                 <div className="w-64">
                   <MOSVehicle mode={shipmentMode} />
@@ -174,6 +168,12 @@ const OracleHutPage = () => {
                 </Button>
               </div>
             </div>
+          </div>
+        ) : (
+          // Chat interface - takes up the full screen with proper styling
+          <div className="flex-1 overflow-y-auto h-full pt-16">
+            {/* Use OracleHutSection component for the chat functionality */}
+            <OracleHutSection />
           </div>
         )}
       </div>
