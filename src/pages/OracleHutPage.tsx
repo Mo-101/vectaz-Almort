@@ -176,7 +176,7 @@ const OracleHutPage = () => {
           </div>
         ) : (
           // Chat interface - takes up the full screen with proper styling
-          <div className="flex-1 overflow-y-auto h-full pt-16">
+          <div className="flex-1 overflow-y-auto h-full">
             {/* Use OracleHutSection component for the chat functionality */}
             <OracleHutSection />
           </div>

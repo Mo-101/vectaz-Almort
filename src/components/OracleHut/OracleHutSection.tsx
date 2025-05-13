@@ -274,8 +274,8 @@ const OracleHutSection: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto pt-20 pb-24 px-4 max-w-5xl">
-      <div className={styles.chatBox + " h-[75vh]"}>
+    <div className="container mx-auto px-4 h-[calc(100vh-100px)] max-w-6xl">
+      <div className={`${styles.chatBox} h-[calc(100vh-120px)] w-full`}>
         <div className={styles.header}>
           <span><span className={styles.symbolIcon}>🔮</span>Oracle Hut</span>
           <div className={styles.headerControls}>
@@ -324,7 +324,7 @@ const OracleHutSection: React.FC = () => {
           </div>
         )}
         
-        <div className={`${styles.messages} h-[calc(100%-180px)]`}>
+        <div className={`${styles.messages} h-[calc(100%-180px)] overflow-y-auto`}>
           {messages.map(msg => (
             <div 
               key={msg.id} 
