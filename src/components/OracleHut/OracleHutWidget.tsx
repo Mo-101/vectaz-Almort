@@ -1,7 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, Mic, ExternalLink } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { OracleHutEngine } from './OracleHutEngine';
 import VoiceOracleAI from './VoiceOracleAI';
@@ -19,7 +18,6 @@ const OracleHutWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
 
   // Example prompts to help users get started
   const samplePrompts = [
@@ -119,7 +117,8 @@ const OracleHutWidget = () => {
   
   const navigateToFullOracle = () => {
     setOpen(false);
-    navigate('/oracle');
+    // Instead of using navigate, use window.location to avoid React Router dependency
+    window.location.href = '/oracle';
   };
 
   return (
