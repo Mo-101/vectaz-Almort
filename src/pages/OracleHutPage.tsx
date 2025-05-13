@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Mic, Plane, Truck, Ship, Download, FileText } from "lucide-react";
+import { Mic, Plane, Truck, Ship, Download, FileText, Table } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // Import OracleHutSection for chat functionality
 import OracleHutSection from '@/components/OracleHut/OracleHutSection';
@@ -30,6 +32,9 @@ const OracleHutPage = () => {
     utterance.voice = speechSynthesis.getVoices()[0];
     speechSynthesis.speak(utterance);
   };
+
+  const downloadPDF = () => alert("🚚 PDF Export Placeholder");
+  const downloadCSV = () => alert("📦 CSV Export Placeholder");
   
   return (
     <div className="h-screen w-full overflow-x-hidden relative tech-bg">
