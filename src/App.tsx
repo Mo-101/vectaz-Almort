@@ -15,6 +15,8 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
+// Import OracleHutWidget component
+import OracleHutWidget from "@/components/OracleHut";
 
 // Create a client
 const queryClient = new QueryClient();

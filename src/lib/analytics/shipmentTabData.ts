@@ -16,8 +16,33 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
     // Use the existing utility to calculate metrics
     const metrics = calculateShipmentMetrics(shipmentData);
     
-    // Remove any properties that don't exist in ShipmentMetrics type
-    const { totalWeight, ...validMetrics } = metrics as any;
+    // Return the metrics without totalWeight, since it's not in ShipmentMetrics
+    const { 
+      totalShipments, 
+      avgTransitTime, 
+      avgCostPerKg, 
+      resilienceScore, 
+      shipmentsByMode, 
+      monthlyTrend, 
+      delayedVsOnTimeRate,
+      shipmentStatusCounts,
+      noQuoteRatio, 
+      disruptionProbabilityScore 
+    } = metrics;
+    
+    // Create a new object with only the properties defined in ShipmentMetrics
+    const validMetrics: ShipmentMetrics = {
+      totalShipments,
+      avgTransitTime,
+      avgCostPerKg,
+      resilienceScore,
+      shipmentsByMode,
+      monthlyTrend,
+      delayedVsOnTimeRate,
+      shipmentStatusCounts,
+      noQuoteRatio,
+      disruptionProbabilityScore
+    };
     
     return validMetrics;
   } catch (error) {
