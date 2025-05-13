@@ -1,61 +1,103 @@
 
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
-import { corsHeaders } from "../_shared/cors.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-interface EmailRequest {
-  to: string;
-  subject: string;
-  htmlContent: string;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const handler = async (req: Request): Promise<Response> => {
+serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { to, subject, htmlContent }: EmailRequest = await req.json();
+    // Get the request data
+    const { to, subject, htmlContent } = await req.json()
 
+    // Validate input
     if (!to || !subject || !htmlContent) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
+      throw new Error('Missing required fields: to, subject, or htmlContent')
     }
 
-    const emailResponse = await resend.emails.send({
-      from: "Oracle Hut <oracle@deepcal.io>", // Update with your verified domain
-      to: [to],
-      subject: subject,
-      html: htmlContent,
-    });
+    if (!validateEmail(to)) {
+      throw new Error('Invalid email address')
+    }
 
-    console.log("Email sent successfully:", emailResponse);
+    // Create a Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Send email using Resend API
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+    if (!RESEND_API_KEY) {
+      throw new Error('Missing RESEND_API_KEY')
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: 'Oracle Hut <oracle@logistics-oracle.com>',
+        to: [to],
+        subject: subject,
+        html: htmlContent,
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(`Failed to send email: ${data.message || 'Unknown error'}`)
+    }
+
+    // Log the email send for analytics
+    await supabaseClient
+      .from('email_logs')
+      .insert({
+        recipient: to,
+        subject: subject,
+        sent_at: new Date().toISOString(),
+        status: 'sent',
+        type: 'oracle_insight'
+      })
+      .select()
 
     return new Response(
-      JSON.stringify({ success: true, id: emailResponse.id }),
+      JSON.stringify({
+        success: true,
+        message: 'Email sent successfully',
+        data: data,
+      }),
       {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
-    );
-  } catch (error: any) {
-    console.error("Error sending email:", error);
+    )
+  } catch (error) {
+    console.error('Error sending email:', error.message)
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({
+        success: false,
+        error: error.message,
+      }),
       {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
-    );
+    )
   }
-};
+})
 
-serve(handler);
+// Validate email format
+function validateEmail(email: string) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return re.test(email)
+}
