@@ -6,6 +6,7 @@ import {
   getShipmentsByOrigin, 
   getShipmentsByDestination, 
   calculateAverageTransitDays,
+  getForwarders,
   getForwardersByName
 } from './utils/dataService';
 import { OracleInsight, OracleTable, OracleChart } from './types/types';
