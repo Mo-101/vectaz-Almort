@@ -1,84 +1,68 @@
 
 import { useState, useEffect } from 'react';
+import { Shipment } from '@/components/OracleHut/types/types';
 import { ForwarderPerformance } from '@/types/deeptrack';
 import { runNeuroSymbolicCycle } from '@/symbolic-engine/orchestrator/symbolicOrchestrator';
-import { Shipment } from '@/types/deeptrack';
 
-interface SymbolicAnalysisResult {
-  topChoice?: string;
-  confidence?: number;
-  recommendedContainer?: string;
-  routeDistanceKm?: number;
-  insights?: Array<{
-    name: string;
-    issue: string;
-  }>;
-  allScores?: number[];
-}
-
+/**
+ * Custom hook to perform symbolic analysis on shipment data
+ */
 export const useSymbolicAnalysis = (
-  shipmentData: Shipment[], 
-  forwarderData: ForwarderPerformance[]
-): SymbolicAnalysisResult | null => {
-  const [results, setResults] = useState<SymbolicAnalysisResult | null>(null);
+  shipmentData: Shipment[],
+  forwarders: ForwarderPerformance[]
+) => {
+  const [results, setResults] = useState<any>(null);
 
   useEffect(() => {
-    if (!shipmentData.length || !forwarderData.length) {
-      console.warn("Insufficient data for symbolic analysis");
+    if (!shipmentData || shipmentData.length === 0 || !forwarders || forwarders.length === 0) {
       return;
     }
 
     try {
-      // Prepare sample input for symbolic engine
-      const decisionMatrix = forwarderData.slice(0, 4).map(f => [
-        f.reliabilityScore || 0.7,
-        f.onTimeRate / 100 || 0.8, 
-        f.avgTransitDays ? 1 / (f.avgTransitDays + 1) : 0.75 // Normalize transit days
-      ]);
-
-      // Sample weights for criteria
-      const weights = [0.4, 0.3, 0.3];
-      const criteriaTypes: ("benefit" | "cost")[] = ['benefit', 'benefit', 'benefit'];
-      const alternatives = forwarderData.slice(0, 4).map(f => f.name);
-
-      // Sample shipment details
-      const sampleShipment = shipmentData[0];
-      const weight = typeof sampleShipment?.weight_kg === 'string' 
-        ? parseFloat(sampleShipment.weight_kg) 
-        : (sampleShipment?.weight_kg || 14500);
-      const volume = typeof sampleShipment?.volume_cbm === 'string'
-        ? parseFloat(sampleShipment.volume_cbm)
-        : (sampleShipment?.volume_cbm || 45);
-      const originLat = sampleShipment?.origin_latitude || 1.3521;
-      const originLng = sampleShipment?.origin_longitude || 103.8198;
-      const destLat = sampleShipment?.destination_latitude || -33.8688;
-      const destLng = sampleShipment?.destination_longitude || 151.2093;
-      
-      // Run the symbolic engine
-      const result = runNeuroSymbolicCycle({
-        decisionMatrix,
-        weights,
-        criteriaTypes,
-        alternatives,
-        forwarders: forwarderData.slice(0, 4).map(f => ({
-          name: f.name,
-          reliability: f.reliabilityScore,
-          delayRate: 1 - (f.onTimeRate || 0) / 100
-        })),
-        weight,
-        volume,
-        originLat,
-        originLng,
-        destLat,
-        destLng
+      console.log("Running symbolic analysis on data", {
+        shipments: shipmentData.length,
+        forwarders: forwarders.length
       });
 
-      console.log("Symbolic engine result:", result);
+      // Extract forwarder data for symbolic analysis
+      const forwarderData = forwarders.slice(0, 4).map(f => ({
+        name: f.name,
+        reliability: f.reliabilityScore || 0.7,
+        delayRate: 0.1 // Default value
+      }));
+      
+      // Create input for symbolic engine
+      const input = {
+        decisionMatrix: forwarders.slice(0, 4).map(f => [
+          f.costScore || 0.7,
+          f.timeScore || 0.7,
+          f.reliabilityScore || 0.7
+        ]),
+        weights: [0.4, 0.3, 0.3],
+        criteriaTypes: ['benefit', 'benefit', 'benefit'],
+        alternatives: forwarders.slice(0, 4).map(f => f.name),
+        forwarders: forwarderData,
+        
+        // Add shipment-related data for container recommendation
+        weight: 14500, // Default weight in kg
+        volume: 45,    // Default volume in m³
+        
+        // Add route analysis data
+        originLat: 1.2921,
+        originLng: 36.8219,
+        destLat: -17.8252,
+        destLng: 31.0335,
+      };
+      
+      // Run the symbolic engine
+      const result = runNeuroSymbolicCycle(input);
+      console.log("Symbolic analysis complete", result);
+      
       setResults(result);
     } catch (error) {
       console.error("Error running symbolic analysis:", error);
     }
-  }, [shipmentData, forwarderData]);
+  }, [shipmentData, forwarders]);
 
   return results;
 };

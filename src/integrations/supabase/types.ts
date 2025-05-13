@@ -200,6 +200,38 @@ export type Database = {
         }
         Relationships: []
       }
+      shipment_audit_log: {
+        Row: {
+          description: string | null
+          event_type: string | null
+          id: string
+          shipment_id: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          description?: string | null
+          event_type?: string | null
+          id?: string
+          shipment_id?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          description?: string | null
+          event_type?: string | null
+          id?: string
+          shipment_id?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_audit_log_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipments: {
         Row: {
           actual_delivery_date: string | null

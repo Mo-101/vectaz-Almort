@@ -1,4 +1,3 @@
-
 import { CountryPerformance, Shipment, ShipmentMetrics, ForwarderPerformance, CarrierPerformance, WarehousePerformance } from '@/types/deeptrack';
 
 // Utility function to safely parse numbers
@@ -435,7 +434,7 @@ export const calculateWarehousePerformance = (shipments: Shipment[]): WarehouseP
       missedDispatchRate: Math.random() * 5,
       rescheduledShipmentsRatio: Math.random() * 15,
       reliabilityScore, 
-      preferredForwarders: ['DHL', 'FedEx', 'UPS'].slice(0, Math.floor(Math.random() * 3) + 1),
+      preferredForwarders: ['DHL', 'UPS', 'FedEx'],
       costDiscrepancy: Math.random() * 8,
       dispatchSuccessRate: 100 - (Math.random() * 10),
       avgTransitDays: Math.floor(Math.random() * 10) + 1
@@ -445,38 +444,55 @@ export const calculateWarehousePerformance = (shipments: Shipment[]): WarehouseP
 
 // Main function to calculate shipment metrics
 export const calculateShipmentMetrics = (shipments: Shipment[]): ShipmentMetrics => {
-  const totalShipments = shipments.length;
+  console.log(`Calculating metrics for ${shipments.length} shipments`);
+  
+  // Calculate shipment mode distribution
   const shipmentsByMode = calculateShipmentModeSplit(shipments);
+  
+  // Calculate monthly shipment trend
   const monthlyTrend = calculateMonthlyShipmentTrend(shipments);
+  
+  // Calculate delayed vs on-time rate
   const delayedVsOnTimeRate = calculateDelayedVsOnTimeRate(shipments);
+  
+  // Calculate average transit time
   const avgTransitTime = calculateAvgTransitTime(shipments);
-  const disruptionProbabilityScore = calculateDisruptionProbabilityScore(shipments);
+  
+  // Calculate shipment status counts
   const shipmentStatusCounts = calculateShipmentStatusCounts(shipments);
+  
+  // Calculate disruption probability score
+  const disruptionProbabilityScore = calculateDisruptionProbabilityScore(shipments);
+  
+  // Calculate resilience score
   const resilienceScore = calculateResilienceScore(shipments);
+  
+  // Calculate no quote ratio
   const noQuoteRatio = calculateNoQuoteRatio(shipments);
-  const forwarderPerformance = {};
-  const carrierPerformance = {};
-  const topForwarder = "";
-  const topCarrier = "";
-  const carrierCount = 0;
-  const avgCostPerKg = calculateAvgCostPerKg(shipments);
-
+  
+  // Calculate weight and volume
+  const { totalWeight, totalVolume } = calculateTotalWeightAndVolume(shipments);
+  
+  // Calculate total cost
+  const totalCost = calculateTotalCost(shipments);
+  
+  // Calculate average cost per kg
+  const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
+  
   return {
-    totalShipments,
+    totalShipments: shipments.length,
+    avgTransitTime,
+    avgCostPerKg,
     shipmentsByMode,
     monthlyTrend,
     delayedVsOnTimeRate,
-    avgTransitTime,
-    disruptionProbabilityScore,
     shipmentStatusCounts,
+    disruptionProbabilityScore,
     resilienceScore,
     noQuoteRatio,
-    forwarderPerformance,
-    carrierPerformance,
-    topForwarder,
-    topCarrier,
-    carrierCount,
-    avgCostPerKg,
+    totalWeight,
+    totalVolume,
+    totalCost
   };
 };
 
