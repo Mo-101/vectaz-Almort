@@ -470,7 +470,7 @@ export const calculateShipmentMetrics = (shipments: Shipment[]): ShipmentMetrics
   // Calculate no quote ratio
   const noQuoteRatio = calculateNoQuoteRatio(shipments);
   
-  // Calculate weight and volume
+  // Calculate weight and volume (for internal use, not returned in ShipmentMetrics)
   const { totalWeight, totalVolume } = calculateTotalWeightAndVolume(shipments);
   
   // Calculate total cost
@@ -479,6 +479,7 @@ export const calculateShipmentMetrics = (shipments: Shipment[]): ShipmentMetrics
   // Calculate average cost per kg
   const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
   
+  // Return only properties that are defined in the ShipmentMetrics type
   return {
     totalShipments: shipments.length,
     avgTransitTime,
@@ -489,10 +490,8 @@ export const calculateShipmentMetrics = (shipments: Shipment[]): ShipmentMetrics
     shipmentStatusCounts,
     disruptionProbabilityScore,
     resilienceScore,
-    noQuoteRatio,
-    totalWeight,
-    totalVolume,
-    totalCost
+    noQuoteRatio
+    // Note: totalWeight and totalVolume are not included as they're not in the ShipmentMetrics type
   };
 };
 

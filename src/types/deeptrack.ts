@@ -1,3 +1,4 @@
+
 export interface Shipment {
   id?: string;
   request_reference: string;
@@ -169,6 +170,7 @@ export interface ShipmentMetrics {
   topCarrier?: string;
   carrierCount?: number;
   avgCostPerKg: number;
+  // Note: totalWeight and totalVolume are not part of this interface
   // New metrics
   destinationCountryCount?: number;
   originCountryCount?: number;
