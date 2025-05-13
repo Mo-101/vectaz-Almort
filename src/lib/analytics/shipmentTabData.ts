@@ -15,7 +15,11 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
   try {
     // Use the existing utility to calculate metrics
     const metrics = calculateShipmentMetrics(shipmentData);
-    return metrics;
+    
+    // Remove any properties that don't exist in ShipmentMetrics type
+    const { totalWeight, ...validMetrics } = metrics as any;
+    
+    return validMetrics;
   } catch (error) {
     console.error("Error computing shipment insights:", error);
     

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Shipment } from '@/components/OracleHut/types/types';
+import { Shipment } from '@/types/deeptrack';
 import { ForwarderPerformance } from '@/types/deeptrack';
 import { runNeuroSymbolicCycle } from '@/symbolic-engine/orchestrator/symbolicOrchestrator';
 
@@ -39,7 +39,7 @@ export const useSymbolicAnalysis = (
           f.reliabilityScore || 0.7
         ]),
         weights: [0.4, 0.3, 0.3],
-        criteriaTypes: ['benefit', 'benefit', 'benefit'],
+        criteriaTypes: ['benefit', 'benefit', 'benefit'] as ('benefit' | 'cost')[],
         alternatives: forwarders.slice(0, 4).map(f => f.name),
         forwarders: forwarderData,
         

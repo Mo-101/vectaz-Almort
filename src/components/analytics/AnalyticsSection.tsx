@@ -1,19 +1,20 @@
 
 import React, { useState } from 'react';
 import AnalyticsLayout from '@/components/analytics/AnalyticsLayout';
-import OverviewContent from './analytics/OverviewContent';
-import ShipmentAnalytics from './analytics/ShipmentAnalytics';
-import ForwarderAnalytics from './analytics/ForwarderAnalytics';
-import CountryAnalytics from './analytics/CountryAnalytics';
-import WarehouseAnalytics from './analytics/WarehouseAnalytics';
-import DeepCALExplainer from './analytics/DeepCALExplainer';
+import OverviewContent from '@/components/analytics/OverviewContent';
+import ShipmentAnalytics from '@/components/analytics/ShipmentAnalytics';
+import ForwarderAnalytics from '@/components/analytics/ForwarderAnalytics';
+import CountryAnalytics from '@/components/analytics/CountryAnalytics';
+import WarehouseAnalytics from '@/components/analytics/WarehouseAnalytics';
+import DeepCALExplainer from '@/components/analytics/DeepCALExplainer';
 import { useAnalyticsMetrics } from '@/hooks/useAnalyticsMetrics';
 import { useSymbolicAnalysis } from '@/hooks/useSymbolicAnalysis';
 import { useBaseDataStore } from '@/store/baseState';
 import { Badge } from '@/components/ui/badge';
 import { Info, ArrowUpRight } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import { Shipment as DeeptrackShipment } from '@/types/deeptrack';
 
 const AnalyticsSection: React.FC = () => {
   const { shipmentData, isDataLoaded } = useBaseDataStore();
@@ -31,7 +32,12 @@ const AnalyticsSection: React.FC = () => {
     calculationError
   } = useAnalyticsMetrics();
   
-  const symbolicResults = useSymbolicAnalysis(shipmentData, forwarders);
+  // Convert to the correct Shipment type expected by useSymbolicAnalysis
+  const symbolicResults = useSymbolicAnalysis(
+    // Use the right Shipment type by casting
+    shipmentData as DeeptrackShipment[],
+    forwarders
+  );
 
   // Show error toast if calculation fails
   React.useEffect(() => {

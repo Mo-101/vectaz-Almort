@@ -10,7 +10,11 @@ import VerificationLogs from './loading/VerificationLogs';
 import SkeletonLoader from './loading/SkeletonLoader';
 import LoadingFooter from './loading/LoadingFooter';
 
-const LoadingScreen: React.FC = () => {
+interface LoadingScreenProps {
+  isInitialLoad?: boolean;
+}
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) => {
   const [progress, setProgress] = useState(0);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [loadingText, setLoadingText] = useState('Initializing DeepCAL Core');
@@ -21,7 +25,7 @@ const LoadingScreen: React.FC = () => {
   // Rainbow colors for particles
   const particleColors = [
     "#FF5E8F", // Pink
-    "#5EFF8F", // Green
+    "#5E8F8F", // Green
     "#5E8FFF", // Blue
     "#FF5E5E", // Red
     "#5EFFFF", // Cyan

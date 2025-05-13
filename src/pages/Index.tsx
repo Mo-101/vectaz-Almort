@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
 import { AppSection } from '@/types/deeptrack';
 import EntryAnimation from '@/components/EntryAnimation';
@@ -15,7 +15,7 @@ import useRouteProcessor from '@/hooks/useRouteProcessor';
 
 const Index = () => {
   const { isDataLoaded } = useBaseDataStore();
-  const [showEntry, setShowEntry] = useState(true);
+  const [showEntry, setShowEntry] = useState(false); // Default to false to avoid showing it again if it was already shown
   const [activeTab, setActiveTab] = useState<AppSection>('map');
   const { routes } = useRouteProcessor();
 
@@ -23,8 +23,17 @@ const Index = () => {
     setShowEntry(false);
   }, []);
 
+  // Check if entry animation was already shown
+  useEffect(() => {
+    const entryShown = sessionStorage.getItem('entryAnimationShown');
+    if (!entryShown) {
+      setShowEntry(true);
+      sessionStorage.setItem('entryAnimationShown', 'true');
+    }
+  }, []);
+
   // Listen for hash changes to update the active tab
-  React.useEffect(() => {
+  useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
       if (hash && hash !== activeTab) {
