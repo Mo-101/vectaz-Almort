@@ -248,11 +248,11 @@ const OracleHutSection: React.FC = () => {
         htmlContent
       };
 
+      // Fixed: Removed the incorrect session() method call
       const response = await fetch('https://hpogoxrxcnyxiqjmqtaw.supabase.co/functions/v1/send-oracle-email', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabase.auth.session()?.access_token || ''}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload),
       });
