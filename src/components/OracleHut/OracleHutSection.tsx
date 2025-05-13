@@ -1,32 +1,27 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Mic, MicOff, Table, TableProperties, Mail, Check } from 'lucide-react';
-import styles from './styles.module.css';
+import React, { useState, useEffect } from 'react';
 import { OracleHutEngine } from './OracleHutEngine';
 import VoiceOracleAI from './VoiceOracleAI';
-import { Table as UITable, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import styles from './styles.module.css';
+import { Message } from './types/types';
+import { processResponseWithTables } from './utils/tableUtils';
 
-interface Message {
-  role: 'user' | 'oracle';
-  content: string | React.ReactNode;
-  id: string;
-  hasTable?: boolean;
-}
+// Import our new components
+import MessageList from './components/MessageList';
+import InputArea from './components/InputArea';
+import EmailInput from './components/EmailInput';
+import PromptSuggestions from './components/PromptSuggestions';
+import ChatHeader from './components/ChatHeader';
 
 const OracleHutSection: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Enhanced prompts for the full page experience
+  // Sample prompts for the suggestions
   const samplePrompts = [
     "Compare Nairobi and Dubai logistics",
     "Best forwarder for electronics from Asia",
@@ -47,113 +42,21 @@ const OracleHutSection: React.FC = () => {
     ]);
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const handleSend = async (userMessage: string) => {
+    if (!userMessage || isLoading) return;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Helper function to detect table format in text
-  const processResponseWithTables = (text: string): React.ReactNode => {
-    // Check if the response contains a table marker
-    if (text.includes('|') && (text.includes('\n|') || text.includes('|-'))) {
-      try {
-        // Extract table content
-        const parts = text.split('```');
-        let result = [];
-        let currentIndex = 0;
-
-        for (let i = 0; i < parts.length; i++) {
-          if (i % 2 === 0) {
-            // This is regular text
-            if (parts[i].trim()) {
-              result.push(<div key={`text-${currentIndex}`}>{parts[i]}</div>);
-              currentIndex++;
-            }
-          } else {
-            // This might be a table or code
-            if (parts[i].trim().startsWith('table') || parts[i].includes('|')) {
-              const tableContent = parts[i].replace('table', '').trim();
-              const rows = tableContent.split('\n').filter(row => row.includes('|'));
-              
-              if (rows.length >= 2) {
-                // Process header row
-                const headers = rows[0].split('|')
-                  .map(h => h.trim())
-                  .filter(h => h);
-                
-                // Process data rows
-                const dataRows = rows.slice(2); // Skip header and separator rows
-                
-                result.push(
-                  <div key={`table-${currentIndex}`} className="my-4 overflow-x-auto bg-slate-800/80 rounded-lg border border-[#00FFD1]/30">
-                    <UITable>
-                      <TableHeader>
-                        <TableRow className="border-b border-[#00FFD1]/20">
-                          {headers.map((header, idx) => (
-                            <TableHead key={`header-${idx}`} className="text-[#00FFD1]">{header}</TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {dataRows.map((row, rowIdx) => {
-                          const cells = row.split('|')
-                            .map(cell => cell.trim())
-                            .filter(cell => cell !== '');
-                          
-                          return (
-                            <TableRow key={`row-${rowIdx}`} className="border-b border-[#00FFD1]/10">
-                              {cells.map((cell, cellIdx) => (
-                                <TableCell key={`cell-${rowIdx}-${cellIdx}`}>{cell}</TableCell>
-                              ))}
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </UITable>
-                  </div>
-                );
-                currentIndex++;
-              } else {
-                result.push(<div key={`code-${currentIndex}`}><pre>{parts[i]}</pre></div>);
-                currentIndex++;
-              }
-            } else {
-              result.push(<div key={`code-${currentIndex}`}><pre>{parts[i]}</pre></div>);
-              currentIndex++;
-            }
-          }
-        }
-        
-        return <>{result}</>;
-      } catch (e) {
-        console.error("Error parsing table:", e);
-        return text;
-      }
-    }
-    
-    return text;
-  };
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
+    const newMessage: Message = {
       role: 'user',
-      content: input.trim(),
+      content: userMessage,
       id: `user-${Date.now()}`
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInput('');
+    setMessages(prev => [...prev, newMessage]);
     setIsLoading(true);
-    scrollToBottom();
 
     try {
       // Process through the symbolic engine
-      const response = await OracleHutEngine(userMessage.content as string);
+      const response = await OracleHutEngine(userMessage);
       
       // Check if response contains table markers
       const hasTable = response.includes('|') && (response.includes('\n|') || response.includes('|-'));
@@ -182,18 +85,6 @@ const OracleHutSection: React.FC = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      scrollToBottom();
-    }
-  };
-
-  const handlePromptClick = (prompt: string) => {
-    setInput(prompt);
-  };
-
-  const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
     }
   };
 
@@ -211,8 +102,12 @@ const OracleHutSection: React.FC = () => {
   const toggleVoice = () => {
     setVoiceEnabled(!voiceEnabled);
   };
+  
+  const handlePromptClick = (prompt: string) => {
+    handleSend(prompt);
+  };
 
-  // New function to send the last oracle response via email
+  // Function to send the last oracle response via email
   const sendInsightToEmail = async (email: string) => {
     if (!email) {
       toast.error("Please enter a valid email address");
@@ -248,7 +143,6 @@ const OracleHutSection: React.FC = () => {
         htmlContent
       };
 
-      // Fixed: Removed the incorrect session() method call
       const response = await fetch('https://hpogoxrxcnyxiqjmqtaw.supabase.co/functions/v1/send-oracle-email', {
         method: 'POST',
         headers: { 
@@ -276,109 +170,35 @@ const OracleHutSection: React.FC = () => {
   return (
     <div className="container mx-auto px-4 h-[calc(100vh-100px)] max-w-6xl">
       <div className={`${styles.chatBox} h-[calc(100vh-120px)] w-full`}>
-        <div className={styles.header}>
-          <span><span className={styles.symbolIcon}>🔮</span>Oracle Hut</span>
-          <div className={styles.headerControls}>
-            <button
-              className={styles.voiceToggle}
-              onClick={toggleVoice}
-              aria-label={voiceEnabled ? "Disable voice" : "Enable voice"}
-              title={voiceEnabled ? "Disable voice" : "Enable voice"}
-            >
-              <Mic size={18} className={voiceEnabled ? styles.activeVoice : ''} />
-            </button>
-            
-            <div className="ml-2 text-[#00FFD1] flex items-center">
-              <Table size={16} className="mr-1" />
-              <span className="text-xs">Table support enabled</span>
-            </div>
-
-            {/* Email button */}
-            <button
-              className="ml-3 text-[#00FFD1] hover:text-white transition-colors"
-              onClick={() => setShowEmailInput(!showEmailInput)}
-              title="Send insight to email"
-            >
-              <Mail size={18} />
-            </button>
-          </div>
-        </div>
+        <ChatHeader 
+          voiceEnabled={voiceEnabled}
+          onToggleVoice={toggleVoice}
+          onToggleEmailInput={() => setShowEmailInput(!showEmailInput)}
+        />
         
         {showEmailInput && (
-          <div className="bg-slate-800/90 p-3 border-b border-[#00FFD1]/20 flex items-center gap-2">
-            <input
-              type="email"
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="Enter your email address"
-              className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-1 text-sm text-white"
-            />
-            <Button 
-              size="sm" 
-              className="bg-[#00FFD1] hover:bg-[#00FFD1]/80 text-slate-900"
-              onClick={() => sendInsightToEmail(emailInput)}
-              disabled={sendingEmail}
-            >
-              {sendingEmail ? "Sending..." : "Send Insight"}
-            </Button>
-          </div>
+          <EmailInput 
+            onSendEmail={sendInsightToEmail}
+            sendingEmail={sendingEmail}
+          />
         )}
         
-        <div className={`${styles.messages} h-[calc(100%-180px)] overflow-y-auto`}>
-          {messages.map(msg => (
-            <div 
-              key={msg.id} 
-              className={msg.role === 'oracle' ? styles.oracleMsg : styles.userMsg}
-            >
-              {msg.content}
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className={`${styles.oracleMsg} ${styles.loadingDots}`}>
-              <span>•</span>
-              <span>•</span>
-              <span>•</span>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+        <MessageList 
+          messages={messages} 
+          isLoading={isLoading} 
+        />
         
         {voiceEnabled && <VoiceOracleAI isOpen={true} onMessageReceived={handleVoiceMessage} />}
         
-        <div className={styles.prompt}>
-          <div className="text-[#00FFD1] mb-2">Sample Inquiries:</div>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {samplePrompts.map((prompt, index) => (
-              <button 
-                key={index}
-                className={styles.promptButton}
-                onClick={() => handlePromptClick(prompt)}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </div>
+        <PromptSuggestions 
+          prompts={samplePrompts}
+          onPromptClick={handlePromptClick}
+        />
         
-        <div className={styles.inputArea}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Ask the Oracle for symbolic insights..."
-            disabled={isLoading}
-            className="w-full"
-          />
-          <button 
-            onClick={handleSend} 
-            disabled={!input.trim() || isLoading}
-            aria-label="Send"
-          >
-            <Send size={16} />
-          </button>
-        </div>
+        <InputArea 
+          isLoading={isLoading}
+          onSendMessage={handleSend}
+        />
       </div>
     </div>
   );
