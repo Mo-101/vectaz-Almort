@@ -1,6 +1,7 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, Mic, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styles from './styles.module.css';
 import { OracleHutEngine } from './OracleHutEngine';
 import VoiceOracleAI from './VoiceOracleAI';
@@ -18,6 +19,7 @@ const OracleHutWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   // Example prompts to help users get started
   const samplePrompts = [
@@ -114,6 +116,11 @@ const OracleHutWidget = () => {
   const toggleVoice = () => {
     setVoiceEnabled(!voiceEnabled);
   };
+  
+  const navigateToFullOracle = () => {
+    setOpen(false);
+    navigate('/oracle');
+  };
 
   return (
     <div className={styles.oracleHutContainer}>
@@ -122,14 +129,14 @@ const OracleHutWidget = () => {
           <div className={styles.header}>
             <span><span className={styles.symbolIcon}>🔮</span>Oracle Hut</span>
             <div className={styles.headerControls}>
-              <Link 
-                to="/oracle"
+              <button 
                 className={styles.fullPageLink}
+                onClick={navigateToFullOracle}
                 title="Open full Oracle Hut"
                 aria-label="Open full Oracle Hut"
               >
                 <ExternalLink size={16} />
-              </Link>
+              </button>
               <button
                 className={styles.voiceToggle}
                 onClick={toggleVoice}
