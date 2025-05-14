@@ -1,0 +1,7 @@
+
+.elevenlabs-convai-wrapper {
+  /* The ElevenLabs widget handles its own positioning, so we don't need much CSS here */
+  z-index: 1000; /* Ensure it appears above other content */
+}
+
+/* Additional styling for the ElevenLabs convai custom element will be applied via attributes */

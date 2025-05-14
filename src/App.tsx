@@ -15,8 +15,8 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
-// Import OracleHutWidget component
-import OracleHutWidget from "@/components/OracleHut";
+// Import ElevenLabsConvaiWidget component
+import ElevenLabsConvaiWidget from "@/components/chat/ElevenLabsConvaiWidget";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -138,8 +138,8 @@ function App() {
             <Toaster />
             <Sonner />
             
-            {/* Oracle Hut widget replaces DeepTalk */}
-            <OracleHutWidget />
+            {/* Replace OracleHutWidget with our new ElevenLabsConvaiWidget */}
+            <ElevenLabsConvaiWidget agentId="kWY3sE6znRmHQqPy48sk" />
           </>
         )}
       </TooltipProvider>
