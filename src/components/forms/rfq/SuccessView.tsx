@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Check, FileDown, Mail, Loader2, Send, AlertTriangle } from 'lucide-react';
@@ -165,6 +164,11 @@ const SuccessView: React.FC<SuccessViewProps> = ({
       const pdfBase64 = doc.output('datauristring').split(',')[1];
       const reference = rfqData.reference || `RFQ-${Date.now()}`;
       
+      toast({
+        title: "Sending Email",
+        description: `Preparing to send RFQ to ${email}...`,
+      });
+      
       const { data, error } = await supabase.functions.invoke('send-rfq-email', {
         body: {
           recipientEmail: email,
@@ -176,7 +180,12 @@ const SuccessView: React.FC<SuccessViewProps> = ({
       });
       
       if (error) {
+        console.error('Supabase function error:', error);
         throw new Error(error.message || 'Failed to send email');
+      }
+      
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Unknown error sending email');
       }
       
       setEmailResponse(data);
@@ -187,14 +196,26 @@ const SuccessView: React.FC<SuccessViewProps> = ({
       });
     } catch (error) {
       console.error('Error sending email:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : "Failed to send the email";
+      let helpText = "Please try again later or contact your administrator.";
+      
+      // Check for specific error patterns and provide helpful guidance
+      if (errorMessage.includes('API key') || errorMessage.includes('authentication')) {
+        helpText = "Email service configuration issue. Please contact your administrator.";
+      } else if (errorMessage.includes('network') || errorMessage.includes('timeout')) {
+        helpText = "Network issue detected. Please check your connection and try again.";
+      }
+      
       setEmailResponse({
         success: false,
-        error: error instanceof Error ? error.message : "Failed to send the email. Please try again later."
+        error: errorMessage,
+        helpText
       });
       
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to send the email. Please try again later.",
+        title: "Email Error",
+        description: `${errorMessage}. ${helpText}`,
         variant: "destructive"
       });
     } finally {
@@ -275,15 +296,22 @@ const SuccessView: React.FC<SuccessViewProps> = ({
           
           {emailResponse && (
             <Alert variant={emailResponse.success ? "default" : "destructive"} className="my-2">
-              <AlertTitle>
+              <AlertTitle className="flex items-center">
                 {emailResponse.success 
-                  ? "Email Status" 
-                  : "Email Error"}
+                  ? <><Check className="h-4 w-4 mr-2" /> Email Status</> 
+                  : <><AlertTriangle className="h-4 w-4 mr-2" /> Email Error</>}
               </AlertTitle>
               <AlertDescription>
-                {emailResponse.success 
-                  ? emailResponse.message || "Email sent successfully" 
-                  : emailResponse.error || "Failed to send email"}
+                <div>
+                  {emailResponse.success 
+                    ? emailResponse.message || "Email sent successfully" 
+                    : emailResponse.error || "Failed to send email"}
+                </div>
+                {emailResponse.helpText && (
+                  <div className="mt-2 text-sm">
+                    {emailResponse.helpText}
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}
@@ -341,9 +369,16 @@ const SuccessView: React.FC<SuccessViewProps> = ({
                   : <><AlertTriangle className="h-4 w-4 mr-2" /> Email Error</>}
               </AlertTitle>
               <AlertDescription>
-                {emailResponse.success 
-                  ? emailResponse.message || "Email sent successfully" 
-                  : emailResponse.error || "Failed to send email"}
+                <div>
+                  {emailResponse.success 
+                    ? emailResponse.message || "Email sent successfully" 
+                    : emailResponse.error || "Failed to send email"}
+                </div>
+                {emailResponse.helpText && (
+                  <div className="mt-2 text-sm">
+                    {emailResponse.helpText}
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}

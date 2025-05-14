@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
-import { SMTPClient } from "https://deno.land/x/denomailer@1.6.0/mod.ts";
+import { Resend } from "npm:resend@1.0.0";
 
 interface EmailRequest {
   recipientEmail: string;
@@ -12,6 +12,9 @@ interface EmailRequest {
   emailService?: string; // Optional parameter to specify which email service to use
 }
 
+// Initialize Resend with API key from environment
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -19,84 +22,91 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { recipientEmail, pdfBase64, rfqReference, subject, testMode, emailService = 'gmail' } = await req.json() as EmailRequest;
-
-    // Log more details for debugging
-    console.log(`Email request received for: ${recipientEmail}`);
-    console.log(`PDF size: ${pdfBase64.length} characters`);
-    console.log(`RFQ Reference: ${rfqReference}`);
-    console.log(`Test mode: ${testMode ? 'Yes' : 'No'}`);
-    console.log(`Email service: ${emailService}`);
-
-    // Configure email service based on the requested service
-    let client;
-    let fromEmail;
-    let fromName;
+    console.log("Email request received");
     
-    switch (emailService) {
-      case 'who':
-        // World Health Organization SMTP configuration (example)
-        client = new SMTPClient({
-          connection: {
-            hostname: Deno.env.get("WHO_SMTP_HOST") || "",
-            port: Number(Deno.env.get("WHO_SMTP_PORT")) || 465,
-            tls: true,
-            auth: {
-              username: Deno.env.get("WHO_EMAIL") || "",
-              password: Deno.env.get("WHO_EMAIL_PASSWORD") || "",
-            },
-          },
-        });
-        fromEmail = Deno.env.get("WHO_EMAIL") || "";
-        fromName = "WHO Operations";
-        break;
+    const requestBody = await req.json();
+    console.log("Request body received:", JSON.stringify(requestBody));
+    
+    const { 
+      recipientEmail, 
+      pdfBase64, 
+      rfqReference, 
+      subject, 
+      testMode 
+    } = requestBody as EmailRequest;
+
+    // Validate required parameters
+    if (!recipientEmail || !pdfBase64 || !rfqReference) {
+      console.error("Missing required parameters in request:", { 
+        hasRecipient: !!recipientEmail, 
+        hasPDF: !!pdfBase64, 
+        hasReference: !!rfqReference 
+      });
       
-      case 'gmail':
-      default:
-        // Default to Gmail configuration
-        client = new SMTPClient({
-          connection: {
-            hostname: "smtp.gmail.com",
-            port: 465,
-            tls: true,
-            auth: {
-              username: Deno.env.get("GMAIL_EMAIL") || "",
-              password: Deno.env.get("GMAIL_APP_PASSWORD") || "",
-            },
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Missing required parameters: recipientEmail, pdfBase64, or rfqReference" 
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+            ...corsHeaders,
           },
-        });
-        fromEmail = Deno.env.get("GMAIL_EMAIL") || "";
-        fromName = "DeepCAL Operations";
-        break;
+        }
+      );
     }
 
-    // Create the email content
-    const message = {
-      from: `${fromName} <${fromEmail}>`,
-      to: recipientEmail,
-      subject: subject || `Request for Quotation: ${rfqReference}`,
-      html: `
-        <html>
-          <body>
-            <h1>Request for Quotation: ${rfqReference}</h1>
-            <p>Please find attached the Request for Quotation document.</p>
-            <p>This is an automated message from ${fromName} Center.</p>
-          </body>
-        </html>
-      `,
-      attachments: [
-        {
-          filename: `RFQ-${rfqReference}.pdf`,
-          content: pdfBase64,
-          encoding: "base64",
-        },
-      ],
-    };
+    // Log details for debugging
+    console.log(`Email request details:`);
+    console.log(`- Recipient: ${recipientEmail}`);
+    console.log(`- PDF size: ${pdfBase64.length} characters`);
+    console.log(`- RFQ Reference: ${rfqReference}`);
+    console.log(`- Test mode: ${testMode ? 'Yes' : 'No'}`);
+
+    // Create email content
+    const emailSubject = subject || `Request for Quotation: ${rfqReference}`;
+    
+    const htmlContent = `
+      <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h1 style="color: #00334e; border-bottom: 2px solid #00334e; padding-bottom: 10px;">
+            Request for Quotation: ${rfqReference}
+          </h1>
+          <p>Please find attached the Request for Quotation document.</p>
+          <p>This document contains important specifications and requirements for the requested products or services.</p>
+          <div style="margin: 30px 0; padding: 15px; background-color: #f8f9fa; border-left: 4px solid #00334e;">
+            <p style="margin: 0; font-style: italic;">Kindly review the attached document and provide your quotation at your earliest convenience.</p>
+          </div>
+          <p style="color: #666; font-size: 12px; margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px;">
+            This is an automated message from DeepCAL Operations Center. Please do not reply directly to this email.
+          </p>
+        </body>
+      </html>
+    `;
 
     // Skip actual sending in test mode
     if (!testMode) {
-      await client.send(message);
-      console.log("Email sent successfully to:", recipientEmail);
+      try {
+        const data = await resend.emails.send({
+          from: "DeepCAL Operations <onboarding@resend.dev>",
+          to: [recipientEmail],
+          subject: emailSubject,
+          html: htmlContent,
+          attachments: [
+            {
+              filename: `RFQ-${rfqReference}.pdf`,
+              content: pdfBase64
+            },
+          ],
+        });
+        
+        console.log("Email sent successfully via Resend:", data);
+      } catch (sendError: any) {
+        console.error("Error from Resend API:", sendError);
+        throw new Error(`Failed to send email: ${sendError.message || JSON.stringify(sendError)}`);
+      }
     } else {
       console.log("Test mode: Email would be sent to:", recipientEmail);
     }
@@ -106,8 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         message: `Email with RFQ ${rfqReference} ${testMode ? 'would be sent' : 'sent'} to ${recipientEmail}`,
-        testMode: testMode || false,
-        emailService
+        testMode: testMode || false
       }),
       {
         status: 200,

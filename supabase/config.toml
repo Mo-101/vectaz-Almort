@@ -3,3 +3,7 @@ project_id = "hpogoxrxcnyxiqjmqtaw"
 
 [functions.send-oracle-email]
 verify_jwt = false
+
+[functions.send-rfq-email]
+verify_jwt = false
+
