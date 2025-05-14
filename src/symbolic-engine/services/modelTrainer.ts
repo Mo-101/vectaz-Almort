@@ -1,6 +1,7 @@
 
 // modelTrainer.ts - Relearn preferences based on pattern changes
 import deeptrack from '@/core/base_data/deeptrack_3.json';
+import type { Shipment } from '@/types/deeptrack';
 
 export interface ShipmentHistory {
   name: string;
@@ -60,18 +61,18 @@ export async function trainForwarderModels(
 function extractShipmentHistoryFromLocal(): ShipmentHistory[] {
   try {
     // Use the app's bundled data
-    const shipments = deeptrack;
+    const shipments = deeptrack as Shipment[];
     
     return shipments
       .filter(shipment => 
         shipment.carrier || 
         shipment.freight_carrier || 
-        (shipment as any).final_quote_awarded_freight_forwader_Carrier
+        shipment.final_quote_awarded_freight_forwader_Carrier
       )
       .map(shipment => {
         const name = shipment.carrier || 
                      shipment.freight_carrier || 
-                     (shipment as any).final_quote_awarded_freight_forwader_Carrier ||
+                     shipment.final_quote_awarded_freight_forwader_Carrier ||
                      'Unknown';
         
         // Extract or estimate transit times
