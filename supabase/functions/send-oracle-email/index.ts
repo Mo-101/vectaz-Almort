@@ -15,11 +15,11 @@ serve(async (req) => {
 
   try {
     // Get the request data
-    const { to, subject, htmlContent } = await req.json()
+    const { to, subject, content, queryType } = await req.json()
 
     // Validate input
-    if (!to || !subject || !htmlContent) {
-      throw new Error('Missing required fields: to, subject, or htmlContent')
+    if (!to || !subject || !content) {
+      throw new Error('Missing required fields: to, subject, or content')
     }
 
     if (!validateEmail(to)) {
@@ -37,6 +37,11 @@ serve(async (req) => {
     if (!RESEND_API_KEY) {
       throw new Error('Missing RESEND_API_KEY')
     }
+
+    // Convert plain text to simple HTML if it's not already HTML
+    const htmlContent = content.startsWith('<') 
+      ? content 
+      : `<pre style="font-family: sans-serif; white-space: pre-wrap;">${content}</pre>`;
 
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -58,7 +63,7 @@ serve(async (req) => {
       throw new Error(`Failed to send email: ${data.message || 'Unknown error'}`)
     }
 
-    // Log the email send for analytics
+    // Log the email send for analytics - WRITE ONLY OPERATION
     await supabaseClient
       .from('email_logs')
       .insert({
@@ -66,7 +71,7 @@ serve(async (req) => {
         subject: subject,
         sent_at: new Date().toISOString(),
         status: 'sent',
-        type: 'oracle_insight'
+        type: queryType || 'oracle_insight'
       })
       .select()
 

@@ -55,7 +55,7 @@ const OracleHutSection: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Process through the symbolic engine
+      // Process through the symbolic engine - Uses in-app data only
       const response = await OracleHutEngine(userMessage);
       
       // Check if response contains table markers
@@ -73,6 +73,21 @@ const OracleHutSection: React.FC = () => {
       
       // Save the last message for potential email sending
       sessionStorage.setItem('lastOracleResponse', response);
+      
+      // Log to oracle_logs for feedback, training data (write-only)
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase.from('oracle_logs').insert({
+          user_query: userMessage,
+          oracle_response: response,
+          timestamp: new Date().toISOString(),
+          has_table: hasTable,
+          model_version: '1.0'
+        });
+      } catch (logError) {
+        console.error('Failed to log oracle interaction:', logError);
+        // Non-critical, continue without error to user
+      }
     } catch (error) {
       console.error('Oracle Hut error:', error);
       
@@ -97,6 +112,22 @@ const OracleHutSection: React.FC = () => {
     };
     
     setMessages(prev => [...prev, oracleMessage]);
+    
+    // Log voice interactions to voice_training_log (write-only)
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      supabase.from('voice_training_log').insert({
+        message,
+        source: 'elevenlabs',
+        agent_id: 'kWY3sE6znRmHQqPy48sk',
+        timestamp: new Date().toISOString()
+      }).then(() => {
+        console.log('Voice interaction logged');
+      });
+    } catch (logError) {
+      console.error('Failed to log voice interaction:', logError);
+      // Non-critical, continue without error to user
+    }
   };
 
   const toggleVoice = () => {
@@ -124,7 +155,7 @@ const OracleHutSection: React.FC = () => {
     }
 
     try {
-      // Updated to match the backend expectation of 'content' instead of 'htmlContent'
+      // Updated payload to use content instead of htmlContent
       const payload = {
         to: email,
         subject: '🔮 Oracle Hut: Logistics Insight',
