@@ -1,5 +1,5 @@
 
-import { trainForwarderModels } from '@/symbolic-engine/services/modelTrainer';
+import { trainForwarderModels as trainModels } from '@/symbolic-engine/services/modelTrainer';
 import { updateForwarderTrust } from '@/symbolic-engine/services/feedback';
 
 /**
@@ -16,13 +16,13 @@ export async function trainSymbolicEngine(historicalData: any[]) {
       predictedTime: shipment.expected_transit_days || 0
     }));
     
-    // Train the models using the historical data
-    const trainingResults = await trainForwarderModels(shipmentHistory);
+    // Train the models using the historical data - use true to force using historical data
+    const trainingResults = await trainModels(true);
     
     // Update forwarder trust scores based on the training results
     const updatedForwarders = [];
     
-    for (const result of trainingResults) {
+    for (const result of trainingResults.deltas) {
       const { name, delta } = result;
       
       // Create a sample forwarder with initial trust

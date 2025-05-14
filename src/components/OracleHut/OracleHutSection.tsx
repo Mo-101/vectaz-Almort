@@ -7,7 +7,7 @@ import styles from './styles.module.css';
 import { Message } from './types/types';
 import { processResponseWithTables } from './utils/tableUtils';
 
-// Import our new components
+// Import our components
 import MessageList from './components/MessageList';
 import InputArea from './components/InputArea';
 import EmailInput from './components/EmailInput';
@@ -114,20 +114,22 @@ const OracleHutSection: React.FC = () => {
     setMessages(prev => [...prev, oracleMessage]);
     
     // Log voice interactions to voice_training_log (write-only)
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      supabase.from('voice_training_log').insert({
-        message,
-        source: 'elevenlabs',
-        agent_id: 'kWY3sE6znRmHQqPy48sk',
-        timestamp: new Date().toISOString()
-      }).then(() => {
+    const logVoiceInteraction = async () => {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        await supabase.from('voice_training_log').insert({
+          agent_response: message,
+          agent_id: 'kWY3sE6znRmHQqPy48sk',
+          timestamp: new Date().toISOString()
+        });
         console.log('Voice interaction logged');
-      });
-    } catch (logError) {
-      console.error('Failed to log voice interaction:', logError);
-      // Non-critical, continue without error to user
-    }
+      } catch (logError) {
+        console.error('Failed to log voice interaction:', logError);
+        // Non-critical, continue without error to user
+      }
+    };
+    
+    logVoiceInteraction();
   };
 
   const toggleVoice = () => {

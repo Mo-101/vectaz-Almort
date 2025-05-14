@@ -2,9 +2,49 @@
 .elevenlabs-convai-wrapper {
   /* The ElevenLabs widget handles its own positioning, so we don't need much CSS here */
   z-index: 1000; /* Ensure it appears above other content */
-  position: fixed; /* This ensures the widget stays fixed on the page */
-  bottom: 0;
-  right: 0;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
 }
 
-/* Additional styling for the ElevenLabs convai custom element will be applied via attributes */
+/* Custom styling for the widget button */
+:global(elevenlabs-convai) {
+  --elevenlabs-button-shadow: 0 4px 12px rgba(0, 255, 209, 0.2);
+  --elevenlabs-expand-button-width: 180px;
+}
+
+/* Enhance the button hover state */
+:global(elevenlabs-convai button:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 255, 209, 0.3);
+}
+
+/* Enhance the button active state */
+:global(elevenlabs-convai button:active) {
+  transform: translateY(1px);
+}
+
+/* Additional styling for the transcript area */
+:global(elevenlabs-convai .transcript) {
+  background-color: rgba(10, 26, 47, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+/* Style for the user message */
+:global(elevenlabs-convai .user-message) {
+  color: white;
+  background-color: rgba(0, 255, 209, 0.15);
+  border-radius: 12px;
+  padding: 8px 15px;
+  margin: 4px 0;
+}
+
+/* Style for the assistant message */
+:global(elevenlabs-convai .assistant-message) {
+  color: #00FFD1;
+  background-color: rgba(10, 26, 47, 0.8);
+  border-radius: 12px;
+  padding: 8px 15px;
+  margin: 4px 0;
+}

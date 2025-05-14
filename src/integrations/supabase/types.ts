@@ -158,6 +158,39 @@ export type Database = {
         }
         Relationships: []
       }
+      oracle_logs: {
+        Row: {
+          feedback_comments: string | null
+          feedback_score: number | null
+          has_table: boolean | null
+          id: string
+          model_version: string | null
+          oracle_response: string
+          timestamp: string | null
+          user_query: string
+        }
+        Insert: {
+          feedback_comments?: string | null
+          feedback_score?: number | null
+          has_table?: boolean | null
+          id?: string
+          model_version?: string | null
+          oracle_response: string
+          timestamp?: string | null
+          user_query: string
+        }
+        Update: {
+          feedback_comments?: string | null
+          feedback_score?: number | null
+          has_table?: boolean | null
+          id?: string
+          model_version?: string | null
+          oracle_response?: string
+          timestamp?: string | null
+          user_query?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -289,6 +322,75 @@ export type Database = {
           recommended_forwarder?: string | null
           risk_level?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      training_logs: {
+        Row: {
+          accuracy: number
+          data_size: number
+          id: string
+          model_version: string
+          notes: string | null
+          parameters: Json | null
+          timestamp: string | null
+        }
+        Insert: {
+          accuracy: number
+          data_size: number
+          id?: string
+          model_version: string
+          notes?: string | null
+          parameters?: Json | null
+          timestamp?: string | null
+        }
+        Update: {
+          accuracy?: number
+          data_size?: number
+          id?: string
+          model_version?: string
+          notes?: string | null
+          parameters?: Json | null
+          timestamp?: string | null
+        }
+        Relationships: []
+      }
+      voice_training_log: {
+        Row: {
+          agent_id: string
+          agent_response: string | null
+          created_at: string | null
+          feedback_comments: string | null
+          feedback_score: number | null
+          id: string
+          session_id: string | null
+          symbolic_insight_id: string | null
+          timestamp: string | null
+          user_message: string | null
+        }
+        Insert: {
+          agent_id: string
+          agent_response?: string | null
+          created_at?: string | null
+          feedback_comments?: string | null
+          feedback_score?: number | null
+          id?: string
+          session_id?: string | null
+          symbolic_insight_id?: string | null
+          timestamp?: string | null
+          user_message?: string | null
+        }
+        Update: {
+          agent_id?: string
+          agent_response?: string | null
+          created_at?: string | null
+          feedback_comments?: string | null
+          feedback_score?: number | null
+          id?: string
+          session_id?: string | null
+          symbolic_insight_id?: string | null
+          timestamp?: string | null
+          user_message?: string | null
         }
         Relationships: []
       }

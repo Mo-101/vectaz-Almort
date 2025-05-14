@@ -1,3 +1,4 @@
+
 // modelTrainer.ts - Relearn preferences based on pattern changes
 import deeptrack from '@/core/base_data/deeptrack_3.json';
 
@@ -65,12 +66,12 @@ function extractShipmentHistoryFromLocal(): ShipmentHistory[] {
       .filter(shipment => 
         shipment.carrier || 
         shipment.freight_carrier || 
-        shipment.final_quote_awarded_freight_forwader_Carrier
+        (shipment as any).final_quote_awarded_freight_forwader_Carrier
       )
       .map(shipment => {
         const name = shipment.carrier || 
                      shipment.freight_carrier || 
-                     shipment.final_quote_awarded_freight_forwader_Carrier ||
+                     (shipment as any).final_quote_awarded_freight_forwader_Carrier ||
                      'Unknown';
         
         // Extract or estimate transit times
@@ -85,7 +86,8 @@ function extractShipmentHistoryFromLocal(): ShipmentHistory[] {
         }
         
         // Estimate predicted time based on mode of shipment
-        switch (shipment.mode_of_shipment?.toLowerCase()) {
+        const modeOfShipment = shipment.mode_of_shipment || '';
+        switch (modeOfShipment.toLowerCase()) {
           case 'air':
             predictedTime = 3 + Math.floor(Math.random() * 2);
             break;

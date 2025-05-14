@@ -2,12 +2,20 @@
 import { detectAnomalies } from '@/symbolic-engine/services/insightEngine';
 import { simulateRoutes } from '@/symbolic-engine/simulation/simulator';
 import deeptrack from '@/core/base_data/deeptrack_3.json';
+import { symbolCacheManager } from '../symbolic-runtime';
 
 /**
  * Provides symbolic statistics from local app data, avoiding Supabase calls
  */
 export async function symbolicStats() {
   try {
+    // Check cache first
+    const cachedStats = symbolCacheManager.get('symbolic_stats');
+    if (cachedStats) {
+      console.log('Using cached symbolic stats');
+      return cachedStats;
+    }
+    
     // Use the local deeptrack data (loaded from in-app JSON)
     // This is our source of truth, NOT Supabase
     const shipmentData = deeptrack;
@@ -39,8 +47,8 @@ export async function symbolicStats() {
     // Create nodes structure for the training dashboard
     const nodes = createNodeStructure(anomalies);
 
-    // Return the stats calculated from LOCAL data
-    return {
+    // Prepare stats to return and cache
+    const stats = {
       memory,
       anomalies,
       trustDrift: `${trustDrift}%`,
@@ -59,6 +67,11 @@ export async function symbolicStats() {
       bandwidth: 8,
       nodes
     };
+    
+    // Cache the stats
+    symbolCacheManager.set('symbolic_stats', stats);
+    
+    return stats;
   } catch (error) {
     console.error("Error processing symbolic stats from local data:", error);
     // Return fallback data to prevent UI crashes
