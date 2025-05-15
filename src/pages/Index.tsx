@@ -4,7 +4,6 @@ import { useBaseDataStore } from '@/store/baseState';
 import { AppSection } from '@/types/deeptrack';
 import EntryAnimation from '@/components/EntryAnimation';
 import { AnimatePresence } from 'framer-motion';
-import GlobalNavigation from '@/components/GlobalNavigation';
 
 // Import the optimized components
 import AnimatedBackground from '@/components/home/AnimatedBackground';
@@ -56,12 +55,12 @@ const Index = () => {
   }
 
   return (
-    <div className="h-screen w-full overflow-x-hidden relative tech-bg">
+    <div className="h-full w-full overflow-x-hidden relative tech-bg">
       {/* Background components */}
       <AnimatedBackground />
       
       {/* Application content */}
-      <div className="relative z-10 pb-16">
+      <div className="relative z-10">
         <AnimatePresence mode="wait">
           <ContentRouter 
             activeTab={activeTab} 
@@ -72,11 +71,6 @@ const Index = () => {
         
         {/* App name in top right with enhanced styling */}
         <AppLogo />
-      </div>
-
-      {/* Navigation bar */}
-      <div className="z-50">
-        <GlobalNavigation />
       </div>
       
       {/* Non-visual components */}

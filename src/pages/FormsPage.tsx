@@ -7,7 +7,6 @@ import { GlassContainer } from '@/components/ui/glass-effects';
 import Particles from '@/components/Particles';
 import AnimatedBackground from '@/components/home/AnimatedBackground';
 import DeepCALSection from '@/components/DeepCALSection';
-import IconNavigation from '@/components/IconNavigation';
 
 const FormsPage = () => {
   const [activeFormTab, setActiveFormTab] = useState("rfq");
@@ -56,11 +55,6 @@ const FormsPage = () => {
         className="opacity-40" // Reduced opacity for particles
       />
       
-      {/* App name in top right */}
-      <div className="app-logo absolute top-4 right-4 bg-[#0A1A2F]/80 backdrop-blur-md py-2 px-4 rounded-lg shadow-md z-10 border border-[#00FFD1]/30 shadow-[0_0_15px_rgba(0,255,209,0.2)]">
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#00FFD1] to-blue-300">DeepCAL</h1>
-      </div>
-      
       <div className="relative z-10 w-full pt-16 px-4">
         <div className="max-w-6xl mx-auto">
           <GlassContainer className="mb-6 p-4">
@@ -96,11 +90,6 @@ const FormsPage = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
-      
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30">
-        <IconNavigation />
       </div>
     </div>
   );

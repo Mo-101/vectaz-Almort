@@ -1,11 +1,10 @@
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect as useEffectOriginal } from "react";
 import IndexPage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
@@ -15,8 +14,8 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
-// Import ElevenLabsConvaiWidget component
 import ElevenLabsConvaiWidget from "@/components/chat/ElevenLabsConvaiWidget";
+import MainLayout from "@/components/layout/MainLayout";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -26,10 +25,19 @@ const TrainingPage = React.lazy(() => import('./pages/training'));
 
 // Setup App with React Query for data fetching and caching
 function App() {
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const { setShipmentData } = useBaseDataStore();
 
-  useEffectOriginal(() => {
+  useEffect(() => {
+    // Check if we've already initialized this session
+    const hasInitialized = sessionStorage.getItem('appInitialized');
+    if (hasInitialized === 'true') {
+      setIsLoading(false);
+      setIsInitialLoad(false);
+      return;
+    }
+
     // Load sample data faster for demonstration
     const initializeApp = async () => {
       console.log("Initializing application...");
@@ -38,6 +46,8 @@ function App() {
       if (isSystemBooted()) {
         console.log("System already booted, proceeding to application");
         setIsLoading(false);
+        // Mark as initialized so we don't show loading screen on page navigation
+        sessionStorage.setItem('appInitialized', 'true');
         return;
       }
 
@@ -94,6 +104,8 @@ function App() {
         console.error("Boot failed:", error);
       } finally {
         setIsLoading(false);
+        // Mark as initialized so we don't show loading screen on page navigation
+        sessionStorage.setItem('appInitialized', 'true');
       }
     };
     
@@ -103,45 +115,50 @@ function App() {
     const fallbackTimer = setTimeout(() => {
       console.log("Fallback timer triggered");
       setIsLoading(false);
+      sessionStorage.setItem('appInitialized', 'true');
     }, 3000); // Show loading screen for max 3 seconds
     
     return () => clearTimeout(fallbackTimer);
   }, [setShipmentData]);
 
+  // If initial application load is still in progress, show loading screen
+  if (isLoading && isInitialLoad) {
+    return (
+      <TooltipProvider>
+        <LoadingScreen isInitialLoad={true} />
+      </TooltipProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        {isLoading ? (
-          <LoadingScreen isInitialLoad={true} />
-        ) : (
-          <>
-            {/* Router for navigation */}
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<IndexPage />} />
-                <Route path="/forms" element={<FormsPage />} />
-                <Route path="/deepcal" element={<DeepCALPage />} />
-                <Route path="/oracle" element={<OracleHutPage />} />
-                <Route path="/training" element={
-                  <Suspense fallback={<div className="h-screen flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1]"></div>
-                  </div>}>
-                    <TrainingPage />
-                  </Suspense>
-                } />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-        
-            {/* UI Components for notifications */}
-            <Toaster />
-            <Sonner />
-            
-            {/* Replace OracleHutWidget with our new ElevenLabsConvaiWidget */}
-            <ElevenLabsConvaiWidget agentId="kWY3sE6znRmHQqPy48sk" />
-          </>
-        )}
+        <BrowserRouter>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<IndexPage />} />
+              <Route path="/forms" element={<FormsPage />} />
+              <Route path="/deepcal" element={<DeepCALPage />} />
+              <Route path="/oracle" element={<OracleHutPage />} />
+              <Route path="/training" element={
+                <Suspense fallback={<div className="h-screen flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1]"></div>
+                </div>}>
+                  <TrainingPage />
+                </Suspense>
+              } />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+          
+          {/* UI Components for notifications */}
+          <Toaster />
+          <Sonner />
+          
+          {/* Chat Widget - kept outside of layout to ensure it's always visible */}
+          <ElevenLabsConvaiWidget agentId="kWY3sE6znRmHQqPy48sk" />
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
