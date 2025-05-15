@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader, CheckCircle, Database, Zap, Server, Cpu, ShieldCheck, Ship } from 'lucide-react';
+import { CheckCircle, Ship } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import Particles from './Particles';
 

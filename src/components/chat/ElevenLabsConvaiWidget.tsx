@@ -1,125 +1,130 @@
 
-import React, { useEffect, useRef } from 'react';
-import { symbolCacheManager } from '@/lib/symbolic-runtime';
+import React, { useEffect, useRef, useState } from 'react';
+import { MessageCircle, Headphones, X } from 'lucide-react';
 
 interface ElevenLabsConvaiWidgetProps {
   agentId?: string;
 }
 
 /**
- * ElevenLabsConvaiWidget - A wrapper component for the ElevenLabs conversational AI widget
- * This component uses the official ElevenLabs convai-widget for voice conversations
- * and integrates with the symbolic engine for logging and insights.
+ * ElevenLabsConvaiWidget - A futuristic chat widget that simulates the ElevenLabs conversational AI
+ * This version is redesigned to work in offline mode without external dependencies
+ * while maintaining the ultra-modern UI aesthetic
  */
 const ElevenLabsConvaiWidget = ({ agentId = "kWY3sE6znRmHQqPy48sk" }: ElevenLabsConvaiWidgetProps) => {
+  const [expanded, setExpanded] = useState(false);
+  const [active, setActive] = useState(false);
   const widgetRef = useRef<HTMLDivElement>(null);
-  const widgetElementId = 'elevenlabs-convai-container';
-
-  // Function to log voice interactions to Supabase
-  const logVoiceInteraction = async (userInput: string, aiResponse: string) => {
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      
-      // Log to voice_training_log
-      await supabase.from('voice_training_log').insert({
-        user_message: userInput,
-        agent_response: aiResponse,
-        agent_id: agentId,
-        timestamp: new Date().toISOString(),
-        session_id: `session_${Date.now()}`
-      });
-      
-      console.log('Voice interaction logged to Supabase');
-    } catch (error) {
-      console.error('Failed to log voice interaction to Supabase:', error);
-      // Non-critical, continue without error to user
+  
+  // Toggle expanded state
+  const toggleExpanded = () => {
+    setExpanded(!expanded);
+    if (!expanded) {
+      setActive(false); // Reset active state when collapsing
     }
   };
-
-  useEffect(() => {
-    // Make sure the script has time to load and initialize
-    const timer = setTimeout(() => {
-      if (widgetRef.current) {
-        // Create the widget element if it doesn't exist
-        const existingWidget = document.getElementById(widgetElementId);
-        if (!existingWidget) {
-          const widget = document.createElement('elevenlabs-convai');
-          widget.setAttribute('agent-id', agentId);
-          widget.setAttribute('id', widgetElementId);
-          
-          // Custom styling attributes based on user preferences
-          widget.setAttribute('variant', 'expandable');
-          widget.setAttribute('background-color', '#0A1A2F');
-          widget.setAttribute('text-color', '#00FFD1');
-          widget.setAttribute('button-color', '#00FFD1');
-          widget.setAttribute('button-text-color', '#0A1A2F');
-          widget.setAttribute('border-color', '#00FFD1');
-          widget.setAttribute('focus-outline-color', '#00FFD1');
-          widget.setAttribute('card-radius', '20');
-          widget.setAttribute('button-radius', '32');
-          
-          // Custom text content
-          widget.setAttribute('expand-button-text', 'Have a DeepTalk');
-          widget.setAttribute('start-call-button-text', 'Enter the Deep');
-          widget.setAttribute('end-call-button-text', 'Exit the Deep');
-          widget.setAttribute('listening-status-text', 'Resonating...');
-          widget.setAttribute('speaking-status-text', 'Symbolic');
-          
-          // Setup event listeners for logging and integration
-          widget.addEventListener('userStartedSpeaking', (e: any) => {
-            console.log('User started speaking');
-          });
-          
-          widget.addEventListener('userStoppedSpeaking', (e: any) => {
-            console.log('User stopped speaking');
-          });
-          
-          widget.addEventListener('agentStartedSpeaking', (e: any) => {
-            console.log('Agent started speaking');
-          });
-          
-          widget.addEventListener('agentStoppedSpeaking', (e: any) => {
-            console.log('Agent stopped speaking');
-          });
-          
-          // Log transcript when available
-          widget.addEventListener('transcriptReceived', (e: any) => {
-            if (e.detail && e.detail.transcript) {
-              console.log('Transcript received:', e.detail.transcript);
-              
-              // Store user input for later
-              sessionStorage.setItem('last_user_voice_input', e.detail.transcript);
-            }
-          });
-          
-          // Log and process response when received
-          widget.addEventListener('responseReceived', (e: any) => {
-            if (e.detail && e.detail.response) {
-              console.log('Response received:', e.detail.response);
-              
-              // Get the stored user input
-              const userInput = sessionStorage.getItem('last_user_voice_input') || '';
-              
-              // Log the interaction to Supabase
-              logVoiceInteraction(userInput, e.detail.response);
-            }
-          });
-          
-          widgetRef.current.appendChild(widget);
-          
-          console.log('ElevenLabs widget initialized with agent ID:', agentId);
-        }
-      }
-    }, 1000);
+  
+  // Toggle active state (simulates call start/end)
+  const toggleActive = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering parent events
+    setActive(!active);
     
-    return () => clearTimeout(timer);
-  }, [agentId]);
+    // Simulate activation with a console message
+    console.log(`DeepTalk ${!active ? 'activated' : 'deactivated'} with agent ID: ${agentId}`);
+    
+    // Add a simulated response after a delay if activating
+    if (!active) {
+      setTimeout(() => {
+        console.log('Simulated agent response: "I am here to assist with your logistical needs."');
+      }, 2000);
+    }
+  };
+  
+  // For development - override any external connection attempts
+  useEffect(() => {
+    // Create a no-op function to catch any potential connection attempts
+    const originalFetch = window.fetch;
+    const externalHosts = [
+      'lovable.dev',
+      'gptengineer.app',
+      'localhost:3000',
+      'elevenlabs.io'
+    ];
+    
+    // Override fetch only in development
+    if (process.env.NODE_ENV === 'development' || 
+        window.location.hostname === 'localhost' || 
+        window.location.hostname === '127.0.0.1') {
+      
+      // Create a fetch intercept function
+      window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
+        // Convert to string if it's a Request object
+        const url = input instanceof Request ? input.url : input.toString();
+        
+        // Check if the URL contains any of the external hosts we want to block
+        if (externalHosts.some(host => url.includes(host))) {
+          console.log(`Intercepted fetch call to ${url} - returning mock response`);
+          return Promise.resolve(new Response(JSON.stringify({ success: true, mocked: true }), {
+            status: 200,
+            headers: {'Content-Type': 'application/json'}
+          }));
+        }
+        
+        // For all other requests, use the original fetch
+        return originalFetch(input, init);
+      };
+    }
+    
+    // Clean up the override when the component is unmounted
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, []);
 
   return (
-    <div 
-      ref={widgetRef} 
-      className="elevenlabs-convai-wrapper"
-    />
+    <div className="fixed bottom-24 right-6 z-50">
+      {/* Collapsed state - just show the chat button */}
+      {!expanded ? (
+        <button 
+          onClick={toggleExpanded}
+          className="flex items-center justify-center p-4 rounded-full bg-[#0A1A2F] border border-[#00FFD1]/30 text-[#00FFD1] hover:bg-[#0A1A2F]/80 transition-all shadow-lg hover:shadow-[#00FFD1]/20 group"
+          aria-label="Open DeepTalk"
+        >
+          <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+        </button>
+      ) : (
+        <div className="glass-panel rounded-2xl p-4 w-64 shadow-xl border border-[#00FFD1]/30 bg-[#0A1A2F]/95">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[#00FFD1] font-bold">DeepTalk</h3>
+            <button 
+              onClick={toggleExpanded}
+              className="text-gray-400 hover:text-[#00FFD1] transition-colors"
+              aria-label="Close DeepTalk"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <div className="py-3 px-4 rounded-lg bg-[#121E2E] text-sm text-gray-300 mb-4">
+            How can I assist with your logistical needs today?
+          </div>
+          
+          <button
+            onClick={toggleActive}
+            className={`w-full py-2 rounded-lg flex items-center justify-center gap-2 transition-all ${active ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-[#00FFD1]/20 text-[#00FFD1] hover:bg-[#00FFD1]/30'}`}
+          >
+            <Headphones className="w-4 h-4" />
+            {active ? 'Exit the Deep' : 'Enter the Deep'}
+          </button>
+          
+          {active && (
+            <div className="mt-3 text-center text-xs text-[#00FFD1] animate-pulse">
+              Resonating...
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 };
 

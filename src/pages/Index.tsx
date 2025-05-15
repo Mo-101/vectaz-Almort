@@ -4,6 +4,7 @@ import { useBaseDataStore } from '@/store/baseState';
 import { AppSection } from '@/types/deeptrack';
 import EntryAnimation from '@/components/EntryAnimation';
 import { AnimatePresence } from 'framer-motion';
+import GlobalNavigation from '@/components/GlobalNavigation';
 
 // Import the optimized components
 import AnimatedBackground from '@/components/home/AnimatedBackground';
@@ -73,6 +74,11 @@ const Index = () => {
         <AppLogo />
       </div>
 
+      {/* Navigation bar */}
+      <div className="z-50">
+        <GlobalNavigation />
+      </div>
+      
       {/* Non-visual components */}
       <KonamiCodeEasterEgg />
       <NotificationHandler isDataLoaded={isDataLoaded} />

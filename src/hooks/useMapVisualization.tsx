@@ -29,7 +29,6 @@ export const useMapVisualization = (routes: Route[]) => {
   
   const { 
     handleRouteClick: interactionHandleRouteClick, 
-    handleJumpToLocation, 
     handleShipmentSelect 
   } = useRouteInteractions({ 
     limitedRoutes, 
