@@ -7,7 +7,6 @@ import { AnimatePresence } from 'framer-motion';
 
 // Import the optimized components
 import AnimatedBackground from '@/components/home/AnimatedBackground';
-import AppLogo from '@/components/home/AppLogo';
 import ContentRouter from '@/components/home/ContentRouter';
 import KonamiCodeEasterEgg from '@/components/home/KonamiCodeEasterEgg';
 import NotificationHandler from '@/components/home/NotificationHandler';
@@ -68,9 +67,6 @@ const Index = () => {
             isDataLoaded={isDataLoaded} 
           />
         </AnimatePresence>
-        
-        {/* App name in top right with enhanced styling */}
-        <AppLogo />
       </div>
       
       {/* Non-visual components */}

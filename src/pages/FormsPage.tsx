@@ -5,7 +5,6 @@ import EnhancedRFQForm from '@/components/forms/EnhancedRFQForm';
 import NewShipmentForm from '@/components/forms/NewShipmentForm';
 import { GlassContainer } from '@/components/ui/glass-effects';
 import Particles from '@/components/Particles';
-import AnimatedBackground from '@/components/home/AnimatedBackground';
 import DeepCALSection from '@/components/DeepCALSection';
 
 const FormsPage = () => {
