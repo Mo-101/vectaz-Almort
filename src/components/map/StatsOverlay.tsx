@@ -11,39 +11,54 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
 }) => {
   const { shipmentData } = useBaseDataStore();
   
-  // Calculate shipment status counts
+  // Calculate shipment status counts from actual data
   const statusCounts = {
-    inTransit: shipmentData.filter(s => s.delivery_status === 'in_transit' || s.delivery_status === 'In Transit').length,
-    delivered: shipmentData.filter(s => s.delivery_status === 'delivered' || s.delivery_status === 'Delivered').length,
-    delayed: shipmentData.filter(s => s.delivery_status === 'delayed' || s.delivery_status === 'Delayed').length,
-    pending: shipmentData.filter(s => s.delivery_status === 'pending' || s.delivery_status === 'Pending').length,
-    onTime: shipmentData.filter(s => 
-      (s.delivery_status === 'delivered' || s.delivery_status === 'Delivered') && 
-      s.date_of_arrival_destination !== undefined
+    inTransit: shipmentData.filter(s => 
+      s.delivery_status === 'in_transit' || 
+      s.delivery_status === 'In Transit'
     ).length,
+    delivered: shipmentData.filter(s => 
+      s.delivery_status === 'delivered' || 
+      s.delivery_status === 'Delivered'
+    ).length,
+    pending: shipmentData.filter(s => 
+      s.delivery_status === 'pending' || 
+      s.delivery_status === 'Pending'
+    ).length,
+    delayed: shipmentData.length - (
+      shipmentData.filter(s => 
+        s.delivery_status === 'delivered' || 
+        s.delivery_status === 'Delivered' || 
+        s.delivery_status === 'in_transit' || 
+        s.delivery_status === 'In Transit' ||
+        s.delivery_status === 'pending' || 
+        s.delivery_status === 'Pending'
+      ).length
+    )
   };
 
-  // Calculate top forwarders based on shipment counts
-  const forwarderCounts = shipmentData.reduce((acc: Record<string, number>, shipment) => {
-    const forwarder = shipment.final_quote_awarded_freight_forwader_Carrier || shipment.carrier || 'Unknown';
-    acc[forwarder] = (acc[forwarder] || 0) + 1;
-    return acc;
-  }, {});
+  // Get actual carriers from the data
+  const carrierCounts: Record<string, number> = {};
+  shipmentData.forEach(shipment => {
+    const carrier = shipment.carrier || shipment.final_quote_awarded_freight_forwader_Carrier || 'Unknown';
+    carrierCounts[carrier] = (carrierCounts[carrier] || 0) + 1;
+  });
 
-  // Sort forwarders by count
-  const topForwarders = Object.entries(forwarderCounts)
+  // Sort carriers by count
+  const topCarriers = Object.entries(carrierCounts)
     .sort(([, countA], [, countB]) => countB - countA)
     .slice(0, 3)
-    .map(([name, count]) => ({
-      name,
-      count,
-      onTimeRate: Math.round(
-        (shipmentData.filter(s => 
-          (s.final_quote_awarded_freight_forwader_Carrier === name || s.carrier === name) && 
-          (s.delivery_status === 'delivered' || s.delivery_status === 'Delivered')
-        ).length / Math.max(count, 1)) * 100
-      )
-    }));
+    .map(([name, count]) => {
+      // Calculate delivered rate for this carrier
+      const deliveredCount = shipmentData.filter(s => 
+        (s.carrier === name || s.final_quote_awarded_freight_forwader_Carrier === name) && 
+        (s.delivery_status === 'delivered' || s.delivery_status === 'Delivered')
+      ).length;
+      
+      const onTimeRate = Math.round((deliveredCount / Math.max(count, 1)) * 100);
+      
+      return { name, count, onTimeRate };
+    });
   
   return (
     <>
@@ -67,7 +82,7 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
       {/* Floating stat cards - repositioned to left center */}
       <div className="absolute top-1/2 left-4 transform -translate-y-1/2 space-y-3 z-10 w-80">
         <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
-          <h3 className="font-bold mb-2 text-sm text-cyber-blue">Active Shipments</h3>
+          <h3 className="font-bold mb-2 text-sm text-cyber-blue">Shipment Status</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>
               <span className="text-muted-foreground">In Transit:</span> <span className="text-foreground">{statusCounts.inTransit}</span>
@@ -76,7 +91,7 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
               <span className="text-muted-foreground">Delayed:</span> <span className="text-red-400">{statusCounts.delayed}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">On Schedule:</span> <span className="text-mostar-green">{statusCounts.onTime}</span>
+              <span className="text-muted-foreground">Delivered:</span> <span className="text-mostar-green">{statusCounts.delivered}</span>
             </div>
             <div>
               <span className="text-muted-foreground">Pending:</span> <span className="text-cyan-400">{statusCounts.pending}</span>
@@ -85,19 +100,19 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
         </div>
         
         <div className="glassmorphism-card p-3 rounded-md shadow-md border border-mostar-light-blue/30 max-w-xs">
-          <h3 className="font-bold mb-2 text-sm text-cyber-blue">Top Performing Forwarders</h3>
+          <h3 className="font-bold mb-2 text-sm text-cyber-blue">Top Carriers</h3>
           <div className="space-y-2 text-xs">
-            {topForwarders.map((forwarder, index) => (
+            {topCarriers.map((carrier, index) => (
               <div key={index} className="flex justify-between">
-                <span>{forwarder.name}</span>
-                <span className={forwarder.onTimeRate >= 90 ? "text-mostar-green" : 
-                                 forwarder.onTimeRate >= 80 ? "text-amber-500" : "text-red-400"}>
-                  {forwarder.onTimeRate}% On-Time
+                <span>{carrier.name}</span>
+                <span className={carrier.onTimeRate >= 90 ? "text-mostar-green" : 
+                                 carrier.onTimeRate >= 80 ? "text-amber-500" : "text-red-400"}>
+                  {carrier.onTimeRate}% On-Time
                 </span>
               </div>
             ))}
-            {topForwarders.length === 0 && (
-              <div className="text-muted-foreground">No forwarder data available</div>
+            {topCarriers.length === 0 && (
+              <div className="text-muted-foreground">No carrier data available</div>
             )}
           </div>
         </div>

@@ -23,24 +23,31 @@ export const useRouteProcessor = () => {
         weight = shipment.weight_kg as number;
       }
       
+      // Only create routes with complete data
+      if (!shipment.origin_latitude || !shipment.origin_longitude || 
+          !shipment.destination_latitude || !shipment.destination_longitude) {
+        // Skip shipments with incomplete location data
+        return null;
+      }
+      
       return {
         origin: {
           lat: shipment.origin_latitude,
           lng: shipment.origin_longitude,
-          name: shipment.origin_country,
+          name: shipment.origin_country || 'Unknown Origin',
           isOrigin: true
         },
         destination: {
           lat: shipment.destination_latitude,
           lng: shipment.destination_longitude,
-          name: shipment.destination_country,
+          name: shipment.destination_country || 'Unknown Destination',
           isOrigin: false
         },
         weight: weight,
         shipmentCount: 1,
-        deliveryStatus: shipment.delivery_status
+        deliveryStatus: shipment.delivery_status || 'Unknown'
       };
-    });
+    }).filter(route => route !== null) as Route[]; // Filter out null routes
   }, [isDataLoaded, shipmentData]);
 
   useEffect(() => {
