@@ -3,18 +3,22 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import IndexPage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
 import OracleHutPage from "./pages/OracleHutPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import TrainingPage from "./pages/TrainingPage";
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
 import MainLayout from "@/components/layout/MainLayout";
 import { toast } from "@/components/ui/use-toast";
+import { initDeepCALBridge } from "./components/deepcal/agent/deepTalk_bridge";
+import { initVoiceSystem } from "./utils/conversational/deepTalk_voiceReply";
 
 // Navigation protection wrapper
 const ProtectedRoute = ({ children, requiresValidation = true }) => {
@@ -72,7 +76,36 @@ const TrainingPage = React.lazy(() => import('./pages/training'));
 function App() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVoiceReady, setIsVoiceReady] = useState(false);
+  const [isDeepCALReady, setIsDeepCALReady] = useState(false);
   const { setShipmentData } = useBaseDataStore();
+
+  // Initialize voice system and DeepCAL bridge
+  useEffect(() => {
+    const initializeSystems = async () => {
+      try {
+        // Initialize voice system
+        const voiceReady = await initVoiceSystem();
+        setIsVoiceReady(voiceReady);
+        
+        // Initialize DeepCAL bridge
+        const deepCalReady = await initDeepCALBridge();
+        setIsDeepCALReady(deepCalReady);
+        
+        if (voiceReady) {
+          console.log("Ultra-futuristic voice system initialized");
+        }
+        
+        if (deepCalReady) {
+          console.log("DeepCAL agent bridge connected");
+        }
+      } catch (error) {
+        console.error("Failed to initialize systems:", error);
+      }
+    };
+    
+    initializeSystems();
+  }, []);
 
   useEffect(() => {
     // Check if we've already initialized this session
@@ -185,9 +218,7 @@ function App() {
   if (isLoading && isInitialLoad) {
     return (
       <TooltipProvider>
-        <BrowserRouter>
-          <LoadingScreen isInitialLoad={true} onLoadingComplete={() => setIsLoading(false)} />
-        </BrowserRouter>
+        <LoadingScreen isInitialLoad={true} onLoadingComplete={() => setIsLoading(false)} />
       </TooltipProvider>
     );
   }
@@ -195,34 +226,35 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
+        <Suspense fallback={<LoadingScreen />}>
           <Routes>
-            <Route element={<MainLayout />}>
-              {/* Public route - no validation needed */}
-              <Route path="/" element={<ProtectedRoute requiresValidation={false}><IndexPage /></ProtectedRoute>} />
-              
-              {/* Protected routes that require validated data */}
-              <Route path="/forms" element={<ProtectedRoute><FormsPage /></ProtectedRoute>} />
-              <Route path="/deepcal" element={<ProtectedRoute><DeepCALPage /></ProtectedRoute>} />
-              <Route path="/oracle" element={<ProtectedRoute><OracleHutPage /></ProtectedRoute>} />
-              <Route path="/training" element={
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<ProtectedRoute><IndexPage /></ProtectedRoute>} />
+              <Route path="analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+              <Route path="forms" element={<ProtectedRoute><FormsPage /></ProtectedRoute>} />
+              <Route path="deepcal" element={
                 <ProtectedRoute>
-                  <Suspense fallback={<div className="h-screen flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00FFD1]"></div>
-                  </div>}>
-                    <TrainingPage />
-                  </Suspense>
+                  <DeepCALPage 
+                    isVoiceReady={isVoiceReady} 
+                    isDeepCALReady={isDeepCALReady} 
+                  />
                 </ProtectedRoute>
               } />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="training" element={<ProtectedRoute><TrainingPage /></ProtectedRoute>} />
+              <Route path="oracle" element={<ProtectedRoute><OracleHutPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
-          
-          {/* UI Components for notifications */}
-          <Toaster />
-          <Sonner />
-        </BrowserRouter>
+        </Suspense>
+        
+        {/* UI Components for notifications */}
+        <Toaster />
+        <Sonner 
+          position="bottom-right"
+          closeButton
+          theme="dark"
+          richColors
+        />
       </TooltipProvider>
     </QueryClientProvider>
   );

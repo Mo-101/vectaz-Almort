@@ -144,10 +144,15 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   
   // Handle navigation through direct links
   const handleNavigation = (route: string) => {
-    navigate(route);
+    // First complete the loading process
     if (onLoadingComplete) {
       onLoadingComplete();
     }
+    
+    // Use setTimeout to ensure state updates before navigation
+    setTimeout(() => {
+      navigate(route, { replace: true }); // Use replace to avoid back button issues
+    }, 50);
   };
 
   // Static navigation icons for loading screen (router-independent)  
