@@ -6,14 +6,14 @@ export interface Shipment {
   cargo_description: string;
   item_category: string;
   origin_country: string;
-  origin_longitude: number;
-  origin_latitude: number;
+  origin_longitude: string | number;
+  origin_latitude: string | number;
   destination_country: string;
-  destination_longitude: number;
-  destination_latitude: number;
+  destination_longitude: string | number;
+  destination_latitude: string | number;
   freight_carrier: string;
-  weight_kg: number;
-  volume_cbm: number;
+  weight_kg: string | number;
+  volume_cbm: string | number;
   initial_quote_awarded: string;
   final_quote_awarded_freight_forwader_Carrier: string;
   comments: string;
@@ -21,6 +21,19 @@ export interface Shipment {
   delivery_status: string;
   mode_of_shipment: string;
   forwarder_quotes: Record<string, number>;
+  
+  // Additional fields needed by the system
+  id?: string;
+  tracking_number?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  estimated_departure?: string;
+  total_value?: number;
+  weight?: number;
+  expected_delivery_date?: string;
+  date_of_greenlight_to_pickup?: string | null;
+  data_validated?: boolean;
 }
 
 export interface ForwarderPerformance {
@@ -34,6 +47,18 @@ export interface ForwarderPerformance {
   costScore?: number;
   timeScore?: number;
   quoteWinRate?: number;
+}
+
+export interface CarrierPerformance {
+  name: string;
+  totalShipments: number;
+  avgCostPerKg: number;
+  avgTransitDays: number;
+  onTimeRate: number;
+  reliabilityScore: number;
+  shipments?: number;
+  reliability?: number;
+  deepScore?: number;
 }
 
 export interface RoutePerformance {
@@ -59,6 +84,11 @@ export interface CountryPerformance {
   reliabilityScore?: number;
   avgTransitDays?: number;
   deliverySuccessRate?: number;
+  // Add the additional required fields
+  totalWeight?: number;
+  totalVolume?: number;
+  totalCost?: number;
+  avgDelayDays?: number;
 }
 
 export interface WarehousePerformance {
@@ -88,11 +118,17 @@ export interface ShipmentMetrics {
   noQuoteRatio: number;
   totalWeight: number;
   totalVolume: number;
-  totalCost: number;
+  totalCost?: number;  // Make totalCost optional
   avgCostPerKg: number;
+  
+  // Additional properties
+  forwarderPerformance?: Record<string, any>;
+  topForwarder?: string;
+  carrierCount?: number;
+  topCarrier?: string;
 }
 
-export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'oracle';
 
 export interface TabItem {
   id: AppSection;
@@ -113,4 +149,12 @@ export interface Route {
   weight: number;
   shipmentCount: number;
   deliveryStatus?: string;
+  id?: string;
+}
+
+export interface RouteInfo {
+  from: string;
+  to: string;
+  status: 'normal' | 'delayed' | 'disrupted';
+  count: number;
 }

@@ -20,4 +20,5 @@ export interface MapContainerRef {
   jumpToLocation: (lat: number, lng: number, name: string) => void;
   toggleTerrain: (show3D: boolean) => void;
   showInfoAtLocation: (lat: number, lng: number, content: string) => void;
+  mapRef?: mapboxgl.Map | null;
 }

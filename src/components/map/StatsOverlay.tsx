@@ -25,23 +25,24 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
       s.delivery_status === 'pending' || 
       s.delivery_status === 'Pending'
     ).length,
-    delayed: shipmentData.length - (
-      shipmentData.filter(s => 
-        s.delivery_status === 'delivered' || 
-        s.delivery_status === 'Delivered' || 
-        s.delivery_status === 'in_transit' || 
-        s.delivery_status === 'In Transit' ||
-        s.delivery_status === 'pending' || 
-        s.delivery_status === 'Pending'
-      ).length
-    )
+    delayed: shipmentData.filter(s => 
+      !s.delivery_status || 
+      (s.delivery_status !== 'delivered' && 
+       s.delivery_status !== 'Delivered' && 
+       s.delivery_status !== 'in_transit' && 
+       s.delivery_status !== 'In Transit' &&
+       s.delivery_status !== 'pending' && 
+       s.delivery_status !== 'Pending')
+    ).length
   };
 
   // Get actual carriers from the data
   const carrierCounts: Record<string, number> = {};
   shipmentData.forEach(shipment => {
-    const carrier = shipment.carrier || shipment.final_quote_awarded_freight_forwader_Carrier || 'Unknown';
-    carrierCounts[carrier] = (carrierCounts[carrier] || 0) + 1;
+    const carrier = shipment.carrier || shipment.freight_carrier || 'Unknown';
+    if (carrier) {
+      carrierCounts[carrier] = (carrierCounts[carrier] || 0) + 1;
+    }
   });
 
   // Sort carriers by count
@@ -51,11 +52,11 @@ const StatsOverlay: React.FC<StatsOverlayProps> = ({
     .map(([name, count]) => {
       // Calculate delivered rate for this carrier
       const deliveredCount = shipmentData.filter(s => 
-        (s.carrier === name || s.final_quote_awarded_freight_forwader_Carrier === name) && 
+        (s.carrier === name || s.freight_carrier === name) && 
         (s.delivery_status === 'delivered' || s.delivery_status === 'Delivered')
       ).length;
       
-      const onTimeRate = Math.round((deliveredCount / Math.max(count, 1)) * 100);
+      const onTimeRate = count > 0 ? Math.round((deliveredCount / count) * 100) : 0;
       
       return { name, count, onTimeRate };
     });

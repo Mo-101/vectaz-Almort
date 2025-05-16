@@ -1,28 +1,56 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShipmentMetrics } from '@/types/deeptrack';
+import { ShipmentMetrics, RouteInfo } from '@/types/deeptrack';
 import { Map, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useBaseDataStore } from '@/store/baseState';
 
 interface ShipmentRouteMapProps {
   metrics: ShipmentMetrics;
 }
 
 const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
-  // We'd normally use real map data here, but for now we'll create a simulated route map
-  // This could be replaced with a real map visualization using Mapbox or similar
-  const totalShipments = metrics.totalShipments;
-  const activeRoutes = Object.keys(metrics.shipmentsByMode).length * 3; // Simulated number of routes
+  const { shipmentData } = useBaseDataStore();
   
-  // Generate mock route data
-  const routes = [
-    { from: 'Kenya', to: 'Germany', status: 'normal', count: Math.ceil(totalShipments * 0.25) },
-    { from: 'China', to: 'Kenya', status: 'delayed', count: Math.ceil(totalShipments * 0.15) },
-    { from: 'UAE', to: 'Kenya', status: 'normal', count: Math.ceil(totalShipments * 0.20) },
-    { from: 'USA', to: 'Kenya', status: 'disrupted', count: Math.ceil(totalShipments * 0.10) },
-    { from: 'Kenya', to: 'South Africa', status: 'normal', count: Math.ceil(totalShipments * 0.15) },
-    { from: 'UK', to: 'Kenya', status: 'normal', count: Math.ceil(totalShipments * 0.15) },
-  ];
+  // Calculate actual routes from shipment data
+  const routes = React.useMemo(() => {
+    const routeMap = new Map<string, RouteInfo>();
+    
+    // Group shipments by origin-destination pairs
+    shipmentData.forEach(shipment => {
+      if (!shipment.origin_country || !shipment.destination_country) return;
+      
+      const routeKey = `${shipment.origin_country}-${shipment.destination_country}`;
+      const existingRoute = routeMap.get(routeKey);
+      
+      if (!existingRoute) {
+        routeMap.set(routeKey, {
+          from: shipment.origin_country,
+          to: shipment.destination_country,
+          status: getDeliveryStatus(shipment.delivery_status),
+          count: 1
+        });
+      } else {
+        existingRoute.count += 1;
+      }
+    });
+    
+    // Convert map to array and sort by count
+    return Array.from(routeMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6); // Get top 6 routes
+  }, [shipmentData]);
+  
+  // Helper function to normalize delivery status
+  function getDeliveryStatus(status?: string): 'normal' | 'delayed' | 'disrupted' {
+    if (!status) return 'disrupted';
+    
+    const normalized = status.toLowerCase();
+    if (normalized.includes('delivered')) return 'normal';
+    if (normalized.includes('transit')) return 'normal';
+    if (normalized.includes('pending')) return 'delayed';
+    return 'disrupted';
+  }
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -42,6 +70,10 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
     }
   };
 
+  // Calculate actual metrics for display
+  const activeRoutes = routes.length;
+  const transportModes = new Set(shipmentData.map(s => s.mode_of_shipment).filter(Boolean)).size;
+
   return (
     <Card>
       <CardHeader className="border-b border-border/40 bg-black/30">
@@ -52,7 +84,7 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
       </CardHeader>
       <CardContent className="pt-4">
         <div className="text-lg font-medium mb-3">
-          {activeRoutes} Active Routes Across {Object.keys(metrics.shipmentsByMode).length} Transport Modes
+          {activeRoutes} Active Routes Across {transportModes} Transport Modes
         </div>
         
         {/* Placeholder for actual map - in real implementation, use a mapping library */}
@@ -80,7 +112,7 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
         <div className="space-y-2">
           <div className="text-sm font-medium text-gray-400 mb-1">Top Routes by Volume</div>
           <div className="divide-y divide-gray-800">
-            {routes.map((route, index) => (
+            {routes.length > 0 ? routes.map((route, index) => (
               <div key={index} className="flex items-center justify-between py-2">
                 <div className="flex items-center">
                   <div className={`h-2 w-2 rounded-full ${getStatusColor(route.status)} mr-2`}></div>
@@ -91,7 +123,9 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
                   {getStatusIcon(route.status)}
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="py-2 text-gray-400">No route data available</div>
+            )}
           </div>
         </div>
       </CardContent>

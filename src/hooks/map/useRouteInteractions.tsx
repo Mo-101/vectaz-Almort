@@ -16,7 +16,9 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
   const popupStyles = useMemo(() => ({
     delivered: 'text-green-400',
     inTransit: 'text-amber-400',
-    delayed: 'text-red-400'
+    pending: 'text-cyan-400',
+    delayed: 'text-red-400',
+    unknown: 'text-gray-400'
   }), []);
   
   // Helper function to prevent rapid interactions
@@ -38,17 +40,26 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
       if (!throttleInteraction()) return;
       
       const { origin, destination, weight, deliveryStatus } = route;
+      // Use id from route or generate one from index
+      const routeId = route.id || `route-${index}`;
       
       if (!destination || !destination.lat || !destination.lng) {
         throw new Error(`Invalid destination coordinates for route to ${destination?.name || 'unknown'}`);
       }
       
-      let statusColorClass = popupStyles.delayed;
+      let statusColorClass = popupStyles.unknown;
       
-      if (deliveryStatus?.toLowerCase().includes('delivered')) {
-        statusColorClass = popupStyles.delivered;
-      } else if (deliveryStatus?.toLowerCase().includes('transit')) {
-        statusColorClass = popupStyles.inTransit;
+      if (deliveryStatus) {
+        const status = deliveryStatus.toLowerCase();
+        if (status.includes('delivered')) {
+          statusColorClass = popupStyles.delivered;
+        } else if (status.includes('transit')) {
+          statusColorClass = popupStyles.inTransit;
+        } else if (status.includes('pending')) {
+          statusColorClass = popupStyles.pending;
+        } else {
+          statusColorClass = popupStyles.delayed;
+        }
       }
       
       const popupContent = `
@@ -59,7 +70,7 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
             </h3>
             <span class="${statusColorClass} text-xs font-medium flex items-center">
               <span class="mr-1">${deliveryStatus || 'Unknown'}</span>
-              ${!deliveryStatus?.toLowerCase().includes('delivered') ? '<span class="error-flicker">●</span>' : ''}
+              ${deliveryStatus?.toLowerCase().includes('delivered') ? '' : '<span class="error-flicker">●</span>'}
             </span>
           </div>
           
@@ -71,7 +82,7 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
               <span class="text-gray-400">Destination:</span> ${destination?.name || 'Unknown'}
             </div>
             <div>
-              <span class="text-gray-400">Shipment:</span> #${1000 + index}
+              <span class="text-gray-400">Shipment:</span> ${routeId}
             </div>
             <div>
               <span class="text-gray-400">Total Weight:</span> ${weight ? `${weight} kg` : 'Not available'}

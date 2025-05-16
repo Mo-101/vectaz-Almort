@@ -9,6 +9,9 @@ import { useMapInteractions } from './hooks/useMapInteractions';
 import { useMapRef } from './hooks/useMapRef';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
+// Set the Mapbox token directly to ensure map always loads
+mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+
 // Using forwardRef to properly handle the ref
 const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({ 
   routes, 
@@ -47,13 +50,15 @@ const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({
     if (!mapContainerRef.current || isLoading || mapRef.current) return;
     
     try {
+      console.log("Creating new map instance");
+      
       // Create a new map instance
       const map = initializeMap(mapContainerRef.current);
       mapRef.current = map;
 
       // Setup event handlers
       map.on('load', () => {
-        console.log('Mapbox map loaded');
+        console.log('Mapbox map loaded successfully');
         
         try {
           // Setup map environment (atmosphere, fog, terrain)

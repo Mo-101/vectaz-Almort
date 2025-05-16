@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 
 // Set the Mapbox access token directly (best for development)
 // In production, this should come from environment variables
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g';
+mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
 
 /**
  * Initialize a new Mapbox map
@@ -19,16 +19,20 @@ export const initializeMap = (container: HTMLDivElement): mapboxgl.Map => {
     if (!mapboxgl.accessToken) {
       console.error("Mapbox GL access token is not set");
       // Use a fallback token if needed in development
+      mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
     }
     
+    // Create and return the map with a custom dark style
     const map = new mapboxgl.Map({
       container,
-      style: 'mapbox://styles/akanimo1/cm8bw23rp00i501sbgbr258r0',
+      style: 'mapbox://styles/mapbox/dark-v11', // Use a standard dark style for reliability
       center: [0, 20], // Center on Africa
       zoom: 2,
       pitch: 40,
       bearing: 0,
-      projection: 'globe'
+      projection: 'globe', // Use globe projection for 3D effect
+      attributionControl: false, // Hide attribution for cleaner look
+      preserveDrawingBuffer: true // Needed for potential image exports
     });
 
     // Add navigation controls
@@ -75,6 +79,31 @@ export const setupMapEnvironment = (map: mapboxgl.Map): void => {
         'maxzoom': 14
       });
     }
+    
+    // Add a custom layer for more visual appeal
+    map.on('style.load', () => {
+      // Add a sky layer that will show when the map is highly pitched
+      map.addLayer({
+        'id': 'sky',
+        'type': 'sky',
+        'paint': {
+          'sky-opacity': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            0,
+            0,
+            5,
+            0.3,
+            8,
+            1
+          ],
+          'sky-type': 'atmosphere',
+          'sky-atmosphere-sun': [0.0, 0.0],
+          'sky-atmosphere-sun-intensity': 15
+        }
+      });
+    });
   } catch (error) {
     console.error("Failed to setup map environment:", error);
     // Continue without environment effects
@@ -113,6 +142,22 @@ export const setupGlobeRotation = (
     map.on('touchend', () => {
       onUserInteractionChange(false);
     });
+    
+    // Start automatic rotation
+    let lastTime = 0;
+    const animateGlobe = (time: number) => {
+      // Fixed: Use _removed instead of isRemoved
+      if (!map || map._removed) return;
+      
+      // Calculate delta time for smooth animation regardless of frame rate
+      const deltaTime = lastTime ? (time - lastTime) / 1000 : 0;
+      lastTime = time;
+      
+      requestAnimationFrame(animateGlobe);
+      spinGlobe(map, false, true, 180, 5);
+    };
+    
+    requestAnimationFrame(animateGlobe);
   } catch (error) {
     console.error("Failed to setup globe rotation:", error);
     // Continue without rotation

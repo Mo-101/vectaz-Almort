@@ -20,15 +20,28 @@ export const useMapMarkers = (routes: Route[]) => {
       // Get unique destination countries
       const uniqueCountries = new Map();
       
+      if (!shipmentData || shipmentData.length === 0) {
+        return [];
+      }
+      
       shipmentData.forEach(shipment => {
+        // Extract and convert coordinates to numbers
+        const destLat = typeof shipment.destination_latitude === 'string' 
+          ? parseFloat(shipment.destination_latitude) 
+          : shipment.destination_latitude;
+          
+        const destLng = typeof shipment.destination_longitude === 'string' 
+          ? parseFloat(shipment.destination_longitude) 
+          : shipment.destination_longitude;
+        
         if (
           shipment.destination_country && 
-          shipment.destination_latitude && 
-          shipment.destination_longitude
+          destLat && 
+          destLng
         ) {
           uniqueCountries.set(shipment.destination_country, {
             name: shipment.destination_country,
-            coordinates: [shipment.destination_longitude, shipment.destination_latitude] as [number, number],
+            coordinates: [destLng, destLat] as [number, number],
             status: shipment.delivery_status || 'Unknown'
           });
         }
@@ -53,7 +66,7 @@ export const useMapMarkers = (routes: Route[]) => {
   // Limit routes to a reasonable number for performance
   const limitedRoutes = useMemo(() => {
     try {
-      // Only display active routes with complete data
+      // Only display routes with complete data
       const goodRoutes = routes.filter(route => 
         route.origin?.lat && 
         route.origin?.lng && 
@@ -61,7 +74,8 @@ export const useMapMarkers = (routes: Route[]) => {
         route.destination?.lng
       );
       
-      return goodRoutes.slice(0, 10); // Limit to 10 for performance
+      // Return all routes but limit if there are too many
+      return goodRoutes.length > 20 ? goodRoutes.slice(0, 20) : goodRoutes;
     } catch (error) {
       handleMapError("ROUTE_LIMIT_FAIL", "Failed to limit routes", error);
       return [];
