@@ -9,16 +9,15 @@ interface ShipmentRouteMapProps {
   metrics: ShipmentMetrics;
 }
 
+interface RouteInfo {
+  from: string;
+  to: string;
+  status: 'normal' | 'delayed' | 'disrupted';
+  count: number;
+}
+
 const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
   const { shipmentData } = useBaseDataStore();
-  
-  // Define the RouteInfo interface for the route data
-  interface RouteInfo {
-    from: string;
-    to: string;
-    status: 'normal' | 'delayed' | 'disrupted';
-    count: number;
-  }
   
   // Calculate actual routes from shipment data
   const routes = React.useMemo(() => {

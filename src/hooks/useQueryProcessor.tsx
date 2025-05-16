@@ -1,49 +1,78 @@
 
-import { useState } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect, useMemo } from 'react';
 import { useBaseDataStore } from '@/store/baseState';
-import { analyzeShipmentData } from '@/utils/analyticsUtils';
-import { generateInsightFromQuery } from '@/services/deepExplain';
-import { decisionEngine } from '@/core/engine';
+import { Route } from '@/types/deeptrack';
+import { adaptShipmentsForEngine } from '@/utils/typeAdapters';
 
-export const useQueryProcessor = () => {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
-  const { shipmentData } = useBaseDataStore();
+export const useRouteProcessor = () => {
+  const { isDataLoaded, shipmentData } = useBaseDataStore();
+  const [routes, setRoutes] = useState<Route[]>([]);
 
-  const processQuery = async (query: string): Promise<string> => {
-    try {
-      setIsProcessing(true);
-      
-      // Initialize the decision engine if not already initialized
-      if (!decisionEngine.isReady() && shipmentData.length > 0) {
-        decisionEngine.initialize(shipmentData);
+  // Use useMemo to process data only when dependencies change
+  const processedRoutes = useMemo(() => {
+    if (!isDataLoaded || shipmentData.length === 0) {
+      return [];
+    }
+    
+    // Process shipment data into routes for the map
+    return shipmentData.map((shipment, index) => {
+      // Ensure weight is a number
+      let weight: number = 0;
+      if (typeof shipment.weight_kg === 'string') {
+        weight = parseFloat(shipment.weight_kg) || 0;
+      } else if (typeof shipment.weight_kg === 'number') {
+        weight = shipment.weight_kg;
       }
       
-      // Process analytics data
-      const analyticsData = analyzeShipmentData(shipmentData);
+      // Ensure coordinates are numbers
+      const originLat = typeof shipment.origin_latitude === 'string' 
+        ? parseFloat(shipment.origin_latitude) 
+        : shipment.origin_latitude;
+        
+      const originLng = typeof shipment.origin_longitude === 'string' 
+        ? parseFloat(shipment.origin_longitude) 
+        : shipment.origin_longitude;
+        
+      const destLat = typeof shipment.destination_latitude === 'string' 
+        ? parseFloat(shipment.destination_latitude) 
+        : shipment.destination_latitude;
+        
+      const destLng = typeof shipment.destination_longitude === 'string' 
+        ? parseFloat(shipment.destination_longitude) 
+        : shipment.destination_longitude;
       
-      // Generate insights
-      const response = await generateInsightFromQuery(query, analyticsData);
+      // Only create routes with complete data
+      if (!originLat || !originLng || !destLat || !destLng) {
+        // Skip shipments with incomplete location data
+        return null;
+      }
       
-      return response;
-    } catch (error) {
-      console.error("Error processing query:", error);
-      toast({
-        title: "Error",
-        description: "Failed to process your query. Please try again.",
-        variant: "destructive",
-      });
-      return "I'm sorry, I encountered an error processing your query. Please try again or rephrase your question.";
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+      return {
+        origin: {
+          lat: originLat,
+          lng: originLng,
+          name: shipment.origin_country || 'Unknown Origin',
+          isOrigin: true
+        },
+        destination: {
+          lat: destLat,
+          lng: destLng,
+          name: shipment.destination_country || 'Unknown Destination',
+          isOrigin: false
+        },
+        weight: weight,
+        shipmentCount: 1,
+        deliveryStatus: shipment.delivery_status || 'Unknown',
+        id: shipment.request_reference || `shipment-${index}`
+      };
+    }).filter(route => route !== null) as Route[];
+  }, [isDataLoaded, shipmentData]);
 
-  return {
-    processQuery,
-    isProcessing
-  };
+  useEffect(() => {
+    setRoutes(processedRoutes);
+  }, [processedRoutes]);
+
+  return { routes };
 };
 
-export default useQueryProcessor;
+export default useRouteProcessor;

@@ -146,7 +146,7 @@ export const setupGlobeRotation = (
     // Start automatic rotation
     let lastTime = 0;
     const animateGlobe = (time: number) => {
-      if (!map || map.isRemoved()) return;
+      if (!map || map._removed) return; // Use _removed instead of isRemoved
       
       // Calculate delta time for smooth animation regardless of frame rate
       const deltaTime = lastTime ? (time - lastTime) / 1000 : 0;

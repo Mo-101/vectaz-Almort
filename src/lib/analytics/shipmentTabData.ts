@@ -1,6 +1,7 @@
 
 import { Shipment, ShipmentMetrics } from '@/types/deeptrack';
 import { calculateShipmentMetrics } from '@/utils/analyticsUtils';
+import { adaptShipmentsForEngine, ensureCompleteMetrics } from '@/utils/typeAdapters';
 
 export function someFunction(value: string | number) {
   // Convert to number if it's a string
@@ -13,8 +14,11 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
   console.log(`Computing insights from ${shipmentData.length} shipments`);
   
   try {
+    // Convert shipment data to engine-compatible format
+    const engineShipments = adaptShipmentsForEngine(shipmentData);
+    
     // Use the existing utility to calculate metrics
-    const metrics = calculateShipmentMetrics(shipmentData as any);
+    const metrics = calculateShipmentMetrics(engineShipments);
     
     // Parse shipment weights and volumes to calculate totals
     let totalWeight = 0;
@@ -56,8 +60,8 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       disruptionProbabilityScore: metrics.disruptionProbabilityScore,
       // Add required fields that might be missing
       totalWeight: totalWeight,
-      totalVolume: totalVolume,
-      totalCost: totalCost
+      totalVolume: totalVolume
+      // totalCost is not part of ShipmentMetrics type, so we remove it
     };
     
     return validMetrics;
@@ -77,8 +81,8 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       noQuoteRatio: 0,
       disruptionProbabilityScore: 0,
       totalWeight: 0,
-      totalVolume: 0,
-      totalCost: 0
+      totalVolume: 0
+      // totalCost is not part of ShipmentMetrics type, so we remove it
     };
   }
 }

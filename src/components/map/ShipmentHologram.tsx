@@ -34,6 +34,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
           const destinationName = shipment.destination?.name || 'Unknown Destination';
           const deliveryStatus = shipment.deliveryStatus || 'Unknown';
           const weight = shipment.weight || 0;
+          // Ensure we have an id for each shipment
           const shipmentId = shipment.id || `shipment-${index}`;
           
           // Status styling based on delivery status
@@ -52,7 +53,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
           
           return (
             <div 
-              key={`${shipmentId}-${index}`}
+              key={shipmentId}
               className="border-b border-mostar-blue/10 p-3 hover:bg-mostar-blue/5 cursor-pointer transition-colors"
               onClick={() => onSelect(shipment, index)}
             >

@@ -223,7 +223,7 @@ export interface Route {
   weight: number;
   shipmentCount: number;
   deliveryStatus?: string;
-  id?: string; // Added ID field to match usage in components
+  id: string;  // Make id required
 }
 
 export type TrendDirection = 'up' | 'down' | 'neutral';

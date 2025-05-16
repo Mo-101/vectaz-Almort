@@ -93,7 +93,7 @@ export interface ShipmentMetrics {
   noQuoteRatio: number;
   totalWeight: number;
   totalVolume: number;
-  totalCost?: number;
+  totalCost?: number;  // Make totalCost optional
   avgCostPerKg: number;
 }
 

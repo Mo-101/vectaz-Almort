@@ -17,6 +17,7 @@ import {
   calculateCarrierPerformance,
   calculateShipmentMetrics
 } from '@/utils/analyticsUtils';
+import { adaptShipmentsForEngine, adaptCountryPerformancesForUI } from '@/utils/typeAdapters';
 
 // Interface for core metrics used in overview tab
 export interface CoreMetrics {
@@ -65,14 +66,20 @@ export const useAnalyticsMetrics = (): AnalyticsMetricsData => {
     try {
       console.log(`Calculating analytics for ${shipmentData.length} shipments`);
       
+      // Adapt shipment data for the engine
+      const engineShipments = adaptShipmentsForEngine(shipmentData);
+      
       // Calculate metrics from the shipment data
-      const metrics = calculateShipmentMetrics(shipmentData);
+      const metrics = calculateShipmentMetrics(engineShipments);
       
       // Calculate forwarder, carrier, country, and warehouse performance
-      const forwarderPerformance = calculateForwarderPerformance(shipmentData);
-      const carrierPerformance = calculateCarrierPerformance(shipmentData);
-      const countryPerformance = calculateCountryPerformance(shipmentData);
-      const warehousePerformance = calculateWarehousePerformance(shipmentData);
+      const forwarderPerformance = calculateForwarderPerformance(engineShipments);
+      const carrierPerformance = calculateCarrierPerformance(engineShipments);
+      const countryPerformanceEngine = calculateCountryPerformance(engineShipments);
+      const warehousePerformance = calculateWarehousePerformance(engineShipments);
+      
+      // Adapt country performance for UI
+      const countryPerformance = adaptCountryPerformancesForUI(countryPerformanceEngine);
 
       // Ensure carriers have required properties
       const processedCarriers = carrierPerformance.map(carrier => ({
