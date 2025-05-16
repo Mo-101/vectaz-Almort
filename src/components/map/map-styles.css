@@ -1,3 +1,4 @@
+
 @keyframes pulse {
   0% {
     transform: scale(1);
@@ -75,4 +76,134 @@
 .country-info h3 {
   font-size: 15px;
   color: #3b82f6;
+}
+
+/* Marker styling */
+.marker-container {
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.marker-inner {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.marker-inner.destination {
+  background-color: #D946EF;
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.6);
+}
+
+.marker-inner.origin {
+  background-color: #1A1F2C;
+  border: 2px solid rgba(59, 130, 246, 0.6);
+}
+
+.marker-inner.country {
+  background-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+}
+
+.marker-inner.green {
+  background-color: #10b981;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.marker-inner.yellow {
+  background-color: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+}
+
+.marker-inner.red {
+  background-color: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+}
+
+.marker-inner.blue {
+  background-color: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
+}
+
+.marker-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.marker-pulse.green {
+  background-color: rgba(16, 185, 129, 0.6);
+}
+
+.marker-pulse.yellow {
+  background-color: rgba(245, 158, 11, 0.6);
+}
+
+.marker-pulse.red {
+  background-color: rgba(239, 68, 68, 0.6);
+}
+
+.marker-pulse.blue {
+  background-color: rgba(59, 130, 246, 0.6);
+}
+
+/* Glassmorphism card */
+.glassmorphism-card {
+  background: linear-gradient(135deg, rgba(26, 31, 44, 0.8), rgba(34, 40, 60, 0.8));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* Thin scrollbar for overflow containers */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.1);
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 5px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.7);
+}
+
+/* Neon shadow effects */
+.shadow-neon-blue {
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.7);
+}
+
+.shadow-neon-magenta {
+  box-shadow: 0 0 8px rgba(217, 70, 239, 0.7);
+}
+
+.shadow-neon-green {
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+}
+
+/* Make sure Mapbox controls have proper styling */
+.mapboxgl-ctrl-group {
+  background-color: rgba(26, 31, 44, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.mapboxgl-ctrl-group button {
+  color: white !important;
+}
+
+.mapboxgl-ctrl-group button:hover {
+  background-color: rgba(59, 130, 246, 0.2) !important;
 }

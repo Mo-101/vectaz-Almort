@@ -6,14 +6,14 @@ export interface Shipment {
   cargo_description: string;
   item_category: string;
   origin_country: string;
-  origin_longitude: number;
-  origin_latitude: number;
+  origin_longitude: string | number;
+  origin_latitude: string | number;
   destination_country: string;
-  destination_longitude: number;
-  destination_latitude: number;
+  destination_longitude: string | number;
+  destination_latitude: string | number;
   freight_carrier: string;
-  weight_kg: number;
-  volume_cbm: number;
+  weight_kg: string | number;
+  volume_cbm: string | number;
   initial_quote_awarded: string;
   final_quote_awarded_freight_forwader_Carrier: string;
   comments: string;
@@ -59,6 +59,11 @@ export interface CountryPerformance {
   reliabilityScore?: number;
   avgTransitDays?: number;
   deliverySuccessRate?: number;
+  // Add the additional required fields
+  totalWeight?: number;
+  totalVolume?: number;
+  totalCost?: number;
+  avgDelayDays?: number;
 }
 
 export interface WarehousePerformance {
@@ -88,7 +93,7 @@ export interface ShipmentMetrics {
   noQuoteRatio: number;
   totalWeight: number;
   totalVolume: number;
-  totalCost: number;
+  totalCost?: number;
   avgCostPerKg: number;
 }
 

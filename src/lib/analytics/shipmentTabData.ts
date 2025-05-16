@@ -14,11 +14,12 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
   
   try {
     // Use the existing utility to calculate metrics
-    const metrics = calculateShipmentMetrics(shipmentData);
+    const metrics = calculateShipmentMetrics(shipmentData as any);
     
     // Parse shipment weights and volumes to calculate totals
     let totalWeight = 0;
     let totalVolume = 0;
+    let totalCost = 0;
     
     shipmentData.forEach(shipment => {
       if (shipment.weight_kg) {
@@ -29,6 +30,15 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       if (shipment.volume_cbm) {
         const volume = typeof shipment.volume_cbm === 'string' ? parseFloat(shipment.volume_cbm) : shipment.volume_cbm;
         if (!isNaN(volume)) totalVolume += volume;
+      }
+      
+      // If there's cost information, calculate total cost
+      if (shipment.forwarder_quotes) {
+        const quotes = Object.values(shipment.forwarder_quotes);
+        if (quotes.length > 0) {
+          const avgQuote = quotes.reduce((sum, q) => sum + q, 0) / quotes.length;
+          totalCost += avgQuote;
+        }
       }
     });
     
@@ -46,7 +56,8 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       disruptionProbabilityScore: metrics.disruptionProbabilityScore,
       // Add required fields that might be missing
       totalWeight: totalWeight,
-      totalVolume: totalVolume
+      totalVolume: totalVolume,
+      totalCost: totalCost
     };
     
     return validMetrics;
@@ -66,7 +77,8 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       noQuoteRatio: 0,
       disruptionProbabilityScore: 0,
       totalWeight: 0,
-      totalVolume: 0
+      totalVolume: 0,
+      totalCost: 0
     };
   }
 }
