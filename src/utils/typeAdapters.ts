@@ -12,7 +12,7 @@ export function adaptShipmentForEngine(shipment: UIShipment): EngineShipment {
     ...shipment,
     // Ensure required properties exist even if they're optional in the UI type
     freight_carrier: shipment.freight_carrier || '',
-    // Convert all coordinates to numbers
+    // Convert all string coordinates to numbers
     origin_longitude: typeof shipment.origin_longitude === 'string' ? 
       parseFloat(shipment.origin_longitude) : (shipment.origin_longitude || 0),
     origin_latitude: typeof shipment.origin_latitude === 'string' ? 
@@ -55,12 +55,21 @@ export function adaptCountryPerformancesForUI(countryPerfs: EngineCountryPerform
 }
 
 /**
- * Ensures ShipmentMetrics has required totalCost field
+ * Ensures ShipmentMetrics has required fields
  */
-export function ensureCompleteMetrics(metrics: ShipmentMetrics): ShipmentMetrics & { totalCost: number } {
+export function ensureCompleteMetrics(metrics: Partial<ShipmentMetrics>): ShipmentMetrics {
   return {
-    ...metrics,
-    // Ensure totalCost exists
-    totalCost: (metrics as any).totalCost || 0
-  };
+    totalShipments: metrics.totalShipments || 0,
+    avgTransitTime: metrics.avgTransitTime || 0,
+    avgCostPerKg: metrics.avgCostPerKg || 0,
+    resilienceScore: metrics.resilienceScore || 0,
+    shipmentsByMode: metrics.shipmentsByMode || {},
+    monthlyTrend: metrics.monthlyTrend || [],
+    delayedVsOnTimeRate: metrics.delayedVsOnTimeRate || { onTime: 0, delayed: 0 },
+    shipmentStatusCounts: metrics.shipmentStatusCounts || { active: 0, completed: 0, failed: 0 },
+    noQuoteRatio: metrics.noQuoteRatio || 0,
+    disruptionProbabilityScore: metrics.disruptionProbabilityScore || 0,
+    totalWeight: metrics.totalWeight || 0,
+    totalVolume: metrics.totalVolume || 0
+  } as ShipmentMetrics;
 }

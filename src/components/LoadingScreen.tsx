@@ -13,18 +13,24 @@ import ElevenLabsConvaiWidget from './chat/ElevenLabsConvaiWidget';
 import { GlobeIcon, BarChart3Icon, BrainCircuitIcon, InfoIcon, SettingsIcon, ClipboardListIcon, ServerIcon, SparklesIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlobalNavigation from './GlobalNavigation';
+import { useNavigate } from 'react-router-dom';
 
 interface LoadingScreenProps {
   isInitialLoad?: boolean;
+  onLoadingComplete?: () => void;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) => {
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
+  isInitialLoad = false, 
+  onLoadingComplete 
+}) => {
   const [progress, setProgress] = useState(0);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [loadingText, setLoadingText] = useState('Initializing DeepCAL Core');
   const [showLogo, setShowLogo] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<string[]>([]);
   const [showTagline, setShowTagline] = useState(false);
+  const navigate = useNavigate();
   
   // Rainbow colors for particles
   const particleColors = [
@@ -45,11 +51,21 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
     const taglineTimer = setTimeout(() => {
       setShowTagline(true);
     }, 1500);
+
+    // Add max loading time to prevent infinite loading
+    const maxLoadingTimer = setTimeout(() => {
+      if (progress < 100) {
+        console.log("Max loading time reached, forcing completion");
+        setProgress(100);
+        completeLoading();
+      }
+    }, 8000); // 8 seconds maximum loading time
     
     const timer = setInterval(() => {
       setProgress((prevProgress) => {
         if (prevProgress >= 100) {
           clearInterval(timer);
+          completeLoading();
           return 100;
         }
         
@@ -76,7 +92,8 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
           simulateSupabaseSync();
         }
         
-        return prevProgress + 0.5;
+        // Accelerate loading speed for better UX
+        return prevProgress + 1.5;
       });
     }, 100);
     
@@ -84,8 +101,18 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
       clearInterval(timer);
       clearTimeout(logoTimer);
       clearTimeout(taglineTimer);
+      clearTimeout(maxLoadingTimer);
     };
   }, [loadingPhase]);
+  
+  // Complete loading function
+  const completeLoading = () => {
+    if (onLoadingComplete) {
+      onLoadingComplete();
+    }
+    // Mark loading as complete in session storage
+    sessionStorage.setItem('loadingComplete', 'true');
+  };
   
   const simulateDataIntegrityCheck = () => {
     setVerificationStatus(prev => [...prev, "Local Data Integrity: Verified"]);
@@ -115,16 +142,24 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
     }, 800);
   };
   
+  // Handle navigation through direct links
+  const handleNavigation = (route: string) => {
+    navigate(route);
+    if (onLoadingComplete) {
+      onLoadingComplete();
+    }
+  };
+
   // Static navigation icons for loading screen (router-independent)  
   const navIcons = [
-    { id: 'map', icon: GlobeIcon, label: 'Map' },
-    { id: 'analytics', icon: BarChart3Icon, label: 'Analytics' },
-    { id: 'forms', icon: ClipboardListIcon, label: 'Forms' },
-    { id: 'deepcal', icon: BrainCircuitIcon, label: 'DeepCAL' },
-    { id: 'oracle', icon: SparklesIcon, label: 'Oracle' },
-    { id: 'training', icon: ServerIcon, label: 'Training' },
-    { id: 'about', icon: InfoIcon, label: 'About' },
-    { id: 'settings', icon: SettingsIcon, label: 'Settings' }
+    { id: 'map', route: '/', icon: GlobeIcon, label: 'Map' },
+    { id: 'analytics', route: '/#analytics', icon: BarChart3Icon, label: 'Analytics' },
+    { id: 'forms', route: '/forms', icon: ClipboardListIcon, label: 'Forms' },
+    { id: 'deepcal', route: '/deepcal', icon: BrainCircuitIcon, label: 'DeepCAL' },
+    { id: 'oracle', route: '/oracle', icon: SparklesIcon, label: 'Oracle' },
+    { id: 'training', route: '/training', icon: ServerIcon, label: 'Training' },
+    { id: 'about', route: '/#about', icon: InfoIcon, label: 'About' },
+    { id: 'settings', route: '/#settings', icon: SettingsIcon, label: 'Settings' }
   ];
 
   return (
@@ -162,6 +197,16 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
         <VerificationLogs logs={verificationStatus} />
         
         <SkeletonLoader />
+
+        {/* Skip button - allow users to bypass loading */}
+        {progress < 100 && (
+          <button 
+            onClick={completeLoading}
+            className="mt-4 px-4 py-2 bg-blue-600/30 hover:bg-blue-600/50 text-blue-100 rounded-md text-sm transition-colors border border-blue-400/30 w-full"
+          >
+            Skip Loading
+          </button>
+        )}
       </div>
       
       <LoadingFooter />
@@ -175,6 +220,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
             return (
               <button
                 key={item.id}
+                onClick={() => handleNavigation(item.route)}
                 className={cn(
                   "flex flex-col items-center justify-center p-2 rounded-full transition-all",
                   item.id === 'map' 

@@ -28,7 +28,9 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
       if (!shipment.origin_country || !shipment.destination_country) return;
       
       const routeKey = `${shipment.origin_country}-${shipment.destination_country}`;
-      if (!routeMap.has(routeKey)) {
+      const existingRoute = routeMap.get(routeKey);
+      
+      if (!existingRoute) {
         routeMap.set(routeKey, {
           from: shipment.origin_country,
           to: shipment.destination_country,
@@ -36,10 +38,7 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
           count: 1
         });
       } else {
-        const existing = routeMap.get(routeKey);
-        if (existing) {
-          existing.count++;
-        }
+        existingRoute.count += 1;
       }
     });
     

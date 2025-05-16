@@ -60,8 +60,8 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       disruptionProbabilityScore: metrics.disruptionProbabilityScore,
       // Add required fields that might be missing
       totalWeight: totalWeight,
-      totalVolume: totalVolume
-      // totalCost is not part of ShipmentMetrics type, so we remove it
+      totalVolume: totalVolume,
+      totalCost: totalCost // Now valid with updated ShipmentMetrics interface
     };
     
     return validMetrics;
@@ -81,8 +81,8 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       noQuoteRatio: 0,
       disruptionProbabilityScore: 0,
       totalWeight: 0,
-      totalVolume: 0
-      // totalCost is not part of ShipmentMetrics type, so we remove it
+      totalVolume: 0,
+      totalCost: 0
     };
   }
 }

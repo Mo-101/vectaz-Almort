@@ -49,14 +49,14 @@ export const useRouteProcessor = () => {
       
       return {
         origin: {
-          lat: originLat,
-          lng: originLng,
+          lat: Number(originLat),
+          lng: Number(originLng),
           name: shipment.origin_country || 'Unknown Origin',
           isOrigin: true
         },
         destination: {
-          lat: destLat,
-          lng: destLng,
+          lat: Number(destLat),
+          lng: Number(destLng),
           name: shipment.destination_country || 'Unknown Destination',
           isOrigin: false
         },
