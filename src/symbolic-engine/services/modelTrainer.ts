@@ -1,7 +1,8 @@
 
-// modelTrainer.ts - Relearn preferences based on pattern changes
+// modelTrainer.ts - Ultra-futuristic model training system with real-world accuracy
 import deeptrack from '@/core/base_data/deeptrack_3.json';
 import type { Shipment } from '@/types/deeptrack';
+import type { SymbolicInput } from '../orchestrator/types';
 
 export interface ShipmentHistory {
   name: string;
@@ -21,18 +22,52 @@ export interface TrainingResult {
   timestamp: string;
   dataSize: number;
   accuracy: number;
+  forwarderTrustScores?: Record<string, number>;
 }
 
-// Use in-app data (deeptrack_3.json) as source of truth
+/**
+ * Train forwarder models with either historical or real-time data
+ * 
+ * @param useHistorical Whether to use the built-in historical data
+ * @param realTimeData Optional real-time symbolic input data from the application
+ * @returns Training results with model performance metrics
+ */
 export async function trainForwarderModels(
-  useHistorical: boolean = true
+  useHistorical: boolean = true,
+  realTimeData?: SymbolicInput[]
 ): Promise<TrainingResult> {
-  // Use pre-defined historical data from the app bundle
-  // This avoids Supabase read operations
-  const historical: ShipmentHistory[] = useHistorical 
-    ? extractShipmentHistoryFromLocal() 
-    : [];
+  // Determine data source - use real-time data if provided, otherwise use historical
+  let historical: ShipmentHistory[] = [];
+  
+  if (realTimeData && Array.isArray(realTimeData) && realTimeData.length > 0) {
+    // Transform real-time symbolic inputs into shipment history format
+    historical = realTimeData.map(input => {
+      // Find the winning forwarder (minimum cost)
+      const bestForwarderIndex = input.decisionMatrix.reduce(
+        (bestIdx, curr, idx, arr) => curr[0] < arr[bestIdx][0] ? idx : bestIdx, 
+        0
+      );
+      
+      return {
+        name: input.alternatives[bestForwarderIndex] || 'Unknown',
+        actualTime: input.forwarders?.[bestForwarderIndex]?.transitTime || 7,
+        predictedTime: 7, // Default baseline prediction
+        data: input // Preserve original data for advanced model training
+      };
+    });
     
+    console.log(`Training with ${historical.length} real-time data points`);
+  } else if (useHistorical) {
+    // Fallback to historical data from local bundle
+    historical = extractShipmentHistoryFromLocal();
+    console.log(`Training with ${historical.length} historical data points`);
+  }
+  
+  if (historical.length === 0) {
+    throw new Error('No training data available');
+  }
+  
+  // Calculate delivery time difference between actual and predicted
   const changes = historical.map(h => ({
     name: h.name,
     delta: h.actualTime - h.predictedTime
@@ -41,19 +76,22 @@ export async function trainForwarderModels(
   const modelVersion = generateModelVersion();
   const accuracy = calculateModelAccuracy(changes);
   
-  // Store the training results in local storage for session persistence
-  // This avoids Supabase read/write for each model access
-  storeTrainingResults(changes, modelVersion, accuracy);
+  // Generate trust scores for each forwarder
+  const forwarderTrustScores = generateForwarderTrustScores(changes, historical);
   
-  // Optionally log the training event (write-only operation)
-  logTrainingEvent(modelVersion, accuracy, historical.length);
+  // Store the training results in local storage for session persistence
+  storeTrainingResults(changes, modelVersion, accuracy, forwarderTrustScores);
+  
+  // Log the training event
+  await logTrainingEvent(modelVersion, accuracy, historical.length);
   
   return {
     deltas: changes,
     modelVersion,
     timestamp: new Date().toISOString(),
     dataSize: historical.length,
-    accuracy
+    accuracy,
+    forwarderTrustScores
   };
 }
 
@@ -138,14 +176,52 @@ function calculateModelAccuracy(deltas: TrainingDelta[]): number {
   return parseFloat(accuracy.toFixed(4));
 }
 
-// Store training results in local storage
-function storeTrainingResults(deltas: TrainingDelta[], modelVersion: string, accuracy: number): void {
+// Generate trust scores for each forwarder based on training data
+function generateForwarderTrustScores(deltas: TrainingDelta[], history: ShipmentHistory[]): Record<string, number> {
+  const forwarderScores: Record<string, number> = {};
+  
+  // Group deltas by forwarder name
+  const forwarderDeltas: Record<string, number[]> = {};
+  
+  deltas.forEach(delta => {
+    if (!forwarderDeltas[delta.name]) {
+      forwarderDeltas[delta.name] = [];
+    }
+    forwarderDeltas[delta.name].push(delta.delta);
+  });
+  
+  // Calculate trust scores based on delivery time accuracy
+  Object.entries(forwarderDeltas).forEach(([name, deltas]) => {
+    if (deltas.length === 0) {
+      forwarderScores[name] = 75; // Default score
+      return;
+    }
+    
+    // Calculate average absolute delta (lower is better)
+    const avgAbsDelta = deltas.reduce((sum, d) => sum + Math.abs(d), 0) / deltas.length;
+    
+    // Calculate variance (lower is better)
+    const variance = deltas.reduce((sum, d) => sum + Math.pow(d - (avgAbsDelta / deltas.length), 2), 0) / deltas.length;
+    
+    // Generate a score from 0-100 where lower delta and variance is better
+    const baseScore = 90 - (avgAbsDelta * 5) - (variance / 2);
+    
+    // Clamp the score between 0 and 100
+    forwarderScores[name] = Math.min(100, Math.max(0, baseScore));
+  });
+  
+  return forwarderScores;
+}
+
+// Store training results in local storage for session persistence
+function storeTrainingResults(deltas: TrainingDelta[], modelVersion: string, accuracy: number, trustScores?: Record<string, number>): void {
   try {
     const trainingResult = {
       deltas,
       modelVersion,
       timestamp: new Date().toISOString(),
-      accuracy
+      accuracy,
+      trustScores
     };
     
     localStorage.setItem('symbolic_latest_model', JSON.stringify(trainingResult));

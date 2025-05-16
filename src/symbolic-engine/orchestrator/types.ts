@@ -18,6 +18,15 @@ export interface SymbolicInput {
   originLng?: number;
   destLat?: number;
   destLng?: number;
+  metadata?: {
+    shipmentId?: string;
+    category?: string;
+    mode?: string;
+    validationScore?: number;
+    expectedDeliveryDate?: string;
+    timestamp?: number;
+    [key: string]: any;
+  };
 }
 
 /**
@@ -37,8 +46,14 @@ export interface SymbolicResult {
  */
 export interface ForwarderScore {
   name: string;
-  score: number;
+  score?: number;
   reliabilityFactor?: number;
+  
+  // Extended properties for training data integration
+  cost: number;
+  reliability: number;
+  transitTime: number;
+  serviceLevelScore: number;
 }
 
 /**

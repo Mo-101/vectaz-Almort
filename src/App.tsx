@@ -14,7 +14,6 @@ import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
 import { Shipment } from "./types/deeptrack";
-import ElevenLabsConvaiWidget from "@/components/chat/ElevenLabsConvaiWidget";
 import MainLayout from "@/components/layout/MainLayout";
 import { toast } from "@/components/ui/use-toast";
 
@@ -208,9 +207,6 @@ function App() {
           {/* UI Components for notifications */}
           <Toaster />
           <Sonner />
-          
-          {/* Chat Widget - kept outside of layout to ensure it's always visible */}
-          <ElevenLabsConvaiWidget agentId="kWY3sE6znRmHQqPy48sk" />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

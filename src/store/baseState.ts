@@ -4,6 +4,7 @@ import { CriteriaWeights } from '@/core/engine';
 
 // Define the state store interface
 interface BaseDataStore {
+  [x: string]: any;
   // Data state
   shipmentData: Shipment[];
   isDataLoaded: boolean;

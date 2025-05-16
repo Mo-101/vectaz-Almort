@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { boot } from '@/init/boot';
+import PropTypes from 'prop-types';
 import Particles from './Particles';
 import { loadingPhases } from '@/constants/loadingPhases';
 import FloatingIcons from './loading/FloatingIcons';
@@ -9,7 +10,6 @@ import LoadingStatusPanel from './loading/LoadingStatusPanel';
 import VerificationLogs from './loading/VerificationLogs';
 import SkeletonLoader from './loading/SkeletonLoader';
 import LoadingFooter from './loading/LoadingFooter';
-import ElevenLabsConvaiWidget from './chat/ElevenLabsConvaiWidget';
 import { GlobeIcon, BarChart3Icon, BrainCircuitIcon, InfoIcon, SettingsIcon, ClipboardListIcon, ServerIcon, SparklesIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import GlobalNavigation from './GlobalNavigation';
@@ -189,11 +189,13 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isInitialLoad = false }) 
           })}
         </div>
       </div>
-      
-      {/* Chat Widget */}
-      <ElevenLabsConvaiWidget agentId="kWY3sE6znRmHQqPy48sk" />
+      {/* Global Navigation - positioned at the top of the screen */}      
+      <GlobalNavigation />
     </div>
-  );
-};
-
-export default LoadingScreen;
+    );
+  };
+  
+  LoadingScreen.displayName = 'LoadingScreen';
+  LoadingScreen.propTypes = { isInitialLoad: PropTypes.bool };
+  
+  export default LoadingScreen;
