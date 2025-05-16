@@ -14,13 +14,13 @@ export const useRouteProcessor = () => {
     }
     
     // Process shipment data into routes for the map
-    return shipmentData.map(shipment => {
+    return shipmentData.map((shipment, index) => {
       // Ensure weight is a number
-      let weight: number;
+      let weight: number = 0;
       if (typeof shipment.weight_kg === 'string') {
-        weight = parseFloat(shipment.weight_kg) || 0; // Default to 0 if parsing fails
-      } else {
-        weight = shipment.weight_kg as number;
+        weight = parseFloat(shipment.weight_kg) || 0;
+      } else if (typeof shipment.weight_kg === 'number') {
+        weight = shipment.weight_kg;
       }
       
       // Only create routes with complete data
@@ -45,9 +45,10 @@ export const useRouteProcessor = () => {
         },
         weight: weight,
         shipmentCount: 1,
-        deliveryStatus: shipment.delivery_status || 'Unknown'
+        deliveryStatus: shipment.delivery_status || 'Unknown',
+        id: shipment.request_reference || `shipment-${index}`
       };
-    }).filter(route => route !== null) as Route[]; // Filter out null routes
+    }).filter(route => route !== null) as Route[];
   }, [isDataLoaded, shipmentData]);
 
   useEffect(() => {

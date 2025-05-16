@@ -20,6 +20,10 @@ export const useMapMarkers = (routes: Route[]) => {
       // Get unique destination countries
       const uniqueCountries = new Map();
       
+      if (!shipmentData || shipmentData.length === 0) {
+        return [];
+      }
+      
       shipmentData.forEach(shipment => {
         if (
           shipment.destination_country && 
@@ -53,7 +57,7 @@ export const useMapMarkers = (routes: Route[]) => {
   // Limit routes to a reasonable number for performance
   const limitedRoutes = useMemo(() => {
     try {
-      // Only display active routes with complete data
+      // Only display routes with complete data
       const goodRoutes = routes.filter(route => 
         route.origin?.lat && 
         route.origin?.lng && 
@@ -61,7 +65,8 @@ export const useMapMarkers = (routes: Route[]) => {
         route.destination?.lng
       );
       
-      return goodRoutes.slice(0, 10); // Limit to 10 for performance
+      // Return all routes but limit if there are too many
+      return goodRoutes.length > 20 ? goodRoutes.slice(0, 20) : goodRoutes;
     } catch (error) {
       handleMapError("ROUTE_LIMIT_FAIL", "Failed to limit routes", error);
       return [];

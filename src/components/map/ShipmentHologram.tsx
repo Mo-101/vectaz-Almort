@@ -33,6 +33,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
           const originName = shipment.origin?.name || 'Unknown Origin';
           const destinationName = shipment.destination?.name || 'Unknown Destination';
           const deliveryStatus = shipment.deliveryStatus || 'Unknown';
+          const weight = shipment.weight || 0;
           
           // Status styling based on delivery status
           const getStatusStyles = () => {
@@ -42,12 +43,15 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
             if (deliveryStatus.toLowerCase().includes('transit')) {
               return 'text-amber-400 bg-amber-400/10';
             }
+            if (deliveryStatus.toLowerCase().includes('pending')) {
+              return 'text-cyan-400 bg-cyan-400/10';
+            }
             return 'text-red-400 bg-red-400/10';
           };
           
           return (
             <div 
-              key={`${originName}-${destinationName}-${index}`}
+              key={`${shipment.id || index}-${originName}-${destinationName}`}
               className="border-b border-mostar-blue/10 p-3 hover:bg-mostar-blue/5 cursor-pointer transition-colors"
               onClick={() => onSelect(shipment, index)}
             >
@@ -66,7 +70,7 @@ const ShipmentHologram: React.FC<ShipmentHologramProps> = ({
                 
                 <div className="flex items-center">
                   <Calendar className="h-3 w-3 mr-1" />
-                  <span>{shipment.weight ? `${shipment.weight} kg` : 'Weight not available'}</span>
+                  <span>{weight > 0 ? `${weight} kg` : 'Weight not available'}</span>
                 </div>
               </div>
             </div>

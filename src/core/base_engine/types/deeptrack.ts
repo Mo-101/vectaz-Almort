@@ -113,4 +113,5 @@ export interface Route {
   weight: number;
   shipmentCount: number;
   deliveryStatus?: string;
+  id?: string;
 }
