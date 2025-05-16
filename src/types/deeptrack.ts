@@ -5,11 +5,11 @@ export interface Shipment {
   cargo_description: string;
   item_category: string;
   origin_country: string;
-  origin_latitude: number;
-  origin_longitude: number;
+  origin_latitude: number | string;
+  origin_longitude: number | string;
   destination_country: string;
-  destination_latitude: number;
-  destination_longitude: number;
+  destination_latitude: number | string;
+  destination_longitude: number | string;
   carrier: string;
   "carrier+cost"?: string;
   "freight_carrier+cost"?: string;
@@ -37,6 +37,17 @@ export interface Shipment {
   expected_delivery_date?: string | null;
   status?: string;
   created_at?: string;
+  
+  // Additional fields needed for validation
+  tracking_number?: string;
+  estimated_departure?: string;
+  total_value?: number | string;
+  weight?: number | string;
+  
+  // Data accuracy fields
+  data_validated?: boolean;
+  data_accuracy_score?: number;
+  validation_timestamp?: string;
 }
 
 export interface ForwarderPerformance {
@@ -170,7 +181,8 @@ export interface ShipmentMetrics {
   topCarrier?: string;
   carrierCount?: number;
   avgCostPerKg: number;
-  // Note: totalWeight and totalVolume are not part of this interface
+  totalWeight: number;
+  totalVolume: number;
   // New metrics
   destinationCountryCount?: number;
   originCountryCount?: number;

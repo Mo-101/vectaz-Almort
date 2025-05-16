@@ -1,4 +1,5 @@
-import { CountryPerformance, Shipment, ShipmentMetrics, ForwarderPerformance, CarrierPerformance, WarehousePerformance } from '@/types/deeptrack';
+import { CountryPerformance, ForwarderPerformance, Shipment, ShipmentMetrics, WarehousePerformance } from "@/core/base_engine/types/deeptrack";
+import { CarrierPerformance } from "@/types/deeptrack";
 
 // Utility function to safely parse numbers
 const parseNumber = (value: string | number | undefined): number => {
@@ -139,7 +140,7 @@ const calculateShipmentModeSplit = (shipments: Shipment[]): Record<string, numbe
 };
 
 // Utility function to calculate the monthly shipment trend
-const calculateMonthlyShipmentTrend = (shipments: Shipment[]): Array<{ month: string; count: number }> => {
+export const calculateMonthlyShipmentTrend = (shipments: Shipment[]): Array<{ month: string; count: number }> => {
   const monthlyCounts: Record<string, number> = {};
 
   shipments.forEach(shipment => {
@@ -479,21 +480,25 @@ export const calculateShipmentMetrics = (shipments: Shipment[]): ShipmentMetrics
   // Calculate average cost per kg
   const avgCostPerKg = totalWeight > 0 ? totalCost / totalWeight : 0;
   
-  // Return only properties that are defined in the ShipmentMetrics type
+  // Return all properties defined in the ShipmentMetrics type
   return {
     totalShipments: shipments.length,
     avgTransitTime,
-    avgCostPerKg,
     shipmentsByMode,
     monthlyTrend,
     delayedVsOnTimeRate,
     shipmentStatusCounts,
     disruptionProbabilityScore,
     resilienceScore,
-    noQuoteRatio
-    // Note: totalWeight and totalVolume are not included as they're not in the ShipmentMetrics type
+    noQuoteRatio,
+    totalWeight,
+    totalVolume,
+    totalCost,
+    avgCostPerKg
   };
 };
+
+
 
 // Function to calculate country performance metrics
 export const calculateCountryPerformance = (shipments: Shipment[]): CountryPerformance[] => {

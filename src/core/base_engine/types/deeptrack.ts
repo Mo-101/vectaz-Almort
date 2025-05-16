@@ -1,5 +1,6 @@
 
 export interface Shipment {
+  carrier: any;
   date_of_collection: string;
   request_reference: string;
   cargo_description: string;
@@ -82,9 +83,13 @@ export interface ShipmentMetrics {
   delayedVsOnTimeRate: {onTime: number, delayed: number};
   avgTransitTime: number;
   disruptionProbabilityScore: number;
-  shipmentStatusCounts: {active: number, completed: number, failed: number};
+  shipmentStatusCounts: {active: number, completed: number, failed: number, onTime?: number, inTransit?: number, delayed?: number, cancelled?: number, pending?: number};
   resilienceScore: number;
   noQuoteRatio: number;
+  totalWeight: number;
+  totalVolume: number;
+  totalCost: number;
+  avgCostPerKg: number;
 }
 
 export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';
