@@ -12,9 +12,17 @@ interface ShipmentRouteMapProps {
 const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
   const { shipmentData } = useBaseDataStore();
   
+  // Define the RouteInfo interface for the route data
+  interface RouteInfo {
+    from: string;
+    to: string;
+    status: 'normal' | 'delayed' | 'disrupted';
+    count: number;
+  }
+  
   // Calculate actual routes from shipment data
   const routes = React.useMemo(() => {
-    const routeMap = new Map();
+    const routeMap = new Map<string, RouteInfo>();
     
     // Group shipments by origin-destination pairs
     shipmentData.forEach(shipment => {
@@ -30,7 +38,9 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
         });
       } else {
         const existing = routeMap.get(routeKey);
-        existing.count++;
+        if (existing) {
+          existing.count++;
+        }
       }
     });
     

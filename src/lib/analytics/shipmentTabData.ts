@@ -16,32 +16,37 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
     // Use the existing utility to calculate metrics
     const metrics = calculateShipmentMetrics(shipmentData);
     
-    // Return the metrics without totalWeight, since it's not in ShipmentMetrics
-    const { 
-      totalShipments, 
-      avgTransitTime, 
-      avgCostPerKg, 
-      resilienceScore, 
-      shipmentsByMode, 
-      monthlyTrend, 
-      delayedVsOnTimeRate,
-      shipmentStatusCounts,
-      noQuoteRatio, 
-      disruptionProbabilityScore 
-    } = metrics;
+    // Parse shipment weights and volumes to calculate totals
+    let totalWeight = 0;
+    let totalVolume = 0;
     
-    // Create a new object with only the properties defined in ShipmentMetrics
+    shipmentData.forEach(shipment => {
+      if (shipment.weight_kg) {
+        const weight = typeof shipment.weight_kg === 'string' ? parseFloat(shipment.weight_kg) : shipment.weight_kg;
+        if (!isNaN(weight)) totalWeight += weight;
+      }
+      
+      if (shipment.volume_cbm) {
+        const volume = typeof shipment.volume_cbm === 'string' ? parseFloat(shipment.volume_cbm) : shipment.volume_cbm;
+        if (!isNaN(volume)) totalVolume += volume;
+      }
+    });
+    
+    // Create a complete ShipmentMetrics object with all required fields
     const validMetrics: ShipmentMetrics = {
-      totalShipments,
-      avgTransitTime,
-      avgCostPerKg,
-      resilienceScore,
-      shipmentsByMode,
-      monthlyTrend,
-      delayedVsOnTimeRate,
-      shipmentStatusCounts,
-      noQuoteRatio,
-      disruptionProbabilityScore
+      totalShipments: metrics.totalShipments,
+      avgTransitTime: metrics.avgTransitTime,
+      avgCostPerKg: metrics.avgCostPerKg,
+      resilienceScore: metrics.resilienceScore,
+      shipmentsByMode: metrics.shipmentsByMode,
+      monthlyTrend: metrics.monthlyTrend,
+      delayedVsOnTimeRate: metrics.delayedVsOnTimeRate,
+      shipmentStatusCounts: metrics.shipmentStatusCounts,
+      noQuoteRatio: metrics.noQuoteRatio,
+      disruptionProbabilityScore: metrics.disruptionProbabilityScore,
+      // Add required fields that might be missing
+      totalWeight: totalWeight,
+      totalVolume: totalVolume
     };
     
     return validMetrics;
@@ -59,7 +64,9 @@ export function computeShipmentInsights(shipmentData: Shipment[]): ShipmentMetri
       delayedVsOnTimeRate: { onTime: 0, delayed: 0 },
       shipmentStatusCounts: { active: 0, completed: 0, failed: 0 },
       noQuoteRatio: 0,
-      disruptionProbabilityScore: 0
+      disruptionProbabilityScore: 0,
+      totalWeight: 0,
+      totalVolume: 0
     };
   }
 }

@@ -25,14 +25,23 @@ export const useMapMarkers = (routes: Route[]) => {
       }
       
       shipmentData.forEach(shipment => {
+        // Extract and convert coordinates to numbers
+        const destLat = typeof shipment.destination_latitude === 'string' 
+          ? parseFloat(shipment.destination_latitude) 
+          : shipment.destination_latitude;
+          
+        const destLng = typeof shipment.destination_longitude === 'string' 
+          ? parseFloat(shipment.destination_longitude) 
+          : shipment.destination_longitude;
+        
         if (
           shipment.destination_country && 
-          shipment.destination_latitude && 
-          shipment.destination_longitude
+          destLat && 
+          destLng
         ) {
           uniqueCountries.set(shipment.destination_country, {
             name: shipment.destination_country,
-            coordinates: [shipment.destination_longitude, shipment.destination_latitude] as [number, number],
+            coordinates: [destLng, destLat] as [number, number],
             status: shipment.delivery_status || 'Unknown'
           });
         }

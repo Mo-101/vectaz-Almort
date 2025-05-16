@@ -23,23 +23,39 @@ export const useRouteProcessor = () => {
         weight = shipment.weight_kg;
       }
       
+      // Ensure coordinates are numbers
+      const originLat = typeof shipment.origin_latitude === 'string' 
+        ? parseFloat(shipment.origin_latitude) 
+        : shipment.origin_latitude;
+        
+      const originLng = typeof shipment.origin_longitude === 'string' 
+        ? parseFloat(shipment.origin_longitude) 
+        : shipment.origin_longitude;
+        
+      const destLat = typeof shipment.destination_latitude === 'string' 
+        ? parseFloat(shipment.destination_latitude) 
+        : shipment.destination_latitude;
+        
+      const destLng = typeof shipment.destination_longitude === 'string' 
+        ? parseFloat(shipment.destination_longitude) 
+        : shipment.destination_longitude;
+      
       // Only create routes with complete data
-      if (!shipment.origin_latitude || !shipment.origin_longitude || 
-          !shipment.destination_latitude || !shipment.destination_longitude) {
+      if (!originLat || !originLng || !destLat || !destLng) {
         // Skip shipments with incomplete location data
         return null;
       }
       
       return {
         origin: {
-          lat: shipment.origin_latitude,
-          lng: shipment.origin_longitude,
+          lat: originLat,
+          lng: originLng,
           name: shipment.origin_country || 'Unknown Origin',
           isOrigin: true
         },
         destination: {
-          lat: shipment.destination_latitude,
-          lng: shipment.destination_longitude,
+          lat: destLat,
+          lng: destLng,
           name: shipment.destination_country || 'Unknown Destination',
           isOrigin: false
         },

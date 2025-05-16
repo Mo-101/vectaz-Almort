@@ -39,7 +39,9 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
     try {
       if (!throttleInteraction()) return;
       
-      const { origin, destination, weight, deliveryStatus, id } = route;
+      const { origin, destination, weight, deliveryStatus } = route;
+      // Using index as a fallback if no id is present
+      const routeId = route.id || `route-${index}`;
       
       if (!destination || !destination.lat || !destination.lng) {
         throw new Error(`Invalid destination coordinates for route to ${destination?.name || 'unknown'}`);
@@ -80,7 +82,7 @@ export const useRouteInteractions = ({ limitedRoutes, mapContainerRef }: RouteIn
               <span class="text-gray-400">Destination:</span> ${destination?.name || 'Unknown'}
             </div>
             <div>
-              <span class="text-gray-400">Shipment:</span> ${id || `#${index + 1000}`}
+              <span class="text-gray-400">Shipment:</span> ${routeId || `#${index + 1000}`}
             </div>
             <div>
               <span class="text-gray-400">Total Weight:</span> ${weight ? `${weight} kg` : 'Not available'}

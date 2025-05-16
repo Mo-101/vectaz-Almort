@@ -33,17 +33,28 @@ const ShipmentLocationsMap: React.FC<ShipmentLocationsMapProps> = ({
   const shipmentLocations = React.useMemo(() => {
     if (!shipmentData || shipmentData.length === 0) return [];
     
-    return shipmentData.map((item, idx) => ({
-      name: `${item.origin_country || 'Unknown'} → ${item.destination_country || 'Unknown'}`,
-      longitude: item.origin_longitude || 0,
-      latitude: item.origin_latitude || 0,
-      destinationLongitude: item.destination_longitude || 0,
-      destinationLatitude: item.destination_latitude || 0,
-      shipmentCount: 1,
-      shipmentValue: typeof item.weight_kg === 'number' ? item.weight_kg : 0,
-      id: item.request_reference || `loc-${idx}`,
-      status: item.delivery_status || 'unknown'
-    })).filter(loc => loc.longitude !== 0 && loc.latitude !== 0);
+    return shipmentData.map((item, idx) => {
+      // Parse coordinates to ensure they are numbers
+      const originLongitude = typeof item.origin_longitude === 'string' ? parseFloat(item.origin_longitude) : item.origin_longitude || 0;
+      const originLatitude = typeof item.origin_latitude === 'string' ? parseFloat(item.origin_latitude) : item.origin_latitude || 0;
+      const destinationLongitude = typeof item.destination_longitude === 'string' ? parseFloat(item.destination_longitude) : item.destination_longitude || 0;
+      const destinationLatitude = typeof item.destination_latitude === 'string' ? parseFloat(item.destination_latitude) : item.destination_latitude || 0;
+      
+      // Parse weight to ensure it's a number
+      const weight = typeof item.weight_kg === 'string' ? parseFloat(item.weight_kg) : (item.weight_kg || 0);
+
+      return {
+        name: `${item.origin_country || 'Unknown'} → ${item.destination_country || 'Unknown'}`,
+        longitude: originLongitude,
+        latitude: originLatitude,
+        destinationLongitude: destinationLongitude,
+        destinationLatitude: destinationLatitude,
+        shipmentCount: 1,
+        shipmentValue: weight,
+        id: item.request_reference || `loc-${idx}`,
+        status: item.delivery_status || 'unknown'
+      };
+    }).filter(loc => loc.longitude !== 0 && loc.latitude !== 0);
   }, [shipmentData]);
 
   // Create arc path for routes
@@ -90,6 +101,7 @@ const ShipmentLocationsMap: React.FC<ShipmentLocationsMapProps> = ({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/dark-v11',
       center: shipmentLocations.length > 0 ? 
+        // Ensure coordinates are numbers
         [shipmentLocations[0].longitude, shipmentLocations[0].latitude] : 
         [0, 0],
       zoom: 2,
