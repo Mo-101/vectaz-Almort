@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios';
-import { initVoiceSystem, getVoiceSettings, updateVoiceSettings } from '@/utils/conversational/deepTalk_voiceReply';
+import { initVoiceSystem, getVoiceSettings, updateVoiceSettings } from '@/utils/conversational/deeptalk_voiceReply';
 
 // Configuration for the DeepCAL server
 interface DeepCALConfig {

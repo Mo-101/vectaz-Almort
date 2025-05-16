@@ -17,7 +17,7 @@ import {
     updateVoiceSettings, 
     SpeechSynthesisVoice,
     VoiceSettings,
-} from '@/utils/conversational/deepTalk_voiceReply';
+} from '@/utils/conversational/deeptalk_voiceReply';
 
 import { ConversationMessage } from '@/utils/conversational/deeptalk_conversational';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

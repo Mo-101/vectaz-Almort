@@ -10,7 +10,7 @@ import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
 import OracleHutPage from "./pages/OracleHutPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import TrainingPage from "./pages/TrainingPage";
+import TrainingPage from "./pages/TrainingPage"; // Direct import of TrainingPage
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
@@ -18,7 +18,7 @@ import { Shipment } from "./types/deeptrack";
 import MainLayout from "@/components/layout/MainLayout";
 import { toast } from "@/components/ui/use-toast";
 import { initDeepCALBridge } from "./components/deepcal/agent/deepTalk_bridge";
-import { initVoiceSystem } from "./utils/conversational/deepTalk_voiceReply";
+import { initVoiceSystem } from "./utils/conversational/deeptalk_voiceReply";
 
 // Navigation protection wrapper
 const ProtectedRoute = ({ children, requiresValidation = true }) => {
@@ -69,8 +69,7 @@ const queryClient = new QueryClient({
   }
 });
 
-// Lazily load the Training page
-const TrainingPage = React.lazy(() => import('./pages/training'));
+// TrainingPage is directly imported at the top level
 
 // Setup App with React Query for data fetching and caching
 function App() {
