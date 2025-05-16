@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShipmentMetrics } from '@/types/deeptrack';
@@ -22,6 +21,12 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
   
   const currentExplanation = currentMetricKey ? 
     explainShipmentMetrics(currentMetricKey) : undefined;
+
+  // Default values for metrics that might be undefined
+  const forwarderCount = Object.keys(metrics.forwarderPerformance || {}).length || 5;
+  const topForwarder = metrics.topForwarder || "DHL Express";
+  const carrierCount = metrics.carrierCount || 8;
+  const topCarrier = metrics.topCarrier || "Kenya Airways";
 
   return (
     <>
@@ -191,14 +196,14 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Object.keys(metrics.forwarderPerformance || {}).length || 5}
+              {forwarderCount}
             </div>
             <div className="flex justify-between items-end">
               <p className="text-xs text-muted-foreground mt-1">
                 Active 3PL partners
               </p>
               <span className="text-xs text-blue-600 font-medium">
-                Top: {metrics.topForwarder || "DHL Express"}
+                Top: {topForwarder}
               </span>
             </div>
             
@@ -232,14 +237,14 @@ const ShipmentMetricsCards: React.FC<ShipmentMetricsCardsProps> = ({ metrics }) 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics.carrierCount || 8}
+              {carrierCount}
             </div>
             <div className="flex justify-between items-end">
               <p className="text-xs text-muted-foreground mt-1">
                 Transport service providers
               </p>
               <span className="text-xs text-purple-600 font-medium">
-                Top: {metrics.topCarrier || "Kenya Airways"}
+                Top: {topCarrier}
               </span>
             </div>
             

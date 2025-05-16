@@ -1,19 +1,12 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShipmentMetrics } from '@/types/deeptrack';
+import { ShipmentMetrics, RouteInfo } from '@/types/deeptrack';
 import { Map, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useBaseDataStore } from '@/store/baseState';
 
 interface ShipmentRouteMapProps {
   metrics: ShipmentMetrics;
-}
-
-interface RouteInfo {
-  from: string;
-  to: string;
-  status: 'normal' | 'delayed' | 'disrupted';
-  count: number;
 }
 
 const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {

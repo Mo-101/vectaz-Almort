@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { storePendingOperation } from '@/utils/offlineCache';
-import type { Shipment } from '@/types/deeptrack';
+import { Shipment } from '@/types/deeptrack';
+import { ensureCompleteShipment } from '@/utils/typeAdapters';
 
 export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' | 'updated_at'>) => {
   try {
@@ -22,7 +23,7 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
       freight_carrier: shipment.freight_carrier || shipment.carrier || '',
       
       // Optional fields with fallbacks
-      delivery_status: shipment.status || shipment.delivery_status || 'pending',
+      delivery_status: shipment.delivery_status || 'pending',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -41,8 +42,8 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
       throw new Error('No data returned from insert operation');
     }
 
-    // Convert database response to match our Shipment type
-    return {
+    // Create a complete shipment object with all required fields
+    const completeShipment = ensureCompleteShipment({
       id: data[0].id,
       request_reference: shipmentData.request_reference || data[0].id,
       cargo_description: shipment.cargo_description || '',
@@ -60,21 +61,11 @@ export const addShipment = async (shipment: Omit<Shipment, 'id' | 'created_at' |
       destination_longitude: data[0].destination_longitude,
       delivery_status: data[0].delivery_status,
       date_of_greenlight_to_pickup: shipment.date_of_greenlight_to_pickup || null,
-      // Add other fields with reasonable defaults
-      "carrier+cost": shipment["carrier+cost"] || '',
-      "freight_carrier+cost": shipment["freight_carrier+cost"] || '',
-      kuehne_nagel: false,
-      scan_global_logistics: false,
-      dhl_express: false,
-      dhl_global: false,
-      bwosi: false,
-      agl: false,
-      siginon: false,
-      frieght_in_time: false,
-      // Include any other required fields from the Shipment type
       created_at: data[0].created_at,
       updated_at: data[0].updated_at,
-    } as Shipment;
+    });
+
+    return completeShipment;
   } catch (error) {
     console.error('Failed to add shipment:', error);
     throw error;
@@ -92,7 +83,7 @@ export const getShipments = async () => {
   if (!data) return [];
   
   // Convert database records to match our Shipment type
-  return data.map(record => ({
+  return data.map(record => ensureCompleteShipment({
     id: record.id,
     request_reference: record.id, // Use ID as request_reference since it might not exist in DB
     cargo_description: '',
@@ -109,20 +100,7 @@ export const getShipments = async () => {
     destination_latitude: record.destination_latitude,
     destination_longitude: record.destination_longitude,
     delivery_status: record.delivery_status,
-    date_of_greenlight_to_pickup: null,
-    // Add defaults for required fields
-    "carrier+cost": '',
-    "freight_carrier+cost": '',
-    kuehne_nagel: false,
-    scan_global_logistics: false,
-    dhl_express: false,
-    dhl_global: false,
-    bwosi: false,
-    agl: false,
-    siginon: false,
-    frieght_in_time: false,
     created_at: record.created_at,
     updated_at: record.updated_at,
-    // Any additional fields from the Shipment type
-  })) as Shipment[];
+  }));
 };

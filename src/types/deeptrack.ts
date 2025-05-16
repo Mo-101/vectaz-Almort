@@ -21,6 +21,19 @@ export interface Shipment {
   delivery_status: string;
   mode_of_shipment: string;
   forwarder_quotes: Record<string, number>;
+  
+  // Additional fields needed by the system
+  id?: string;
+  tracking_number?: string;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  estimated_departure?: string;
+  total_value?: number;
+  weight?: number;
+  expected_delivery_date?: string;
+  date_of_greenlight_to_pickup?: string | null;
+  data_validated?: boolean;
 }
 
 export interface ForwarderPerformance {
@@ -34,6 +47,18 @@ export interface ForwarderPerformance {
   costScore?: number;
   timeScore?: number;
   quoteWinRate?: number;
+}
+
+export interface CarrierPerformance {
+  name: string;
+  totalShipments: number;
+  avgCostPerKg: number;
+  avgTransitDays: number;
+  onTimeRate: number;
+  reliabilityScore: number;
+  shipments?: number;
+  reliability?: number;
+  deepScore?: number;
 }
 
 export interface RoutePerformance {
@@ -94,9 +119,15 @@ export interface ShipmentMetrics {
   totalVolume: number;
   totalCost?: number;  // Make totalCost optional to match both interfaces
   avgCostPerKg: number;
+  
+  // Additional properties needed for the components
+  forwarderPerformance?: Record<string, any>;
+  topForwarder?: string;
+  carrierCount?: number;
+  topCarrier?: string;
 }
 
-export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings';
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'oracle';
 
 export interface TabItem {
   id: AppSection;
@@ -118,4 +149,11 @@ export interface Route {
   shipmentCount: number;
   deliveryStatus?: string;
   id: string;
+}
+
+export interface RouteInfo {
+  from: string;
+  to: string;
+  status: 'normal' | 'delayed' | 'disrupted';
+  count: number;
 }
