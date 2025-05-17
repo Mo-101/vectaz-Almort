@@ -1,9 +1,11 @@
 
 import mapboxgl from 'mapbox-gl';
 
-// Set the Mapbox access token directly (best for development)
-// In production, this should come from environment variables
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+// Get the Mapbox access token from environment variables if available
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+
+// Set the Mapbox access token
+mapboxgl.accessToken = mapboxToken;
 
 /**
  * Initialize a new Mapbox map
@@ -19,7 +21,7 @@ export const initializeMap = (container: HTMLDivElement): mapboxgl.Map => {
     if (!mapboxgl.accessToken) {
       console.error("Mapbox GL access token is not set");
       // Use a fallback token if needed in development
-      mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+      mapboxgl.accessToken = mapboxToken;
     }
     
     // Create and return the map with a custom dark style

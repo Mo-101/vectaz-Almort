@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Send } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import DeepTalkChat from '@/components/chat/DeepTalkChat';
-import { initVoiceSystem, processUserQuery } from '@/utils/conversational/deeptalk_conversational';
+import { initVoiceSystem } from '@/utils/conversational/deeptalk_conversational';
 import { toast } from '@/components/ui/use-toast';
 
 interface ShipmentDetails {
@@ -26,9 +26,10 @@ const ChatBot: React.FC = () => {
     const initVoice = async () => {
       try {
         const result = await initVoiceSystem();
-        setIsVoiceInitialized(!!result); // Convert to boolean
+        // Convert to boolean explicitly
+        setIsVoiceInitialized(result && (result.status === 'initialized'));
         
-        if (result) {
+        if (result && result.status === 'initialized') {
           toast({
             title: "Voice system initialized",
             description: "You can now use voice commands with DeepCAL",

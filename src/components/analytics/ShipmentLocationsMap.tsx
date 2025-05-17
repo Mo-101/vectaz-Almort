@@ -93,7 +93,9 @@ const ShipmentLocationsMap: React.FC<ShipmentLocationsMapProps> = ({
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
     
-    mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+    // Get the Mapbox access token from environment variables if available
+    const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+    mapboxgl.accessToken = mapboxToken;
     
     setIsMapLoading(true);
     
