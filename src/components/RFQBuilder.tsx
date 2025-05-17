@@ -222,7 +222,7 @@ const RFQBuilder: React.FC<RFQBuilderProps> = ({
         toast({
           title: "Partial Delivery",
           description: `Email sent to ${deliveredEmails.join(', ')} but failed for ${failedEmails.join(', ')}. You may need to check your spam folder.`,
-          variant: "warning"
+          variant: "destructive"
         });
       }
       

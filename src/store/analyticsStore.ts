@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import type { Shipment, ShipmentMetrics } from '@/types/deeptrack';
 import { 
@@ -7,6 +8,7 @@ import {
   calculateCountryPerformance,
   calculateCarrierPerformance
 } from '@/utils/analyticsUtils';
+import { adaptShipmentsForEngine, ensureCompleteMetrics } from '@/utils/typeAdapters';
 
 export interface ShipmentLocation {
   id: string;
@@ -112,14 +114,18 @@ export const useAnalyticsStore = create<AnalyticsStore>((set) => ({
     // Use setTimeout to prevent UI blocking for large datasets
     setTimeout(() => {
       try {
+        // Use our adapter to convert UI shipments to engine shipments
+        const engineShipments = adaptShipmentsForEngine(shipments);
+        
         // Calculate monthly trend data
-        const monthlyTrend = calculateMonthlyShipmentTrend(shipments);
+        const monthlyTrend = calculateMonthlyShipmentTrend(engineShipments);
         
         // Extract location data
         const locations = extractShipmentLocations(shipments);
         
-        // Calculate shipment metrics
-        const metrics = calculateShipmentMetrics(shipments);
+        // Calculate shipment metrics and ensure it has the required fields
+        const rawMetrics = calculateShipmentMetrics(engineShipments);
+        const metrics = ensureCompleteMetrics(rawMetrics);
         
         // Count unique forwarders
         const uniqueForwarders = new Set(

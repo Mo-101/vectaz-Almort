@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,6 +9,7 @@ import { simpleHash } from '@/services/fileHasher';
 import { useBaseDataStore } from '@/store/baseState';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
+import { ensureCompleteShipment } from '@/utils/typeAdapters';
 
 const DataBootLoader = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -81,43 +83,44 @@ const DataBootLoader = () => {
         const dataHash = simpleHash(text);
         const dataVersion = `v1.0.0-${new Date().toISOString()}`;
         
-        // Process the data into Shipment objects
+        // Process the data into Shipment objects with complete type safety
+        const processedData = data.map(item => ensureCompleteShipment({
+          id: item.request_reference || `gen-${Math.random().toString(36).substring(2, 10)}`,
+          date_of_collection: item.date_of_collection || '',
+          request_reference: item.request_reference || '',
+          cargo_description: item.cargo_description || '',
+          item_category: item.item_category || '',
+          origin_country: item.origin_country || '',
+          origin_longitude: parseFloat(String(item.origin_longitude)) || 0,
+          origin_latitude: parseFloat(String(item.origin_latitude)) || 0,
+          destination_country: item.destination_country || '',
+          destination_longitude: parseFloat(String(item.destination_longitude)) || 0,
+          destination_latitude: parseFloat(String(item.destination_latitude)) || 0,
+          freight_carrier: item.freight_carrier || '',
+          carrier: item.carrier || item.freight_carrier || '',
+          weight_kg: item.weight_kg || 0,
+          volume_cbm: item.volume_cbm || 0,
+          initial_quote_awarded: item.initial_quote_awarded || '',
+          final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier || '',
+          comments: item.comments || '',
+          date_of_arrival_destination: item.date_of_arrival_destination || '',
+          delivery_status: item.delivery_status || '',
+          mode_of_shipment: item.mode_of_shipment || '',
+          forwarder_quotes: {
+            'kenya_airways': item.kenya_airways || 0,
+            'kuehne_nagel': item.kuehne_nagel || 0,
+            'scan_global_logistics': item.scan_global_logistics || 0,
+            'dhl_express': item.dhl_express || 0,
+            'dhl_global': item.dhl_global || 0,
+            'bwosi': item.bwosi || 0,
+            'agl': item.agl || 0,
+            'siginon': item.siginon || 0,
+            'frieght_in_time': item.frieght_in_time || 0,
+          }
+        }));
+        
         setShipmentData(
-          data.map(item => ({
-            id: item.request_reference || `gen-${Math.random().toString(36).substring(2, 10)}`,
-            date_of_collection: item.date_of_collection || '',
-            request_reference: item.request_reference || '',
-            cargo_description: item.cargo_description || '',
-            item_category: item.item_category || '',
-            origin_country: item.origin_country || '',
-            origin_longitude: parseFloat(item.origin_longitude) || 0,
-            origin_latitude: parseFloat(item.origin_latitude) || 0,
-            destination_country: item.destination_country || '',
-            destination_longitude: parseFloat(item.destination_longitude) || 0,
-            destination_latitude: parseFloat(item.destination_latitude) || 0,
-            freight_carrier: item.freight_carrier || '',
-            carrier: item.carrier || item.freight_carrier || '',
-            "carrier+cost": item["carrier+cost"] || '',
-            "freight_carrier+cost": item["freight_carrier+cost"] || '',
-            weight_kg: item.weight_kg || 0,
-            volume_cbm: item.volume_cbm || 0,
-            initial_quote_awarded: item.initial_quote_awarded || '',
-            final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier || '',
-            comments: item.comments || '',
-            date_of_arrival_destination: item.date_of_arrival_destination || '',
-            delivery_status: item.delivery_status || '',
-            mode_of_shipment: item.mode_of_shipment || '',
-            forwarder_quotes: item.forwarder_quotes || {},
-            kuehne_nagel: item.kuehne_nagel || false,
-            scan_global_logistics: item.scan_global_logistics || false,
-            dhl_express: item.dhl_express || false,
-            dhl_global: item.dhl_global || false,
-            bwosi: item.bwosi || false,
-            agl: item.agl || false,
-            siginon: item.siginon || false,
-            frieght_in_time: item.frieght_in_time || false,
-            date_of_greenlight_to_pickup: null,
-          })),
+          processedData,
           file.name,
           dataVersion,
           dataHash
@@ -265,53 +268,44 @@ const DataBootLoader = () => {
         const dataHash = simpleHash(JSON.stringify(mockData));
         const dataVersion = `v1.0.0-mock-${new Date().toISOString()}`;
         
-        // Store the data
+        // Store the data with complete type safety
+        const processedData = mockData.map(item => ensureCompleteShipment({
+          id: item.request_reference || `gen-${Math.random().toString(36).substring(2, 10)}`,
+          date_of_collection: item.date_of_collection || '',
+          request_reference: item.request_reference || '',
+          cargo_description: item.cargo_description || '',
+          item_category: item.item_category || '',
+          origin_country: item.origin_country || '',
+          origin_longitude: parseFloat(String(item.origin_longitude)) || 0,
+          origin_latitude: parseFloat(String(item.origin_latitude)) || 0,
+          destination_country: item.destination_country || '',
+          destination_longitude: parseFloat(String(item.destination_longitude)) || 0,
+          destination_latitude: parseFloat(String(item.destination_latitude)) || 0,
+          freight_carrier: item.freight_carrier || '',
+          carrier: item.carrier || item.freight_carrier || '',
+          weight_kg: item.weight_kg || 0,
+          volume_cbm: item.volume_cbm || 0,
+          initial_quote_awarded: item.initial_quote_awarded || '',
+          final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier || '',
+          comments: item.comments || '',
+          date_of_arrival_destination: item.date_of_arrival_destination || '',
+          delivery_status: item.delivery_status || '',
+          mode_of_shipment: item.mode_of_shipment || '',
+          forwarder_quotes: {
+            'kenya_airways': item.kenya_airways || 0,
+            'kuehne_nagel': item.kuehne_nagel || 0,
+            'scan_global_logistics': item.scan_global_logistics || 0,
+            'dhl_express': item.dhl_express || 0,
+            'dhl_global': item.dhl_global || 0,
+            'bwosi': item.bwosi || 0,
+            'agl': item.agl || 0,
+            'siginon': item.siginon || 0,
+            'frieght_in_time': item.frieght_in_time || 0,
+          }
+        }));
+        
         setShipmentData(
-          mockData.map(item => ({
-            id: item.request_reference || `gen-${Math.random().toString(36).substring(2, 10)}`,
-            date_of_collection: item.date_of_collection || '',
-            request_reference: item.request_reference || '',
-            cargo_description: item.cargo_description || '',
-            item_category: item.item_category || '',
-            origin_country: item.origin_country || '',
-            origin_longitude: parseFloat(String(item.origin_longitude)) || 0,
-            origin_latitude: parseFloat(String(item.origin_latitude)) || 0,
-            destination_country: item.destination_country || '',
-            destination_longitude: parseFloat(String(item.destination_longitude)) || 0,
-            destination_latitude: parseFloat(String(item.destination_latitude)) || 0,
-            freight_carrier: item.freight_carrier || '',
-            carrier: item.carrier || item.freight_carrier || '',
-            "carrier+cost": item["carrier+cost"] || '',
-            "freight_carrier+cost": item["freight_carrier+cost"] || '',
-            weight_kg: item.weight_kg || 0,
-            volume_cbm: item.volume_cbm || 0,
-            initial_quote_awarded: item.initial_quote_awarded || '',
-            final_quote_awarded_freight_forwader_Carrier: item.final_quote_awarded_freight_forwader_Carrier || '',
-            comments: item.comments || '',
-            date_of_arrival_destination: item.date_of_arrival_destination || '',
-            delivery_status: item.delivery_status || '',
-            mode_of_shipment: item.mode_of_shipment || '',
-            forwarder_quotes: {
-              'kenya_airways': item.kenya_airways || 0,
-              'kuehne_nagel': item.kuehne_nagel || 0,
-              'scan_global_logistics': item.scan_global_logistics || 0,
-              'dhl_express': item.dhl_express || 0,
-              'dhl_global': item.dhl_global || 0,
-              'bwosi': item.bwosi || 0,
-              'agl': item.agl || 0,
-              'siginon': item.siginon || 0,
-              'frieght_in_time': item.frieght_in_time || 0,
-            },
-            kuehne_nagel: item.kuehne_nagel || false,
-            scan_global_logistics: item.scan_global_logistics || false,
-            dhl_express: item.dhl_express || false,
-            dhl_global: item.dhl_global || false,
-            bwosi: item.bwosi || false,
-            agl: item.agl || false,
-            siginon: item.siginon || false,
-            frieght_in_time: item.frieght_in_time || false,
-            date_of_greenlight_to_pickup: null,
-          })),
+          processedData,
           'mock_data.csv',
           dataVersion,
           dataHash

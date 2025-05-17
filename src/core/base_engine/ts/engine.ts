@@ -80,3 +80,63 @@ export function safelyAddRandomOffset(value: string | number, offsetRange: numbe
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
   return numValue + (Math.random() - 0.5) * offsetRange;
 }
+
+// Decision engine implementation
+export const decisionEngine = {
+  // Sample decision engine methods to be implemented
+  calculateTopsis: (request: DecisionRequest): DecisionResult => {
+    // This is a placeholder implementation
+    // In a real application, implement the actual TOPSIS algorithm
+    
+    const scores = request.alternativeNames?.map((_, index) => 0.5 + Math.random() * 0.5) || [];
+    const maxIndex = scores.reduce((maxIdx, score, idx, arr) => 
+      score > arr[maxIdx] ? idx : maxIdx, 0);
+    
+    return {
+      topAlternative: {
+        index: maxIndex,
+        name: request.alternativeNames?.[maxIndex] || `Alternative ${maxIndex}`,
+        score: scores[maxIndex]
+      },
+      allScores: scores,
+      executionTime: 15 + Math.random() * 50,
+      consistencyRatio: 0.05 + Math.random() * 0.05
+    };
+  },
+  
+  calculateAHP: (request: DecisionRequest): DecisionResult => {
+    // Placeholder for AHP implementation
+    const scores = request.alternativeNames?.map((_, index) => 0.5 + Math.random() * 0.5) || [];
+    const maxIndex = scores.reduce((maxIdx, score, idx, arr) => 
+      score > arr[maxIdx] ? idx : maxIdx, 0);
+    
+    return {
+      topAlternative: {
+        index: maxIndex,
+        name: request.alternativeNames?.[maxIndex] || `Alternative ${maxIndex}`,
+        score: scores[maxIndex]
+      },
+      allScores: scores,
+      executionTime: 15 + Math.random() * 50,
+      consistencyRatio: 0.05 + Math.random() * 0.05
+    };
+  }
+};
+
+// Export interface for utility functions for operations
+export const mathOps = {
+  safelyAddNumber,
+  safelyAddRandomOffset,
+  
+  // Additional utility functions for matrix operations
+  normalizeVector: (vector: number[]): number[] => {
+    const sum = vector.reduce((sum, val) => sum + val, 0);
+    return vector.map(val => val / sum);
+  },
+  
+  // Matrix multiplication
+  multiplyMatrices: (matrixA: number[][], matrixB: number[][]): number[][] => {
+    // Implementation would go here
+    return [[]]; // Placeholder return
+  }
+};
