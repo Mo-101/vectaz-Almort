@@ -383,200 +383,71 @@ const RFQBuilder: React.FC<RFQBuilderProps> = ({
               )}
             </Button>
           </div>
+        </form>
       </div>
-    </div>
-  );
-}
 
-return (
-  <>
-    <div className="bg-card border rounded-lg p-6">
-      <h3 className="text-xl font-medium mb-6">Request for Quotation</h3>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-6">
-          {/* Shipment Details Section */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-4">SHIPMENT DETAILS</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Reference</Label>
-                <Input value={shipmentData.reference} readOnly />
-              </div>
-              <div>
-                <Label>Category</Label>
-                <Input value={shipmentData.category} readOnly />
-              </div>
-              <div>
-                <Label>Origin</Label>
-                <Input value={shipmentData.origin} readOnly />
-              </div>
-              <div>
-                <Label>Destination</Label>
-                <Input value={shipmentData.destination} readOnly />
-              </div>
-              <div>
-                <Label>Weight (kg)</Label>
-                <Input value={shipmentData.weight} readOnly />
-              </div>
-              <div>
-                <Label>Volume (cbm)</Label>
-                <Input value={shipmentData.volume} readOnly />
-              </div>
-            </div>
-          </div>
-          
-          {/* Forwarders Section */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-4">SELECT FORWARDERS</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {availableForwarders.map(forwarder => (
-                <div 
-                  key={forwarder.id}
-                  className={cn(
-                    "border rounded-lg p-3 cursor-pointer transition-colors",
-                    selectedForwarders.includes(forwarder.id)
-                      ? "border-primary bg-primary/5"
-                      : "hover:bg-accent"
-                  )}
-                  onClick={() => handleForwarderToggle(forwarder.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{forwarder.name}</span>
-                    {selectedForwarders.includes(forwarder.id) && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Reliability: {(forwarder.reliability * 100).toFixed(0)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-            {selectedForwarders.length === 0 && (
-              <p className="text-sm text-destructive mt-2">
-                Please select at least one forwarder
-              </p>
-            )}
-          </div>
-          
-          {/* Deadline Section */}
-          <div>
-            <h4 className="font-medium text-sm text-muted-foreground mb-4">QUOTE DEADLINE</h4>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !deadline && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {deadline ? format(deadline, 'PPP') : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 pointer-events-auto">
-                <CalendarComponent
-                  mode="single"
-                  selected={deadline}
-                  onSelect={setDeadline}
-                  initialFocus
-                  disabled={(date) => date < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          {/* Submit Button */}
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={selectedForwarders.length === 0 || !deadline || isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Generate & Send RFQ"
-            )}
-          </Button>
-        </div>
-      </form>
-    </div>
-
-    {/* Email Dialog */}
-    <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Send RFQ as PDF</DialogTitle>
-          <p className="text-sm text-muted-foreground mt-1">
-            Email subject will be prefixed with "TEST!!! - RFQ Testing".
-          </p>
-        </DialogHeader>
-        <div className="py-4 space-y-4">
-          <div>
-            <Label htmlFor="email" className="mb-2 block">Recipient Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="recipient@company.com"
-              value={recipientEmail}
-              onChange={(e) => setRecipientEmail(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="includeOrgEmail"
-              checked={includeOrgEmail}
-              onChange={() => setIncludeOrgEmail(!includeOrgEmail)}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="includeOrgEmail" className="text-sm font-normal">
-              Also send to organization email
-            </Label>
-          </div>
-          
-          {includeOrgEmail && (
+      {/* Email Dialog */}
+      <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send RFQ as PDF</DialogTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Email subject will be prefixed with "TEST!!! - RFQ Testing".
+            </p>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
             <div>
-              <Label htmlFor="orgEmail" className="mb-2 block">Organization Email</Label>
+              <Label htmlFor="email" className="mb-2 block">Recipient Email</Label>
               <Input
-                id="orgEmail"
+                id="email"
                 type="email"
-                placeholder="operations@company.com"
-                value={orgEmail}
-                onChange={(e) => setOrgEmail(e.target.value)}
+                placeholder="recipient@company.com"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
               />
             </div>
-          )}
-          <div className="text-xs text-muted-foreground mt-2">
-            <strong>Note:</strong> Email subject will be prefixed with "TEST!!! - RFQ Testing"
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>Cancel</Button>
-          <Button 
-            onClick={handleSendEmail} 
-            disabled={isSendingEmail}
-          >
-            {isSendingEmail ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              "Send Email"
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="includeOrgEmail"
+                checked={includeOrgEmail}
+                onChange={() => setIncludeOrgEmail(!includeOrgEmail)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="includeOrgEmail" className="text-sm font-normal">
+                Also send to organization email
+              </Label>
+            </div>
+            
+            {includeOrgEmail && (
+              <div>
+                <Label htmlFor="orgEmail" className="mb-2 block">Organization Email</Label>
+                <Input
+                  id="orgEmail"
+                  type="email"
+                  placeholder="operations@company.com"
+                  value={orgEmail}
+                  onChange={(e) => setOrgEmail(e.target.value)}
+                />
+              </div>
             )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </>
-);
+            <div className="text-xs text-muted-foreground mt-2">
+              <strong>Note:</strong> Email subject will be prefixed with "TEST!!! - RFQ Testing"
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>Cancel</Button>
+            <Button 
+              onClick={handleSendEmail} 
+              disabled={isSendingEmail}
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
                 "Send Email"
               )}
             </Button>
