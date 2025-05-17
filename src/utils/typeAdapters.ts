@@ -114,9 +114,15 @@ export function ensureCompleteShipment(shipment: Partial<UIShipment>): UIShipmen
     freight_carrier: shipment.freight_carrier || shipment.carrier?.toString() || '',
     // Additional fields
     id: shipment.id || `${Date.now()}`,
+    tracking_number: shipment.tracking_number || `TRK-${Date.now()}`,
     status: shipment.status || shipment.delivery_status || 'pending',
     created_at: shipment.created_at || new Date().toISOString(),
     updated_at: shipment.updated_at || new Date().toISOString(),
-    data_validated: shipment.data_validated || false
+    estimated_departure: shipment.estimated_departure || new Date().toISOString(),
+    expected_delivery_date: shipment.expected_delivery_date || null,
+    date_of_greenlight_to_pickup: shipment.date_of_greenlight_to_pickup || null,
+    data_validated: shipment.data_validated || false,
+    total_value: shipment.total_value || 0,
+    weight: shipment.weight || 0
   } as UIShipment;
 }

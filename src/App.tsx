@@ -1,16 +1,17 @@
+
 import React, { Suspense, useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import IndexPage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import FormsPage from "./pages/FormsPage";
 import DeepCALPage from "./pages/DeepCALPage";
 import OracleHutPage from "./pages/OracleHutPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
-import TrainingPage from "./pages/TrainingPage"; // Direct import of TrainingPage
+import TrainingPage from "./pages/TrainingPage";
 import LoadingScreen from "./components/LoadingScreen";
 import { isSystemBooted, bootApp } from "./init/boot";
 import { useBaseDataStore } from "@/store/baseState";
@@ -19,21 +20,20 @@ import MainLayout from "@/components/layout/MainLayout";
 import { toast } from "@/components/ui/use-toast";
 import { initDeepCALBridge } from "./components/deepcal/agent/deepTalk_bridge";
 import { initVoiceSystem } from "./utils/conversational/deeptalk_voiceReply";
+import { canAccessSection } from "./hooks/useNavigationControl";
 
 // Navigation protection wrapper
 const ProtectedRoute = ({ children, requiresValidation = true }) => {
   const { shipmentData } = useBaseDataStore();
   const [isValidated, setIsValidated] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     // Check if data is validated
     if (requiresValidation) {
-      // Check if at least one shipment exists and has the data_validated property
-      // or assume data is valid if there are shipments (for backward compatibility)
-      const hasValidData = shipmentData.length > 0 && (
-        shipmentData.some(s => s.data_validated === true) || true
-      );
+      // Use the canAccessSection utility to check if route can be accessed
+      const hasValidData = canAccessSection(shipmentData, true);
       
       setIsValidated(hasValidData);
       
@@ -54,7 +54,7 @@ const ProtectedRoute = ({ children, requiresValidation = true }) => {
     } else {
       setIsValidated(true);
     }
-  }, [shipmentData, requiresValidation, navigate]);
+  }, [shipmentData, requiresValidation, navigate, location]);
   
   return isValidated ? <>{children}</> : null;
 };
@@ -69,8 +69,6 @@ const queryClient = new QueryClient({
   }
 });
 
-// TrainingPage is directly imported at the top level
-
 // Setup App with React Query for data fetching and caching
 function App() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -78,6 +76,7 @@ function App() {
   const [isVoiceReady, setIsVoiceReady] = useState(false);
   const [isDeepCALReady, setIsDeepCALReady] = useState(false);
   const { setShipmentData } = useBaseDataStore();
+  const location = useLocation();
 
   // Initialize voice system and DeepCAL bridge
   useEffect(() => {
@@ -106,6 +105,13 @@ function App() {
     initializeSystems();
   }, []);
 
+  // Reset loading state whenever route changes to avoid showing loading screen on navigation
+  useEffect(() => {
+    if (!isInitialLoad) {
+      setIsLoading(false);
+    }
+  }, [location.pathname, isInitialLoad]);
+
   useEffect(() => {
     // Check if we've already initialized this session
     const hasInitialized = sessionStorage.getItem('appInitialized');
@@ -125,6 +131,7 @@ function App() {
         setIsLoading(false);
         // Mark as initialized so we don't show loading screen on page navigation
         sessionStorage.setItem('appInitialized', 'true');
+        setIsInitialLoad(false);
         return;
       }
 
@@ -136,8 +143,8 @@ function App() {
         
         return {
           id: requestRef,
-          request_reference: requestRef,
           tracking_number: `TRK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+          request_reference: requestRef,
           origin_country: ['Kenya', 'South Africa', 'Ethiopia', 'Nigeria', 'Egypt'][i % 5],
           origin_latitude: 1.2404475 + (i * 0.01),
           origin_longitude: 36.990054 + (i * 0.01),
@@ -177,11 +184,10 @@ function App() {
           },
           date_of_greenlight_to_pickup: Math.random() > 0.7 ? new Date().toISOString() : null,
           freight_carrier: ['DHL', 'FedEx', 'UPS', 'Kuehne+Nagel', 'Maersk'][i % 5], // Added to match engine's required field
+          weight: Math.floor(Math.random() * 100) + 1,
           
           // Add data validation information - critical for ensuring real-world data accuracy
-          data_validated: true,
-          data_accuracy_score: dataAccuracyScore,
-          validation_timestamp: new Date().toISOString()
+          data_validated: true
         };
       });
       
@@ -196,6 +202,7 @@ function App() {
         console.error("Boot failed:", error);
       } finally {
         setIsLoading(false);
+        setIsInitialLoad(false);
         // Mark as initialized so we don't show loading screen on page navigation
         sessionStorage.setItem('appInitialized', 'true');
       }
@@ -207,17 +214,25 @@ function App() {
     const fallbackTimer = setTimeout(() => {
       console.log("Fallback timer triggered");
       setIsLoading(false);
+      setIsInitialLoad(false);
       sessionStorage.setItem('appInitialized', 'true');
     }, 3000); // Show loading screen for max 3 seconds
     
     return () => clearTimeout(fallbackTimer);
   }, [setShipmentData]);
 
+  // Determine if we should show the loading screen or skip it for internal navigation
+  const shouldSkipLoading = !isInitialLoad && isLoading;
+
   // If initial application load is still in progress, use the updated LoadingScreen
   if (isLoading && isInitialLoad) {
     return (
       <TooltipProvider>
-        <LoadingScreen isInitialLoad={true} onLoadingComplete={() => setIsLoading(false)} />
+        <LoadingScreen 
+          isInitialLoad={true} 
+          onLoadingComplete={() => setIsLoading(false)} 
+          skipLoading={false} 
+        />
       </TooltipProvider>
     );
   }
@@ -225,10 +240,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Suspense fallback={<LoadingScreen />}>
+        <Suspense fallback={<LoadingScreen skipLoading={shouldSkipLoading} />}>
           <Routes>
             <Route path="/" element={<MainLayout />}>
-              <Route index element={<ProtectedRoute><IndexPage /></ProtectedRoute>} />
+              <Route index element={<IndexPage />} />
               <Route path="analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
               <Route path="forms" element={<ProtectedRoute><FormsPage /></ProtectedRoute>} />
               <Route path="deepcal" element={

@@ -1,3 +1,4 @@
+
 export interface MoScriptResult {
   topAlternative: {
     name: string;
@@ -69,22 +70,13 @@ export interface VoiceTone {
   color: string;
 }
 
-// For line 139:
-weight: typeof shipment.weight_kg === 'string' 
-  ? parseFloat(shipment.weight_kg as string) + offsetWeight 
-  : (shipment.weight_kg as number) + offsetWeight,
+// Utility functions for handling numeric operations with string or number types
+export function safelyAddNumber(value1: string | number, value2: number): number {
+  const numValue1 = typeof value1 === 'string' ? parseFloat(value1) : value1;
+  return numValue1 + value2;
+}
 
-// For line 224:
-origin_longitude: typeof shipment.origin_longitude === 'string' 
-  ? parseFloat(shipment.origin_longitude as string) + (Math.random() - 0.5) * 0.1 
-  : (shipment.origin_longitude as number) + (Math.random() - 0.5) * 0.1,
-
-// For line 225:
-origin_latitude: typeof shipment.origin_latitude === 'string' 
-  ? parseFloat(shipment.origin_latitude as string) + (Math.random() - 0.5) * 0.1 
-  : (shipment.origin_latitude as number) + (Math.random() - 0.5) * 0.1,
-
-// For line 236:
-destination_longitude: typeof shipment.destination_longitude === 'string' 
-  ? parseFloat(shipment.destination_longitude as string) + (Math.random() - 0.5) * 0.05 
-  : (shipment.destination_longitude as number) + (Math.random() - 0.5) * 0.05,
+export function safelyAddRandomOffset(value: string | number, offsetRange: number): number {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  return numValue + (Math.random() - 0.5) * offsetRange;
+}

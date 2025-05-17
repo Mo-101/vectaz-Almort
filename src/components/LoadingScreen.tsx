@@ -18,13 +18,15 @@ import { useNavigate } from 'react-router-dom';
 interface LoadingScreenProps {
   isInitialLoad?: boolean;
   onLoadingComplete?: () => void;
+  skipLoading?: boolean; // New prop to bypass loading animation
 }
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
   isInitialLoad = false, 
-  onLoadingComplete 
+  onLoadingComplete,
+  skipLoading = false
 }) => {
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(skipLoading ? 100 : 0);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [loadingText, setLoadingText] = useState('Initializing DeepCAL Core');
   const [showLogo, setShowLogo] = useState(false);
@@ -44,6 +46,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   ];
   
   useEffect(() => {
+    // If skipLoading is true, complete immediately
+    if (skipLoading) {
+      completeLoading();
+      return;
+    }
+    
     const logoTimer = setTimeout(() => {
       setShowLogo(true);
     }, 600);
@@ -103,7 +111,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       clearTimeout(taglineTimer);
       clearTimeout(maxLoadingTimer);
     };
-  }, [loadingPhase]);
+  }, [loadingPhase, skipLoading]);
   
   // Complete loading function
   const completeLoading = () => {
@@ -158,7 +166,7 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
   // Static navigation icons for loading screen (router-independent)  
   const navIcons = [
     { id: 'map', route: '/', icon: GlobeIcon, label: 'Map' },
-    { id: 'analytics', route: '/#analytics', icon: BarChart3Icon, label: 'Analytics' },
+    { id: 'analytics', route: '/analytics', icon: BarChart3Icon, label: 'Analytics' },
     { id: 'forms', route: '/forms', icon: ClipboardListIcon, label: 'Forms' },
     { id: 'deepcal', route: '/deepcal', icon: BrainCircuitIcon, label: 'DeepCAL' },
     { id: 'oracle', route: '/oracle', icon: SparklesIcon, label: 'Oracle' },
@@ -240,13 +248,17 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
           })}
         </div>
       </div>
+      
       {/* Global Navigation - positioned at the top of the screen */}      
       <GlobalNavigation />
     </div>
-    );
-  };
-  
-  LoadingScreen.displayName = 'LoadingScreen';
-  LoadingScreen.propTypes = { isInitialLoad: PropTypes.bool };
-  
-  export default LoadingScreen;
+  );
+};
+
+LoadingScreen.displayName = 'LoadingScreen';
+LoadingScreen.propTypes = { 
+  isInitialLoad: PropTypes.bool,
+  skipLoading: PropTypes.bool
+};
+
+export default LoadingScreen;

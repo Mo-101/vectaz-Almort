@@ -23,14 +23,14 @@ export interface Shipment {
   forwarder_quotes: Record<string, number>;
   
   // Additional fields needed by the system
-  id?: string;
-  tracking_number?: string;
+  id: string;
+  tracking_number: string;
   status?: string;
-  created_at?: string;
-  updated_at?: string;
-  estimated_departure?: string;
-  total_value?: number;
-  weight?: number;
+  created_at: string;
+  updated_at: string;
+  estimated_departure: string;
+  total_value: number;
+  weight: number;
   expected_delivery_date?: string;
   date_of_greenlight_to_pickup?: string | null;
   data_validated?: boolean;
@@ -117,17 +117,17 @@ export interface ShipmentMetrics {
   noQuoteRatio: number;
   totalWeight: number;
   totalVolume: number;
-  totalCost?: number;  // Make totalCost optional to match both interfaces
+  totalCost: number;  
   avgCostPerKg: number;
   
   // Additional properties needed for the components
-  forwarderPerformance?: Record<string, any>;
-  topForwarder?: string;
-  carrierCount?: number;
-  topCarrier?: string;
+  forwarderPerformance: Record<string, any>;
+  topForwarder: string;
+  carrierCount: number;
+  topCarrier: string;
 }
 
-export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'oracle';
+export type AppSection = 'map' | 'analytics' | 'deepcal' | 'about' | 'settings' | 'oracle' | 'training';
 
 export interface TabItem {
   id: AppSection;
