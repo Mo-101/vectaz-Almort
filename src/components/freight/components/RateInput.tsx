@@ -8,6 +8,12 @@ interface RateInputProps {
   label?: string;
 }
 
+export interface ForwarderRateProps {
+  forwarderName: string;
+  rate: number;
+  onChange: (rate: number) => void;
+}
+
 const RateInput: React.FC<RateInputProps> = ({ value = 0, onChange, label = 'Rate' }) => {
   return (
     <div className="flex flex-col space-y-1">

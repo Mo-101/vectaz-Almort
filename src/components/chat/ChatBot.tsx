@@ -1,81 +1,85 @@
 
 import React, { useState, useEffect } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, X } from 'lucide-react';
-import DeepCalChat from '@/components/chat/DeepTalkChat';
-import { initVoiceSystem } from '@/utils/conversational/deeptalk_conversational';
-import { ShipmentDetails } from '@/hooks/freight/types';
+import { Mic, MicOff, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import DeepTalkChat from '@/components/chat/DeepTalkChat';
+import { initVoiceSystem, processUserQuery } from '@/utils/conversational/deeptalk_conversational';
+import { toast } from '@/components/ui/use-toast';
 
-interface ChatBotProps {
-  onShipmentDetailsExtracted?: (shipmentDetails: ShipmentDetails) => void;
-  onAnalysisRequested?: () => void;
-  analysisResults?: any;
+interface ShipmentDetails {
+  origin: string | null;
+  destination: string | null;
+  weight: number | null;
+  mode: string | null;
+  urgent: boolean;
+  emergency: boolean;
 }
 
-const ChatBot: React.FC<ChatBotProps> = ({ 
-  onShipmentDetailsExtracted,
-  onAnalysisRequested,
-  analysisResults
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isFieldMode, setIsFieldMode] = useState(false);
-  const [isVoiceInitialized, setIsVoiceInitialized] = useState(false);
-
-  // Initialize voice system when component mounts
+const ChatBot: React.FC = () => {
+  const [isVoiceInitialized, setIsVoiceInitialized] = useState<boolean>(false);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
+  
+  // Initialize voice system on component mount
   useEffect(() => {
-    initVoiceSystem().then(supported => {
-      setIsVoiceInitialized(supported);
-    });
-
-    // Check if we're in field mode (could be based on connection status)
-    const checkConnectionStatus = () => {
-      setIsFieldMode(!navigator.onLine);
+    const initVoice = async () => {
+      try {
+        const result = await initVoiceSystem();
+        setIsVoiceInitialized(!!result); // Convert to boolean
+        
+        if (result) {
+          toast({
+            title: "Voice system initialized",
+            description: "You can now use voice commands with DeepCAL",
+            variant: "default"
+          });
+        }
+      } catch (error) {
+        console.error('Failed to initialize voice system:', error);
+        toast({
+          title: "Voice system failed",
+          description: "Unable to initialize voice capabilities",
+          variant: "destructive"
+        });
+      }
     };
-
-    // Check connection status initially and when it changes
-    checkConnectionStatus();
-    window.addEventListener('online', checkConnectionStatus);
-    window.addEventListener('offline', checkConnectionStatus);
-
-    return () => {
-      window.removeEventListener('online', checkConnectionStatus);
-      window.removeEventListener('offline', checkConnectionStatus);
-    };
+    
+    initVoice();
   }, []);
-
+  
+  const handleShipmentDetailsExtracted = (shipmentDetails: ShipmentDetails) => {
+    console.log('Shipment details extracted:', shipmentDetails);
+    // Here you would typically update a form or trigger an action based on extracted details
+    toast({
+      title: "Shipment Details Captured",
+      description: `From ${shipmentDetails.origin} to ${shipmentDetails.destination}${shipmentDetails.weight ? ` - ${shipmentDetails.weight}kg` : ''}`,
+      variant: "default"
+    });
+  };
+  
+  const handleAnalysisRequested = () => {
+    console.log('Analysis requested');
+    // Simulate analysis being performed
+    setTimeout(() => {
+      setAnalysisResults({
+        recommendedForwarders: ['DHL Express', 'Maersk Line'],
+        estimatedCost: '$3,450',
+        estimatedTime: '7-10 days',
+        riskLevel: 'Low'
+      });
+    }, 1500);
+  };
+  
   return (
-    <>
-      {!isOpen && (
-        <Button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 rounded-full h-14 w-14 bg-analytics-teal hover:bg-analytics-teal/90 shadow-lg flex items-center justify-center z-50"
-        >
-          <MessageCircle className="h-6 w-6" />
-        </Button>
-      )}
-      
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetContent className="w-[380px] sm:w-[440px] p-0">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-end p-2">
-              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-            
-            <div className="flex-1 overflow-hidden">
-              <DeepCalChat 
-                onShipmentDetailsExtracted={onShipmentDetailsExtracted}
-                onAnalysisRequested={onAnalysisRequested}
-                analysisResults={analysisResults}
-                isFieldMode={isFieldMode}
-              />
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
+    <div className="w-full h-full">
+      <DeepTalkChat 
+        onShipmentDetailsExtracted={handleShipmentDetailsExtracted}
+        onAnalysisRequested={handleAnalysisRequested}
+        analysisResults={analysisResults}
+        isFieldMode={false}
+      />
+    </div>
   );
 };
 

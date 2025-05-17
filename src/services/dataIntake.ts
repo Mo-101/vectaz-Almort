@@ -1,10 +1,10 @@
-
 // Data Intake service for loading and validating DeepCAL base data
 // Ensures data quality and provenance tracking
 
 import { Shipment, ForwarderPerformance } from "@/types/deeptrack";
 import { calculateForwarderPerformance } from "@/utils/analyticsUtils";
 import { logAuditTrail } from './auditLogger';
+import { adaptShipmentsForEngine } from "@/utils/typeAdapters";
 
 // Metadata for tracked datasets
 interface DatasetMetadata {
@@ -141,8 +141,10 @@ export async function loadBaseData(version: string = "latest"): Promise<{
 
 // Convert shipment data to forwarder performance data
 export function deriveForwarderPerformance(shipmentData: Shipment[]): ForwarderPerformance[] {
-  // Use the existing utility function to calculate forwarder performance
-  return calculateForwarderPerformance(shipmentData);
+  // Use the adapter to convert UI shipments to engine shipments first
+  const engineShipments = adaptShipmentsForEngine(shipmentData);
+  // Then use the utility function to calculate forwarder performance
+  return calculateForwarderPerformance(engineShipments);
 }
 
 // Get available data versions

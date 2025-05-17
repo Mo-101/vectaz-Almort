@@ -1,4 +1,3 @@
-
 export interface Shipment {
   carrier: any;
   date_of_collection: string;
@@ -59,6 +58,9 @@ export interface CarrierPerformance {
   shipments?: number;
   reliability?: number;
   deepScore?: number;
+  serviceScore?: number;
+  punctualityScore?: number;
+  handlingScore?: number;
 }
 
 export interface RoutePerformance {
@@ -117,7 +119,7 @@ export interface ShipmentMetrics {
   noQuoteRatio: number;
   totalWeight: number;
   totalVolume: number;
-  totalCost: number;  
+  totalCost?: number; // Make totalCost optional to match engine type  
   avgCostPerKg: number;
   
   // Additional properties needed for the components

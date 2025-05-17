@@ -1,7 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
 import { boot } from '@/init/boot';
-import PropTypes from 'prop-types';
 import Particles from './Particles';
 import { loadingPhases } from '@/constants/loadingPhases';
 import FloatingIcons from './loading/FloatingIcons';
@@ -256,9 +254,5 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
 };
 
 LoadingScreen.displayName = 'LoadingScreen';
-LoadingScreen.propTypes = { 
-  isInitialLoad: PropTypes.bool,
-  skipLoading: PropTypes.bool
-};
 
 export default LoadingScreen;
