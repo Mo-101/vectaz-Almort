@@ -38,10 +38,11 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
     });
     
     // Convert map to array and sort by count
-    return Array.from(routeMap.values())
+    const sortedRoutes = Array.from(routeMap.values())
       .sort((a, b) => (b as RouteInfo).count - (a as RouteInfo).count)
-      .slice(0, 6) // Get top 6 routes
-      as RouteInfo[]; // Type assertion to fix TypeScript error
+      .slice(0, 6); // Get top 6 routes
+      
+    return sortedRoutes as RouteInfo[];
   }, [shipmentData]);
   
   // Helper function to normalize delivery status

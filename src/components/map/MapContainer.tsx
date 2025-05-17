@@ -9,8 +9,9 @@ import { useMapInteractions } from './hooks/useMapInteractions';
 import { useMapRef } from './hooks/useMapRef';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-// Set the Mapbox token directly to ensure map always loads
-mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+// Set the Mapbox token from environment variables
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+mapboxgl.accessToken = mapboxToken;
 
 // Using forwardRef to properly handle the ref
 const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({ 
