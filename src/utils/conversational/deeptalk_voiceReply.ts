@@ -1,11 +1,7 @@
 
 // Voice synthesis utilities for DeepTalk
 
-export interface SpeechSynthesisVoice {
-  name: string;
-  lang: string;
-}
-
+// Interface for voice settings
 export interface VoiceSettings {
   enabled: boolean;
   volume: number;
@@ -13,105 +9,123 @@ export interface VoiceSettings {
   speed: number;
 }
 
-// Initialize the speech synthesis system
+// Interface to match browser's SpeechSynthesisVoice
+export interface SpeechSynthesisVoice {
+  name: string;
+  lang: string;
+  default: boolean;
+  localService: boolean;
+  voiceURI: string;
+}
+
+// Initialize the voice system
 export const initVoiceSystem = async (): Promise<boolean> => {
-  // Check if speech synthesis is supported in this browser
+  // Check if browser supports speech synthesis
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    console.log('Speech synthesis supported');
+    console.log('Speech synthesis is supported');
+    
+    // Initialize voices (this helps some browsers load the voices)
+    window.speechSynthesis.getVoices();
+    
     return true;
   } else {
-    console.log('Speech synthesis not supported');
+    console.log('Speech synthesis is not supported');
     return false;
   }
 };
 
-// Get available voices
+// Get all available voices from the browser
 export const getAvailableVoices = (): SpeechSynthesisVoice[] => {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    return [];
-  }
-
-  const synth = window.speechSynthesis;
-  const voices = synth.getVoices();
-  
-  return voices.map(voice => ({
-    name: voice.name,
-    lang: voice.lang
-  }));
-};
-
-// Speak the text using the provided settings
-export const voiceReply = async (text: string, settings: VoiceSettings): Promise<boolean> => {
-  if (!settings.enabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
-    console.log('[Voice Disabled] Would speak:', text);
-    return false;
-  }
-
-  const synth = window.speechSynthesis;
-  const utterance = new SpeechSynthesisUtterance(text);
-  
-  // Apply settings
-  utterance.volume = settings.volume; // 0 to 1
-  utterance.rate = settings.speed;    // 0.1 to 10
-  
-  // Set voice if specified and available
-  const voices = synth.getVoices();
-  const selectedVoice = voices.find(voice => voice.name === settings.voice);
-  if (selectedVoice) {
-    utterance.voice = selectedVoice;
-  }
-  
-  // Speak the text
-  synth.speak(utterance);
-  
-  return new Promise<boolean>((resolve) => {
-    utterance.onend = () => {
-      resolve(true);
-    };
-    utterance.onerror = () => {
-      resolve(false);
-    };
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    const voices = window.speechSynthesis.getVoices();
     
-    // Safety timeout in case the speech synthesis hangs
-    setTimeout(() => {
-      if (synth.speaking) {
-        synth.cancel(); // Cancel current speech
-        resolve(false);
-      }
-    }, 15000); // 15 second timeout
-  });
+    return voices.map(voice => ({
+      name: voice.name,
+      lang: voice.lang,
+      default: voice.default,
+      localService: voice.localService,
+      voiceURI: voice.voiceURI
+    }));
+  }
+  
+  return [];
 };
 
 // Update voice settings
-export const updateVoiceSettings = (updates: Partial<VoiceSettings>): VoiceSettings => {
-  // Default settings
-  const defaultSettings: VoiceSettings = {
+export const updateVoiceSettings = (
+  newSettings: Partial<VoiceSettings>
+): VoiceSettings => {
+  // In a real app, this would persist settings to localStorage or a database
+  const currentSettings: VoiceSettings = {
     enabled: true,
     volume: 0.8,
-    voice: '',
+    voice: 'Google UK English Female',
     speed: 1.0
   };
   
-  // Get current settings from localStorage if available
-  let currentSettings = defaultSettings;
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const savedSettings = localStorage.getItem('voiceSettings');
-    if (savedSettings) {
-      try {
-        currentSettings = { ...defaultSettings, ...JSON.parse(savedSettings) };
-      } catch (e) {
-        console.error('Failed to parse saved voice settings:', e);
+  return { ...currentSettings, ...newSettings };
+};
+
+// Generate voice reply for text
+export const voiceReply = async (
+  text: string,
+  settings?: Partial<VoiceSettings>
+): Promise<boolean> => {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    console.error('Speech synthesis not supported');
+    return false;
+  }
+  
+  try {
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    // Create utterance
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Apply settings if provided
+    if (settings) {
+      // Set volume (0 to 1)
+      if (typeof settings.volume === 'number') {
+        utterance.volume = Math.max(0, Math.min(1, settings.volume));
+      }
+      
+      // Set rate (speed) (0.1 to 10, but practically 0.5 to 2)
+      if (typeof settings.speed === 'number') {
+        utterance.rate = Math.max(0.5, Math.min(2, settings.speed));
+      }
+      
+      // Set voice
+      if (settings.voice) {
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(v => v.name === settings.voice);
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
       }
     }
+    
+    // Speak the text
+    window.speechSynthesis.speak(utterance);
+    
+    return true;
+  } catch (error) {
+    console.error('Error with speech synthesis:', error);
+    return false;
   }
-  
-  // Apply updates
-  const newSettings = { ...currentSettings, ...updates };
-  
-  // Save to localStorage if available
-  if (typeof window !== 'undefined' && window.localStorage) {
-    localStorage.setItem('voiceSettings', JSON.stringify(newSettings));
+};
+
+// Check if the system is currently speaking
+export const isSpeaking = (): boolean => {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    return window.speechSynthesis.speaking;
   }
-  
-  return newSettings;
+  return false;
+};
+
+// Stop any ongoing speech
+export const stopSpeaking = (): void => {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
 };
