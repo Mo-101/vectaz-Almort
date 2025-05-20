@@ -9,9 +9,17 @@ import { useMapInteractions } from './hooks/useMapInteractions';
 import { useMapRef } from './hooks/useMapRef';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
-// Set the Mapbox token from environment variables
-const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
-mapboxgl.accessToken = mapboxToken;
+// Set the Mapbox token from environment variables or use a default for development
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+// Ensure token is set before initializing mapboxgl
+if (mapboxToken) {
+  mapboxgl.accessToken = mapboxToken;
+} else {
+  console.warn('Mapbox access token not found in environment variables. Using a default token for development purposes only.');
+  // Default public token for development only - restricted usage
+  mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4M29iazA2Z2gycXA4N2pmbDZmangifQ.-g_vE53SD2WrJ6tFX7QHmA';
+}
 
 // Using forwardRef to properly handle the ref
 const MapContainer = forwardRef<MapContainerRef, MapContainerProps>(({ 

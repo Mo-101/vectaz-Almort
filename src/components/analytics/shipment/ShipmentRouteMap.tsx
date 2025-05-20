@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShipmentMetrics, RouteInfo } from '@/types/deeptrack';
 import { Map, CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -39,10 +39,10 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
     
     // Convert map to array and sort by count
     const sortedRoutes = Array.from(routeMap.values())
-      .sort((a, b) => (b as RouteInfo).count - (a as RouteInfo).count)
+      .sort((a, b) => b.count - a.count)
       .slice(0, 6); // Get top 6 routes
       
-    return sortedRoutes as RouteInfo[];
+    return sortedRoutes;
   }, [shipmentData]);
   
   // Helper function to normalize delivery status
@@ -116,24 +116,20 @@ const ShipmentRouteMap: React.FC<ShipmentRouteMapProps> = ({ metrics }) => {
         <div className="space-y-2">
           <div className="text-sm font-medium text-gray-400 mb-1">Top Routes by Volume</div>
           <div className="divide-y divide-gray-800">
-            {routes.length > 0 ? routes.map((route, index) => {
-              // Type assertion to fix TypeScript error
-              const typedRoute = route as RouteInfo;
-              return (
+            {routes.length > 0 ? routes.map((route, index) => (
                 <div key={index} className="flex items-center justify-between py-2">
                   <div className="flex items-center">
-                    <div className={`h-2 w-2 rounded-full ${getStatusColor(typedRoute.status)} mr-2`}></div>
-                    <span>{typedRoute.from} → {typedRoute.to}</span>
+                    <div className={`h-2 w-2 rounded-full ${getStatusColor(route.status)} mr-2`}></div>
+                    <span>{route.from} → {route.to}</span>
                   </div>
                   <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-400">{typedRoute.count} shipments</span>
-                    {getStatusIcon(typedRoute.status)}
+                    <span className="text-sm text-gray-400">{route.count} shipments</span>
+                    {getStatusIcon(route.status)}
                   </div>
                 </div>
-              );
-            }) : (
-              <div className="py-2 text-gray-400">No route data available</div>
-            )}
+              )) : (
+                <div className="py-2 text-gray-400">No route data available</div>
+              )}
           </div>
         </div>
       </CardContent>
