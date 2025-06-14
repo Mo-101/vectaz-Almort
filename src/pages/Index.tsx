@@ -5,6 +5,7 @@ import { AppSection } from '@/types/deeptrack';
 import EntryAnimation from '@/components/EntryAnimation';
 import { AnimatePresence } from 'framer-motion';
 import { useNavigate, useLocation } from 'react-router-dom';
+import TrainingPage from './TrainingPage';
 
 // Import the optimized components
 import AnimatedBackground from '@/components/home/AnimatedBackground';

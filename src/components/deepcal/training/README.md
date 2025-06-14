@@ -52,6 +52,7 @@ Edit the DeepCAL domain configuration in `freight_forwarder_domain.yml` to custo
 ## Training Status Monitoring
 
 Training progress is visualized in the NodeGrid component which displays:
+
 - Training node status
 - Processing metrics
 - Real-time completion indicators
